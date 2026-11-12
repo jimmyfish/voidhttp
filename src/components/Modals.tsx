@@ -3,7 +3,8 @@ import { useStore } from "../store";
 import type { Environment, KV } from "../types";
 import { listFolders, uid } from "../lib/model";
 import { KVEditor } from "./KVEditor";
-import { Plus, ico } from "./Icon";
+import { Check, Plus, ico } from "./Icon";
+import { PROJECT_COLORS, PROJECT_ICONS, ProjectTile, tileStyle } from "./ProjectIcon";
 
 export function Modals() {
   const modal = useStore((s) => s.modal);
@@ -39,6 +40,10 @@ export function Modals() {
       return <VariablesModal onClose={close} />;
     case "settings":
       return <SettingsModal onClose={close} />;
+    case "project":
+      return <ProjectModal projectId={modal.projectId} onClose={close} />;
+    case "import":
+      return <ImportModal text={modal.text} onClose={close} />;
   }
 }
 
@@ -266,6 +271,139 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
       <footer>
         <button type="button" className="btn btn--primary" onClick={onClose}>
           Done
+        </button>
+      </footer>
+    </Shell>
+  );
+}
+
+/** Create a project, or edit one: name, a Lucide icon and a colour, with a live preview. */
+function ProjectModal({ projectId, onClose }: { projectId?: string; onClose: () => void }) {
+  const s = useStore.getState();
+  const existing = projectId ? s.projects.find((p) => p.id === projectId) : undefined;
+  const [name, setName] = useState(existing?.name ?? "");
+  const [icon, setIcon] = useState(existing?.icon && PROJECT_ICONS[existing.icon] ? existing.icon : "landmark");
+  const [color, setColor] = useState(existing?.color ?? 1);
+  const title = existing ? "Edit project" : "New project";
+
+  const submit = () => {
+    const n = name.trim();
+    if (!n) return;
+    if (existing) s.updateProject(existing.id, { name: n, icon, color });
+    else s.openProject(s.createProject({ name: n, icon, color }));
+    onClose();
+  };
+
+  return (
+    <Shell title={title} onClose={onClose}>
+      <div className="proj-preview">
+        <ProjectTile icon={icon} color={color} />
+        <div>
+          <strong>{name.trim() || "Untitled project"}</strong>
+          <span className="muted">Collections, environments and history of its own</span>
+        </div>
+      </div>
+      <label>
+        Name
+        <input
+          className="field"
+          autoFocus
+          placeholder="e.g. Amarbank"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+        />
+      </label>
+      <div className="pick">
+        <span className="pick-label" id="lbl-icon">
+          Icon
+        </span>
+        <div className="icon-grid" role="radiogroup" aria-labelledby="lbl-icon" style={tileStyle(color)}>
+          {Object.entries(PROJECT_ICONS).map(([key, I]) => (
+            <button
+              key={key}
+              type="button"
+              role="radio"
+              aria-checked={icon === key}
+              aria-label={key.replace(/-/g, " ")}
+              title={key.replace(/-/g, " ")}
+              onClick={() => setIcon(key)}
+            >
+              <I {...ico} />
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="pick">
+        <span className="pick-label" id="lbl-colour">
+          Colour
+        </span>
+        <div className="swatches" role="radiogroup" aria-labelledby="lbl-colour">
+          {PROJECT_COLORS.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              role="radio"
+              aria-checked={color === c.id}
+              aria-label={c.name}
+              style={tileStyle(c.id)}
+              onClick={() => setColor(c.id)}
+            >
+              <Check {...ico} />
+            </button>
+          ))}
+        </div>
+      </div>
+      <footer>
+        <button type="button" className="btn" onClick={onClose}>
+          Cancel
+        </button>
+        <button type="button" className="btn btn--primary" disabled={!name.trim()} onClick={submit}>
+          {existing ? "Save" : "Create project"}
+        </button>
+      </footer>
+    </Shell>
+  );
+}
+
+/** A file picked on Home: choose the project it goes into, or make a new one for it. */
+function ImportModal({ text, onClose }: { text: string; onClose: () => void }) {
+  const s = useStore.getState();
+  const byRecent = [...s.projects].sort((a, b) => b.openedAt - a.openedAt);
+  const [target, setTarget] = useState(byRecent[0]?.id ?? "");
+  const [newName, setNewName] = useState("Imported");
+
+  const submit = () => {
+    const id = target || s.createProject({ name: newName.trim() || "Imported", icon: "package", color: 1 });
+    s.importInto(id, text);
+    onClose();
+  };
+
+  return (
+    <Shell title="Import into" onClose={onClose}>
+      <label>
+        Project
+        <select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
+          {byRecent.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+          <option value="">New project…</option>
+        </select>
+      </label>
+      {target === "" && (
+        <label>
+          Project name
+          <input className="field" value={newName} onChange={(e) => setNewName(e.target.value)} />
+        </label>
+      )}
+      <footer>
+        <button type="button" className="btn" onClick={onClose}>
+          Cancel
+        </button>
+        <button type="button" className="btn btn--primary" onClick={submit}>
+          Import
         </button>
       </footer>
     </Shell>

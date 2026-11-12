@@ -9,6 +9,8 @@ use tauri::{AppHandle, Manager};
 
 /// Only these document names may be read or written.
 const DOCS: &[&str] = &["workspace", "history", "session"];
+/// Write-only documents (never loaded back): the v1 data kept once before the projects migration.
+const WRITE_ONLY: &[&str] = &["backup-v1"];
 
 fn data_dir(app: &AppHandle) -> Result<PathBuf, String> {
     let dir = app
@@ -20,7 +22,7 @@ fn data_dir(app: &AppHandle) -> Result<PathBuf, String> {
 }
 
 fn doc_path(app: &AppHandle, name: &str) -> Result<PathBuf, String> {
-    if !DOCS.contains(&name) {
+    if !DOCS.contains(&name) && !WRITE_ONLY.contains(&name) {
         return Err(format!("unknown document: {name}"));
     }
     Ok(data_dir(app)?.join(format!("{name}.json")))

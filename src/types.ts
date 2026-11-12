@@ -101,6 +101,44 @@ export interface Settings {
   fontSizeCode?: number;
 }
 
+/** A project: the unit shown as a tab in the title strip and as a card on Home. */
+export interface ProjectMeta {
+  id: string;
+  name: string;
+  /** Lucide icon name from PROJECT_ICONS */
+  icon: string;
+  /** 1..6, the --proj-N-fg / --proj-N-bg token pair */
+  color: number;
+  createdAt: number;
+  openedAt: number;
+}
+
+/** Everything a project owns. The open project's copy lives at the top of the store. */
+export interface ProjectData {
+  collections: Collection[];
+  environments: Environment[];
+  activeEnvironmentId: string | null;
+  history: HistoryEntry[];
+  tabs: Tab[];
+  activeTabId: string | null;
+}
+
+/** workspace.json, version 2: settings plus every project's collections and environments. */
+export interface WorkspaceV2 {
+  version: 2;
+  settings: Settings;
+  projects: (ProjectMeta & Pick<ProjectData, "collections" | "environments" | "activeEnvironmentId">)[];
+}
+
+/** session.json, version 2: what was open, per project. */
+export interface SessionV2 {
+  view: "home" | "project";
+  currentProjectId: string | null;
+  openProjectIds: string[];
+  perProject: Record<string, { tabs: Tab[]; activeTabId: string | null }>;
+}
+
+/** workspace.json, version 1 (before projects); migrated into one project on first load. */
 export interface Workspace {
   version: 1;
   collections: Collection[];
