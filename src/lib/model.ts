@@ -119,7 +119,31 @@ export function urlWithParams(url: string, params: KV[]): string {
 }
 
 export function formatBytes(n: number): string {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / 1024 / 1024).toFixed(2)} MB`;
+  // non-breaking space keeps the figure and its unit together
+  if (n < 1024) return `${n}\u00a0B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)}\u00a0KB`;
+  return `${(n / 1024 / 1024).toFixed(2)}\u00a0MB`;
+}
+
+/** Folder names from the collection root down to the node's parent, or null when absent. */
+export function pathTo(nodes: TreeNode[], id: string, trail: string[] = []): string[] | null {
+  for (const n of nodes) {
+    if (n.id === id) return trail;
+    if (n.type === "folder") {
+      const hit = pathTo(n.children, id, [...trail, n.name]);
+      if (hit) return hit;
+    }
+  }
+  return null;
+}
+
+/** Requests below a node, recursively (the count shown beside folders). */
+export function countRequests(nodes: TreeNode[]): number {
+  return nodes.reduce((n, c) => n + (c.type === "request" ? 1 : countRequests(c.children)), 0);
+}
+
+/** Short method label for tight places: tree, tabs, history. */
+export function methodLabel(m: string): string {
+  const u = m.toUpperCase();
+  return u === "DELETE" ? "DEL" : u === "OPTIONS" ? "OPT" : u;
 }

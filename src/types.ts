@@ -94,6 +94,11 @@ export interface Settings {
   timeoutMs: number;
   followRedirects: boolean;
   insecure: boolean;
+  /** Type overrides, written to the four type tokens on :root. Empty = the token default. */
+  fontUi?: string;
+  fontMono?: string;
+  fontSizeUi?: number;
+  fontSizeCode?: number;
 }
 
 export interface Workspace {

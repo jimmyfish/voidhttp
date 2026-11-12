@@ -1,0 +1,44 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand (Apidog reference, measured)",
+  "genre": "modern-minimal",
+  "nav": "icon rail + panel",
+  "hero": "none (app screen)",
+  "footer": "none",
+  "imagery": "none",
+  "photos": [],
+  "signature": "the request line: method and URL in one filled field beside Send",
+  "sections": [
+   "rail",
+   "sidebar tree",
+   "tabs with flared active tab",
+   "request line",
+   "request title",
+   "subtabs",
+   "body editor",
+   "response"
+  ],
+  "waived": [
+   "24b",
+   "39b"
+  ],
+  "prompt": "desktop API client restyled after Apidog, owner-approved preview",
+  "date": "2026-11-12"
+ },
+ {
+  "mode": "redesign",
+  "depth": "polish",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "the project",
+  "genre": "modern-minimal",
+  "prompt": "desktop API client, Postman alternative",
+  "waived": [],
+  "signature": "request line over response pane",
+  "date": "2026-11-12"
+ }
+]

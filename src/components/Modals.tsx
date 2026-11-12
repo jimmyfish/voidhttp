@@ -3,6 +3,7 @@ import { useStore } from "../store";
 import type { Environment, KV } from "../types";
 import { listFolders, uid } from "../lib/model";
 import { KVEditor } from "./KVEditor";
+import { Plus, ico } from "./Icon";
 
 export function Modals() {
   const modal = useStore((s) => s.modal);
@@ -23,11 +24,11 @@ export function Modals() {
         <Shell title={modal.title} onClose={close}>
           <p>{modal.message}</p>
           <footer>
-            <button className="ghost" onClick={close}>
+            <button type="button" className="btn" onClick={close}>
               Cancel
             </button>
-            <button className="danger" autoFocus onClick={() => (modal.onConfirm(), close())}>
-              Delete
+            <button type="button" className="btn btn--danger" autoFocus onClick={() => (modal.onConfirm(), close())}>
+              {modal.confirmLabel ?? "Delete"}
             </button>
           </footer>
         </Shell>
@@ -44,7 +45,7 @@ export function Modals() {
 function Shell({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   return (
     <div className="backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={`modal ${wide ? "wide" : ""}`}>
+      <div className={`dialog ${wide ? "wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
         <h3>{title}</h3>
         {children}
       </div>
@@ -62,12 +63,12 @@ function PromptModal({ title, initial, onSubmit, onClose }: { title: string; ini
           if (v.trim()) onSubmit(v.trim());
         }}
       >
-        <input autoFocus value={v} onFocus={(e) => e.target.select()} onChange={(e) => setV(e.target.value)} />
+        <input className="field" aria-label={title} autoFocus value={v} onFocus={(e) => e.target.select()} onChange={(e) => setV(e.target.value)} />
         <footer>
-          <button type="button" className="ghost" onClick={onClose}>
+          <button type="button" className="btn" onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" className="primary">
+          <button type="submit" className="btn btn--primary">
             OK
           </button>
         </footer>
@@ -96,37 +97,38 @@ function SaveModal({ tabId, onClose }: { tabId: string; onClose: () => void }) {
 
   return (
     <Shell title="Save request" onClose={onClose}>
-      <label className="field">
-        <span>Name</span>
-        <input autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} />
+      <label>
+        Name
+        <input className="field" autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} />
       </label>
-      <label className="field">
-        <span>Save to</span>
-        <select value={target} onChange={(e) => setTarget(e.target.value)}>
+      <label>
+        Save to
+        <select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
           {s.collections.map((c) => [
             <option key={c.id} value={`${c.id}|`}>
               {c.name}
             </option>,
             ...listFolders(c.children).map(({ folder, depth }) => (
               <option key={folder.id} value={`${c.id}|${folder.id}`}>
-                {"  ".repeat(depth + 1)}↳ {folder.name}
+                {"  ".repeat(depth + 1)}
+                {folder.name}
               </option>
             )),
           ])}
-          <option value="">＋ New collection…</option>
+          <option value="">New collection…</option>
         </select>
       </label>
       {target === "" && (
-        <label className="field">
-          <span>Collection</span>
-          <input value={newCol} onChange={(e) => setNewCol(e.target.value)} />
+        <label>
+          Collection name
+          <input className="field" value={newCol} onChange={(e) => setNewCol(e.target.value)} />
         </label>
       )}
       <footer>
-        <button className="ghost" onClick={onClose}>
+        <button type="button" className="btn" onClick={onClose}>
           Cancel
         </button>
-        <button className="primary" onClick={submit}>
+        <button type="button" className="btn btn--primary" onClick={submit}>
           Save
         </button>
       </footer>
@@ -161,33 +163,38 @@ function VariablesModal({ onClose }: { onClose: () => void }) {
 
   return (
     <Shell title="Variables" onClose={onClose} wide>
-      <div className="vars-layout">
-        <ul className="vars-list">
+      <div className="vars">
+        <ul>
           <li className="group">
-            Environments{" "}
-            <button className="icon" title="Add environment" onClick={addEnv}>
-              ＋
+            Environments
+            <button type="button" className="icon-btn" title="Add environment" aria-label="Add environment" onClick={addEnv}>
+              <Plus {...ico} />
             </button>
           </li>
           {envs.map((e) => (
-            <li key={e.id} className={sel === e.id ? "on" : ""} onClick={() => setSel(e.id)}>
-              {e.name}
+            <li key={e.id}>
+              <button type="button" aria-current={sel === e.id} onClick={() => setSel(e.id)}>
+                {e.name}
+              </button>
             </li>
           ))}
           {s.collections.length > 0 && <li className="group">Collection variables</li>}
           {s.collections.map((c) => (
-            <li key={c.id} className={sel === c.id ? "on" : ""} onClick={() => setSel(c.id)}>
-              {c.name}
+            <li key={c.id}>
+              <button type="button" aria-current={sel === c.id} onClick={() => setSel(c.id)}>
+                {c.name}
+              </button>
             </li>
           ))}
         </ul>
-        <div className="vars-edit">
+        <div>
           {env && (
             <>
               <div className="env-head">
-                <input value={env.name} onChange={(e) => patchEnv({ name: e.target.value })} />
+                <input className="field" aria-label="Environment name" value={env.name} onChange={(e) => patchEnv({ name: e.target.value })} />
                 <button
-                  className="danger small"
+                  type="button"
+                  className="btn btn--danger"
                   onClick={() => {
                     const rest = envs.filter((e) => e.id !== env.id);
                     setEnvs(rest);
@@ -197,7 +204,7 @@ function VariablesModal({ onClose }: { onClose: () => void }) {
                   Delete
                 </button>
               </div>
-              <KVEditor rows={env.variables} onChange={(variables) => patchEnv({ variables })} keyPlaceholder="Variable" />
+              <KVEditor rows={env.variables} nameLabel="Variable" addLabel="Add a variable" onChange={(variables) => patchEnv({ variables })} />
             </>
           )}
           {col && (
@@ -205,17 +212,27 @@ function VariablesModal({ onClose }: { onClose: () => void }) {
               <p className="muted">
                 Used by requests saved in <b>{col.name}</b>. Environment values override these.
               </p>
-              <KVEditor rows={colVars[col.id] ?? []} onChange={(v) => setColVars({ ...colVars, [col.id]: v })} keyPlaceholder="Variable" />
+              <KVEditor
+                rows={colVars[col.id] ?? []}
+                nameLabel="Variable"
+                addLabel="Add a variable"
+                onChange={(v) => setColVars({ ...colVars, [col.id]: v })}
+              />
             </>
           )}
-          {!env && !col && <p className="empty">Create an environment to store variables like {"{{baseUrl}}"}.</p>}
+          {!env && !col && (
+            <div className="empty">
+              <strong>No environments yet</strong>
+              <span>Add one to store variables like {"{{baseUrl}}"}.</span>
+            </div>
+          )}
         </div>
       </div>
       <footer>
-        <button className="ghost" onClick={onClose}>
+        <button type="button" className="btn" onClick={onClose}>
           Cancel
         </button>
-        <button className="primary" onClick={save}>
+        <button type="button" className="btn btn--primary" onClick={save}>
           Save
         </button>
       </footer>
@@ -227,10 +244,11 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
   return (
-    <Shell title="Settings" onClose={onClose}>
-      <label className="field">
-        <span>Timeout (ms)</span>
+    <Shell title="Request settings" onClose={onClose}>
+      <label>
+        Timeout (ms)
         <input
+          className="field"
           type="number"
           min={1}
           value={settings.timeoutMs}
@@ -246,7 +264,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
         Skip TLS certificate verification (insecure)
       </label>
       <footer>
-        <button className="primary" onClick={onClose}>
+        <button type="button" className="btn btn--primary" onClick={onClose}>
           Done
         </button>
       </footer>

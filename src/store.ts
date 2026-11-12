@@ -28,7 +28,7 @@ const HISTORY_LIMIT = 200;
 
 export type Modal =
   | { kind: "prompt"; title: string; initial: string; onSubmit: (v: string) => void }
-  | { kind: "confirm"; title: string; message: string; onConfirm: () => void }
+  | { kind: "confirm"; title: string; message: string; onConfirm: () => void; confirmLabel?: string }
   | { kind: "save"; tabId: string }
   | { kind: "environments" }
   | { kind: "settings" };
@@ -60,6 +60,7 @@ interface State {
   saveTab(tabId: string): void;
   saveTabAs(tabId: string, collectionId: string, parentId: string | null, name: string): void;
   openSaved(collectionId: string, nodeId: string): void;
+  deleteSaved(tabId: string): void;
 
   createCollection(name: string): string;
   addFolder(collectionId: string, parentId: string | null, name: string): void;
@@ -205,7 +206,6 @@ export const useStore = create<State>((set, get) => ({
       ),
       tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, dirty: false })),
     }));
-    get().notify("Saved");
   },
 
   saveTabAs(tabId, collectionId, parentId, name) {
@@ -222,7 +222,6 @@ export const useStore = create<State>((set, get) => ({
         dirty: false,
       })),
     }));
-    get().notify("Saved");
   },
 
   openSaved(collectionId, nodeId) {
@@ -240,6 +239,14 @@ export const useStore = create<State>((set, get) => ({
       return;
     }
     get().newTab(toRequestDef(node), { collectionId, nodeId });
+  },
+
+  deleteSaved(tabId) {
+    const ref = get().tabs.find((t) => t.id === tabId)?.savedRef;
+    if (!ref) return;
+    get().deleteNode(ref.collectionId, ref.nodeId);
+    // the tab stays open as an unsaved request, so nothing typed is lost
+    set((s) => ({ tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, savedRef: undefined, dirty: false })) }));
   },
 
   createCollection(name) {

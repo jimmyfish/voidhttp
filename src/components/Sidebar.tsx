@@ -1,95 +1,92 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store";
 import type { Collection, TreeNode } from "../types";
-import { toRequestDef } from "../lib/model";
+import { countRequests, findNode, methodLabel, toRequestDef } from "../lib/model";
+import { ChevronDown, ChevronRight, Folder, FolderPlus, Import, Pencil, Plus, Search, X, Braces, ico } from "./Icon";
 
-export function Sidebar() {
-  const [view, setView] = useState<"collections" | "history">("collections");
+export type SideView = "collections" | "history";
+
+export function Sidebar({ view }: { view: SideView }) {
   const [filter, setFilter] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const collections = useStore((st) => st.collections);
-  const environments = useStore((st) => st.environments);
-  const activeEnvironmentId = useStore((st) => st.activeEnvironmentId);
-  const s = useStore.getState();
+  const s = useStore.getState(); // actions only
 
   const onImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     for (const f of Array.from(e.target.files ?? [])) s.importText(await f.text());
     e.target.value = "";
   };
-
   const newCollection = () =>
     s.openModal({ kind: "prompt", title: "New collection", initial: "My collection", onSubmit: (n) => s.createCollection(n) });
+  const clearHistory = () =>
+    s.openModal({
+      kind: "confirm",
+      title: "Clear history?",
+      message: "Every request in history is removed. Saved collections are not touched.",
+      onConfirm: () => s.clearHistory(),
+      confirmLabel: "Clear",
+    });
+
+  const f = filter.toLowerCase();
+  const search = (
+    <div className="search">
+      <Search {...ico} />
+      <input className="field" placeholder="Search" aria-label={`Search ${view}`} value={filter} onChange={(e) => setFilter(e.target.value)} />
+    </div>
+  );
+
+  if (view === "history") {
+    return (
+      <aside className="sidebar">
+        <div className="side-head">
+          <h2>History</h2>
+          <button type="button" className="btn" onClick={clearHistory}>
+            Clear
+          </button>
+        </div>
+        <div className="side-tools">{search}</div>
+        <HistoryList filter={f} />
+      </aside>
+    );
+  }
 
   return (
     <aside className="sidebar">
-      <header className="brand">
-        <span className="logo">◉</span> voidHTTP
-        <button className="icon push" title="Settings" onClick={() => s.openModal({ kind: "settings" })}>
-          ⚙
-        </button>
-      </header>
-
-      <div className="env-row">
-        <select value={activeEnvironmentId ?? ""} onChange={(e) => s.setActiveEnvironment(e.target.value || null)}>
-          <option value="">No environment</option>
-          {environments.map((env) => (
-            <option key={env.id} value={env.id}>
-              {env.name}
-            </option>
-          ))}
-        </select>
-        <button className="icon" title="Manage environments" onClick={() => s.openModal({ kind: "environments" })}>
-          ✎
-        </button>
+      <div className="side-head">
+        <h2>Collections</h2>
       </div>
-
-      <nav className="subtabs side">
-        <button className={view === "collections" ? "on" : ""} onClick={() => setView("collections")}>
-          Collections
+      <div className="side-tools">
+        {search}
+        <button
+          type="button"
+          className="icon-btn icon-btn--outline"
+          title="Import a Postman collection or environment (v2.x JSON)"
+          aria-label="Import from Postman"
+          onClick={() => fileRef.current?.click()}
+        >
+          <Import {...ico} />
         </button>
-        <button className={view === "history" ? "on" : ""} onClick={() => setView("history")}>
-          History
+        <button type="button" className="icon-btn icon-btn--filled" title="New collection" aria-label="New collection" onClick={newCollection}>
+          <Plus {...ico} />
         </button>
-      </nav>
-
-      <div className="side-actions">
-        <input className="filter" placeholder="Filter" value={filter} onChange={(e) => setFilter(e.target.value)} />
-        {view === "collections" ? (
-          <>
-            <button className="icon" title="New collection" onClick={newCollection}>
-              ＋
-            </button>
-            <button className="icon" title="Import Postman collection / environment (v2.x JSON)" onClick={() => fileRef.current?.click()}>
-              ⇪
-            </button>
-            <input ref={fileRef} type="file" accept=".json,application/json" multiple hidden onChange={onImport} />
-          </>
-        ) : (
-          <button className="icon" title="Clear history" onClick={() => s.clearHistory()}>
-            🗑
-          </button>
-        )}
+        <input ref={fileRef} type="file" accept=".json,application/json" multiple hidden onChange={onImport} />
       </div>
-
-      <div className="side-scroll">
-        {view === "collections" ? (
-          collections.length === 0 ? (
-            <div className="empty">
-              No collections yet.
-              <br />
-              <button className="link" onClick={newCollection}>
+      <div className="tree">
+        {collections.length === 0 ? (
+          <div className="empty">
+            <strong>No collections yet</strong>
+            <span>
+              <button type="button" className="btn btn--quiet" onClick={newCollection}>
                 Create one
               </button>{" "}
               or{" "}
-              <button className="link" onClick={() => fileRef.current?.click()}>
+              <button type="button" className="btn btn--quiet" onClick={() => fileRef.current?.click()}>
                 import from Postman
               </button>
-            </div>
-          ) : (
-            collections.map((c) => <CollectionView key={c.id} collection={c} filter={filter.toLowerCase()} />)
-          )
+            </span>
+          </div>
         ) : (
-          <HistoryList filter={filter.toLowerCase()} />
+          collections.map((c) => <CollectionView key={c.id} collection={c} filter={f} />)
         )}
       </div>
     </aside>
@@ -105,21 +102,24 @@ function matches(n: TreeNode, f: string): boolean {
 
 function CollectionView({ collection, filter }: { collection: Collection; filter: string }) {
   const [open, setOpen] = useState(true);
+  const shown = open || !!filter;
   return (
-    <div className="tree">
+    <>
       <Row
         collectionId={collection.id}
         nodeId={collection.id}
         name={collection.name}
-        open={open}
+        count={countRequests(collection.children)}
+        open={shown}
         onToggle={() => setOpen(!open)}
         isCollection
         depth={0}
       />
-      {(open || filter) && collection.children.filter((n) => matches(n, filter)).map((n) => (
-        <Node key={n.id} node={n} collectionId={collection.id} depth={1} filter={filter} />
-      ))}
-    </div>
+      {shown &&
+        collection.children
+          .filter((n) => matches(n, filter))
+          .map((n) => <Node key={n.id} node={n} collectionId={collection.id} depth={1} filter={filter} />)}
+    </>
   );
 }
 
@@ -127,6 +127,11 @@ function Node({ node, collectionId, depth, filter }: { node: TreeNode; collectio
   const [open, setOpen] = useState(false);
   const openSaved = useStore((s) => s.openSaved);
   const activeNodeId = useStore((s) => s.tabs.find((t) => t.id === s.activeTabId)?.savedRef?.nodeId);
+  // a folder opens by itself when it holds the request in the active tab
+  const holdsActive = node.type === "folder" && !!activeNodeId && !!findNode(node.children, activeNodeId);
+  useEffect(() => {
+    if (holdsActive) setOpen(true);
+  }, [holdsActive]);
 
   if (node.type === "request") {
     return (
@@ -141,13 +146,23 @@ function Node({ node, collectionId, depth, filter }: { node: TreeNode; collectio
       />
     );
   }
+  const shown = open || !!filter;
   return (
     <>
-      <Row collectionId={collectionId} nodeId={node.id} name={node.name} open={open || !!filter} onToggle={() => setOpen(!open)} depth={depth} folder />
-      {(open || filter) &&
-        node.children.filter((n) => matches(n, filter)).map((c) => (
-          <Node key={c.id} node={c} collectionId={collectionId} depth={depth + 1} filter={filter} />
-        ))}
+      <Row
+        collectionId={collectionId}
+        nodeId={node.id}
+        name={node.name}
+        count={countRequests(node.children)}
+        open={shown}
+        onToggle={() => setOpen(!open)}
+        depth={depth}
+        folder
+      />
+      {shown &&
+        node.children
+          .filter((n) => matches(n, filter))
+          .map((c) => <Node key={c.id} node={c} collectionId={collectionId} depth={depth + 1} filter={filter} />)}
     </>
   );
 }
@@ -158,6 +173,7 @@ interface RowProps {
   name: string;
   depth: number;
   method?: string;
+  count?: number;
   open?: boolean;
   active?: boolean;
   folder?: boolean;
@@ -166,7 +182,7 @@ interface RowProps {
   onClick?: () => void;
 }
 
-function Row({ collectionId, nodeId, name, depth, method, open, active, folder, isCollection, onToggle, onClick }: RowProps) {
+function Row({ collectionId, nodeId, name, depth, method, count, open, active, folder, isCollection, onToggle, onClick }: RowProps) {
   const s = useStore.getState(); // actions only; no subscription
   const container = folder || isCollection;
   const parentId = isCollection ? null : nodeId;
@@ -185,35 +201,44 @@ function Row({ collectionId, nodeId, name, depth, method, open, active, folder, 
 
   return (
     <div
-      className={`row ${active ? "active" : ""} ${isCollection ? "collection" : ""}`}
-      style={{ paddingLeft: 8 + depth * 14 }}
-      onClick={container ? onToggle : onClick}
+      className={`row ${isCollection ? "collection" : ""}`}
+      aria-current={active ? "page" : undefined}
+      style={{ paddingLeft: depth * 16 + (container ? 0 : 24) }}
     >
-      {container ? <span className="caret">{open ? "▾" : "▸"}</span> : <span className={`mtag m-${method}`}>{method}</span>}
-      <span className="name" title={name}>
-        {name}
-      </span>
-      <span className="row-actions" onClick={(e) => e.stopPropagation()}>
+      <button type="button" className="row-main" aria-expanded={container ? !!open : undefined} onClick={container ? onToggle : onClick}>
+        {container && <span className="caret">{open ? <ChevronDown {...ico} /> : <ChevronRight {...ico} />}</span>}
+        {folder && (
+          <span className="folder">
+            <Folder {...ico} />
+          </span>
+        )}
+        {method && <span className={`m m-${method}`}>{methodLabel(method)}</span>}
+        <span className="name" title={name}>
+          {name}
+        </span>
+        {container && <span className="count">({count})</span>}
+      </button>
+      <span className="row-actions">
         {container && (
           <>
-            <button className="icon" title="Add request" onClick={() => s.addRequest(collectionId, parentId)}>
-              ＋
+            <button type="button" className="icon-btn" title="Add request" aria-label={`Add request to ${name}`} onClick={() => s.addRequest(collectionId, parentId)}>
+              <Plus {...ico} />
             </button>
-            <button className="icon" title="Add folder" onClick={addFolder}>
-              ⊞
+            <button type="button" className="icon-btn" title="Add folder" aria-label={`Add folder to ${name}`} onClick={addFolder}>
+              <FolderPlus {...ico} />
             </button>
           </>
         )}
         {isCollection && (
-          <button className="icon" title="Collection variables" onClick={() => s.openModal({ kind: "environments" })}>
-            {"{}"}
+          <button type="button" className="icon-btn" title="Collection variables" aria-label={`Variables of ${name}`} onClick={() => s.openModal({ kind: "environments" })}>
+            <Braces {...ico} />
           </button>
         )}
-        <button className="icon" title="Rename" onClick={rename}>
-          ✎
+        <button type="button" className="icon-btn" title="Rename" aria-label={`Rename ${name}`} onClick={rename}>
+          <Pencil {...ico} />
         </button>
-        <button className="icon" title="Delete" onClick={remove}>
-          ×
+        <button type="button" className="icon-btn" title="Delete" aria-label={`Delete ${name}`} onClick={remove}>
+          <X {...ico} />
         </button>
       </span>
     </div>
@@ -224,24 +249,41 @@ function HistoryList({ filter }: { filter: string }) {
   const history = useStore((s) => s.history);
   const newTab = useStore((s) => s.newTab);
   const items = history.filter((h) => !filter || h.request.url.toLowerCase().includes(filter));
-  if (items.length === 0) return <div className="empty">No requests yet.</div>;
+  if (items.length === 0)
+    return (
+      <div className="tree">
+        <div className="empty">
+          <strong>No requests yet</strong>
+          <span>Requests you send show up here.</span>
+        </div>
+      </div>
+    );
 
+  const today = new Date().toLocaleDateString();
+  const yesterday = new Date(Date.now() - 86_400_000).toLocaleDateString();
   let lastDay = "";
   return (
     <div className="tree">
       {items.map((h) => {
-        const day = new Date(h.at).toLocaleDateString();
+        const d = new Date(h.at).toLocaleDateString();
+        const day = d === today ? "Today" : d === yesterday ? "Yesterday" : d;
         const header = day !== lastDay ? <div className="day">{day}</div> : null;
         lastDay = day;
         return (
           <div key={h.id}>
             {header}
-            <div className="row" style={{ paddingLeft: 8 }} onClick={() => newTab({ ...toRequestDef(h.request), name: h.request.url || h.request.name })}>
-              <span className={`mtag m-${h.request.method}`}>{h.request.method}</span>
-              <span className="name" title={h.request.url}>
-                {h.request.url || "(empty)"}
-              </span>
-              <span className={`hstatus ${h.status ? (h.status < 400 ? "ok" : "fail") : "fail"}`}>{h.status ?? "ERR"}</span>
+            <div className="row">
+              <button
+                type="button"
+                className="row-main"
+                onClick={() => newTab({ ...toRequestDef(h.request), name: h.request.url || h.request.name })}
+              >
+                <span className={`m m-${h.request.method}`}>{methodLabel(h.request.method)}</span>
+                <span className="name" title={h.request.url}>
+                  {h.request.url.replace(/^(https?:\/\/|\{\{[^}]+\}\})/, "") || "(empty)"}
+                </span>
+                <span className={`hstatus ${h.status && h.status < 400 ? "ok" : "fail"}`}>{h.status ?? "ERR"}</span>
+              </button>
             </div>
           </div>
         );

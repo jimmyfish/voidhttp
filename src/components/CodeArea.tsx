@@ -1,32 +1,60 @@
-import type { KeyboardEvent } from "react";
+import { useMemo, type KeyboardEvent, type ReactNode } from "react";
+import { highlightLines } from "../lib/highlight";
 
 interface Props {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  /** colour JSON tokens in the layer under the text */
+  json?: boolean;
+  /** floats in the editor's top-right corner (Beautify) */
+  tools?: ReactNode;
+  label?: string;
 }
 
-/** Plain textarea with Tab-to-indent. Deliberately not Monaco: ~0 KB vs ~3 MB. */
-export function CodeArea({ value, onChange, placeholder }: Props) {
+/** Above this the highlight layer is skipped: plain text, still line-numbered. */
+const HIGHLIGHT_LIMIT = 200 * 1024;
+
+/**
+ * Editable code without an editor dependency (~0 KB vs Monaco's ~3 MB):
+ * a highlighted, line-numbered <pre> sits under a transparent <textarea> in one grid cell,
+ * so both share one scroll and the caret, selection and typing stay native.
+ */
+export function CodeArea({ value, onChange, placeholder, json, tools, label = "Request body" }: Props) {
+  const html = useMemo(
+    () => highlightLines(value, !!json && value.length <= HIGHLIGHT_LIMIT),
+    [value, json],
+  );
+
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== "Tab") return;
     e.preventDefault();
     const el = e.currentTarget;
     const { selectionStart: s, selectionEnd: end } = el;
-    const next = value.slice(0, s) + "  " + value.slice(end);
-    onChange(next);
+    onChange(value.slice(0, s) + "  " + value.slice(end));
     requestAnimationFrame(() => el.setSelectionRange(s + 2, s + 2));
   };
+
   return (
-    <textarea
-      className="code"
-      spellCheck={false}
-      autoCorrect="off"
-      autoCapitalize="off"
-      value={value}
-      placeholder={placeholder}
-      onChange={(e) => onChange(e.target.value)}
-      onKeyDown={onKeyDown}
-    />
+    <div className="editor">
+      {tools && <div className="editor-bar">{tools}</div>}
+      <div className="code-edit">
+        <div className="code-edit-grid">
+          <pre className="code" aria-hidden="true" dangerouslySetInnerHTML={{ __html: html }} />
+          <textarea
+            className="code-input"
+            aria-label={label}
+            spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="off"
+            wrap="off"
+            value={value}
+            placeholder={placeholder}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={onKeyDown}
+          />
+        </div>
+      </div>
+    </div>
   );
 }

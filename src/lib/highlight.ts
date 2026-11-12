@@ -1,6 +1,6 @@
 /** Tiny JSON tokenizer → HTML. No editor dependency, linear time. */
 
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+export const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 const TOKEN =
   /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?|\b(true|false)\b|\b(null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g;
@@ -19,4 +19,21 @@ export function highlightJson(src: string): string {
     last = i + m[0].length;
   }
   return out + esc(src.slice(last));
+}
+
+/**
+ * One `.l` block per line, leading indentation wrapped in `.ind` (indent guides),
+ * JSON tokens coloured when `json` is true. Line numbers come from CSS counters.
+ */
+export function highlightLines(src: string, json: boolean): string {
+  return src
+    .split("\n")
+    .map((line) => {
+      const m = /^ +/.exec(line);
+      const lead = m ? m[0] : "";
+      const rest = line.slice(lead.length);
+      const body = json ? highlightJson(rest) : esc(rest);
+      return `<span class="l">${lead ? `<span class="ind">${lead}</span>` : ""}${body}</span>`;
+    })
+    .join("");
 }

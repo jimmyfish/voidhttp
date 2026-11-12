@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voidHTTP restyle preview</title>
+<meta name="description" content="Design preview of the Apidog-style restyle for voidHTTP, before it is applied to the app.">
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./preview.css">
+</head>
+<body>
+<!-- icons: Lucide v0.460.0 (ISC), inlined from lucide-static -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-circle-check" viewBox="0 0 24 24"><svg class="lucide lucide-circle-check" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="10" /> <path d="m9 12 2 2 4-4" /></symbol>
+  <symbol id="i-circle-dashed" viewBox="0 0 24 24"><svg class="lucide lucide-circle-dashed" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M10.1 2.182a10 10 0 0 1 3.8 0" /> <path d="M13.9 21.818a10 10 0 0 1-3.8 0" /> <path d="M17.609 3.721a10 10 0 0 1 2.69 2.7" /> <path d="M2.182 13.9a10 10 0 0 1 0-3.8" /> <path d="M20.279 17.609a10 10 0 0 1-2.7 2.69" /> <path d="M21.818 10.1a10 10 0 0 1 0 3.8" /> <path d="M3.721 6.391a10 10 0 0 1 2.7-2.69" /> <path d="M6.391 20.279a10 10 0 0 1-2.69-2.7" /></symbol>
+  <symbol id="i-circle-dot" viewBox="0 0 24 24"><svg class="lucide lucide-circle-dot" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="10" /> <circle cx="12" cy="12" r="1" /></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><svg class="lucide lucide-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <line x1="4" x2="20" y1="12" y2="12" /> <line x1="4" x2="20" y1="6" y2="6" /> <line x1="4" x2="20" y1="18" y2="18" /></symbol>
+  <symbol id="i-sliders-horizontal" viewBox="0 0 24 24"><svg class="lucide lucide-sliders-horizontal" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <line x1="21" x2="14" y1="4" y2="4" /> <line x1="10" x2="3" y1="4" y2="4" /> <line x1="21" x2="12" y1="12" y2="12" /> <line x1="8" x2="3" y1="12" y2="12" /> <line x1="21" x2="16" y1="20" y2="20" /> <line x1="12" x2="3" y1="20" y2="20" /> <line x1="14" x2="14" y1="2" y2="6" /> <line x1="8" x2="8" y1="10" y2="14" /> <line x1="16" x2="16" y1="18" y2="22" /></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><svg class="lucide lucide-plus" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="M12 5v14" /></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><svg class="lucide lucide-x" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><svg class="lucide lucide-pencil" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24"><svg class="lucide lucide-import" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 3v12" /> <path d="m8 11 4 4 4-4" /> <path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4" /></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><svg class="lucide lucide-search" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="11" cy="11" r="8" /> <path d="m21 21-4.3-4.3" /></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><svg class="lucide lucide-folder" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" /></symbol>
+  <symbol id="i-folder-plus" viewBox="0 0 24 24"><svg class="lucide lucide-folder-plus" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 10v6" /> <path d="M9 13h6" /> <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" /></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><svg class="lucide lucide-chevron-down" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><svg class="lucide lucide-chevron-right" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /></symbol>
+  <symbol id="i-code-xml" viewBox="0 0 24 24"><svg class="lucide lucide-code-xml" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m18 16 4-4-4-4" /> <path d="m6 8-4 4 4 4" /> <path d="m14.5 4-5 16" /></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><svg class="lucide lucide-copy" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="14" height="14" x="8" y="8" rx="2" ry="2" /> <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><svg class="lucide lucide-layers" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" /> <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" /> <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" /></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><svg class="lucide lucide-history" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /></symbol>
+  <symbol id="i-braces" viewBox="0 0 24 24"><svg class="lucide lucide-braces" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1" /> <path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1" /></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><svg class="lucide lucide-settings" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /> <circle cx="12" cy="12" r="3" /></symbol>
+  <symbol id="i-wand-sparkles" viewBox="0 0 24 24"><svg class="lucide lucide-wand-sparkles" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" /> <path d="m14 7 3 3" /> <path d="M5 6v4" /> <path d="M19 14v4" /> <path d="M10 2v2" /> <path d="M7 8H3" /> <path d="M21 16h-4" /> <path d="M11 3H9" /></symbol>
+  <symbol id="i-paperclip" viewBox="0 0 24 24"><svg class="lucide lucide-paperclip" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" /></symbol>
+</svg>
+
+<header class="pv-bar">
+  <strong>voidHTTP restyle preview</strong>
+  <nav class="pv-screens" aria-label="Screens">
+    <button type="button" data-go="post" aria-pressed="true">Body + response</button>
+    <button type="button" data-go="params" aria-pressed="false">Params</button>
+    <button type="button" data-go="history" aria-pressed="false">History, empty</button>
+    <button type="button" data-go="loading" aria-pressed="false">Sending</button>
+    <button type="button" data-go="error" aria-pressed="false">Error</button>
+    <button type="button" data-go="menu" aria-pressed="false">Send menu</button>
+    <button type="button" data-go="save" aria-pressed="false">Save dialog</button>
+    <button type="button" data-go="vars" aria-pressed="false">Variables</button>
+  </nav>
+  <div class="pv-fonts">
+    <label>UI font <select data-font="--font-ui">
+      <option value="">System</option><option value="'Helvetica Neue', Helvetica, Arial, sans-serif">Helvetica</option><option value="Avenir Next, Avenir, sans-serif">Avenir</option><option value="Georgia, serif">Georgia</option>
+    </select></label>
+    <label>Code font <select data-font="--font-mono">
+      <option value="">System mono</option><option value="Menlo, monospace">Menlo</option><option value="'Courier New', monospace">Courier</option><option value="Monaco, monospace">Monaco</option>
+    </select></label>
+    <label>Size <select data-size="--font-size-ui">
+      <option value="">14</option><option value="13px">13</option><option value="15px">15</option><option value="16px">16</option>
+    </select></label>
+  </div>
+  <div class="pv-theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<div class="pv-stage">
+<div class="app">
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-mark" aria-hidden="true">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke-width="2" style="stroke: var(--color-accent)"/><circle cx="8" cy="8" r="2.25" fill="none" stroke-width="1.5" style="stroke: var(--color-ok)"/></svg>
+    </div>
+    <button type="button" class="rail-item" data-rail="collections" aria-current="page"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-layers"/></svg>Collections</button>
+    <button type="button" class="rail-item" data-rail="history"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-history"/></svg>History</button>
+    <button type="button" class="rail-item" data-rail="vars"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-braces"/></svg>Variables</button>
+    <span class="rail-spacer"></span>
+    <button type="button" class="rail-item"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-settings"/></svg>Settings</button>
+  </nav>
+
+  <div class="panel">
+    <!-- ===== sidebar: collections ===== -->
+    <aside class="sidebar" data-on="post params loading error save vars menu">
+      <div class="side-head"><h2>Collections</h2></div>
+      <div class="side-tools">
+        <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search collections"></div>
+        <button type="button" class="icon-btn icon-btn--outline" title="Import from Postman" aria-label="Import from Postman"><svg aria-hidden="true" class="ico"><use href="#i-import"/></svg></button>
+        <button type="button" class="icon-btn icon-btn--filled" title="New collection" aria-label="New collection"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+      </div>
+      <div class="tree">
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><span class="name">Payments API</span><span class="count">(8)</span></button>
+          <span class="row-actions"><button type="button" class="icon-btn" aria-label="Add request"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button><button type="button" class="icon-btn" aria-label="Add folder"><svg aria-hidden="true" class="ico"><use href="#i-folder-plus"/></svg></button></span></div>
+        <div class="row" style="padding-left:16px"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg><span class="name">Customers</span><span class="count">(5)</span></button></div>
+        <div class="row" style="padding-left:40px" data-cur="params"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">List customers</span></button></div>
+        <div class="row" style="padding-left:40px" data-cur="post loading save vars menu" aria-current="page"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">Create customer</span></button></div>
+        <div class="row" style="padding-left:40px"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">Get a customer</span></button></div>
+        <div class="row" style="padding-left:40px"><button type="button" class="row-main"><span class="m m-PATCH">PATCH</span><span class="name">Update customer</span></button></div>
+        <div class="row" style="padding-left:40px" data-cur="error"><button type="button" class="row-main"><span class="m m-DELETE">DEL</span><span class="name">Delete customer</span></button>
+          <span class="row-actions"><button type="button" class="icon-btn" aria-label="Rename"><svg aria-hidden="true" class="ico"><use href="#i-pencil"/></svg></button><button type="button" class="icon-btn" aria-label="Delete"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></span></div>
+        <div class="row" style="padding-left:16px"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg><span class="name">Invoices</span><span class="count">(3)</span></button></div>
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">Auth service</span><span class="count">(4)</span></button></div>
+      </div>
+    </aside>
+
+    <!-- ===== sidebar: history ===== -->
+    <aside class="sidebar" data-on="history" hidden>
+      <div class="side-head"><h2>History</h2><button type="button" class="btn" style="min-height:28px;font-size:var(--text-sm)">Clear</button></div>
+      <div class="side-tools"><div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search history"></div></div>
+      <div class="tree">
+        <div class="day">Today</div>
+        <div class="row"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">api.example.com/v1/customers</span><span class="hstatus ok">201</span></button></div>
+        <div class="row"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/customers?limit=20</span><span class="hstatus ok">200</span></button></div>
+        <div class="row"><button type="button" class="row-main"><span class="m m-DELETE">DEL</span><span class="name">localhost:4000/v1/customers/cus_8f2</span><span class="hstatus fail">ERR</span></button></div>
+        <div class="day">Yesterday</div>
+        <div class="row"><button type="button" class="row-main"><span class="m m-PATCH">PATCH</span><span class="name">api.example.com/v1/customers/cus_1a9</span><span class="hstatus ok">200</span></button></div>
+        <div class="row"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/invoices</span><span class="hstatus fail">401</span></button></div>
+      </div>
+    </aside>
+
+    <!-- ===== work area ===== -->
+    <main class="work">
+      <div class="tabsbar">
+        <div class="tabs">
+          <div class="tab" data-cur="post loading save vars menu" aria-current="page"><button type="button" class="tab-main"><span class="m m-POST">POST</span><span class="name">Create customer</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab" data-cur="params"><button type="button" class="tab-main"><span class="m m-GET">GET</span><span class="name">List customers</span><span class="dirty" role="img" aria-label="Unsaved changes"></span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab" data-cur="error"><button type="button" class="tab-main"><span class="m m-DELETE">DEL</span><span class="name">Delete customer</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab" data-cur="history" data-on="history" hidden><button type="button" class="tab-main"><span class="m m-GET">GET</span><span class="name">Untitled request</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <button type="button" class="icon-btn tab-add" aria-label="New tab"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+        </div>
+        <div class="joined env-group">
+        <button type="button" class="env-picker" aria-label="Environment">
+          <span class="env-badge" data-on="post params loading error save vars menu">Pr</span>
+          <span data-on="post params loading error save vars menu">Production</span>
+          <span data-on="history" hidden>No environment</span>
+          <svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg>
+        </button>
+        <button type="button" class="btn joined-tail" aria-label="Environment menu" title="Manage environments"><svg aria-hidden="true" class="ico"><use href="#i-menu"/></svg></button>
+        </div>
+      </div>
+
+      <!-- request line -->
+      <div class="request-line">
+        <div class="url-field">
+          <select aria-label="Method" class="m-POST" data-on="post loading save vars menu"><option>POST</option></select>
+          <select aria-label="Method" class="m-GET" data-on="params history" hidden><option>GET</option></select>
+          <select aria-label="Method" class="m-DELETE" data-on="error" hidden><option>DELETE</option></select>
+          <input aria-label="URL" value="{{baseUrl}}/v1/customers" data-on="post loading save vars menu">
+          <input aria-label="URL" value="{{baseUrl}}/v1/customers?limit=20&amp;email=ada@example.com" data-on="params" hidden>
+          <input aria-label="URL" value="{{baseUrl}}/v1/health" data-on="history" hidden>
+          <input aria-label="URL" value="localhost:4000/v1/customers/cus_8f2" data-on="error" hidden>
+        </div>
+        <div class="joined send-group" data-on="post params history error save vars menu">
+          <button type="button" class="btn btn--primary">Send</button>
+          <button type="button" class="btn btn--primary joined-tail" aria-label="More send options" aria-haspopup="menu" data-on="post params history error save vars" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          <button type="button" class="btn btn--primary joined-tail" aria-label="More send options" aria-haspopup="menu" data-on="menu" hidden aria-expanded="true"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          <div class="menu" role="menu" aria-label="Send options" data-on="menu" hidden>
+            <button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg>Copy as cURL</button>
+            <button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-sliders-horizontal"/></svg>Request settings</button>
+          </div>
+        </div>
+        <button type="button" class="btn btn--danger" data-on="loading" hidden aria-busy="true">Cancel</button>
+        <div class="joined">
+          <button type="button" class="btn">Save</button>
+          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved" data-on="post error save vars menu loading"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
+          <span class="btn joined-tail save-state dirty-state" role="img" aria-label="Unsaved changes" title="Unsaved changes" data-on="params" hidden><svg aria-hidden="true" class="ico"><use href="#i-circle-dot"/></svg></span>
+          <span class="btn joined-tail save-state" role="img" aria-label="Not saved yet" title="Not saved yet" data-on="history" hidden><svg aria-hidden="true" class="ico"><use href="#i-circle-dashed"/></svg></span>
+        </div>
+        <button type="button" class="btn" data-on="post params error save vars menu loading">Delete</button>
+      </div>
+      <div class="req-title">
+        <span class="name" data-on="post loading save vars menu">Create customer</span>
+        <span class="name" data-on="params" hidden>List customers</span>
+        <span class="name" data-on="error" hidden>Delete customer</span>
+        <span class="name" data-on="history" hidden>Untitled request</span>
+        <span class="path" data-on="post loading save vars params error menu">Payments API / Customers</span>
+        <span class="path" data-on="history" hidden>Not saved</span>
+        <span class="hint" data-on="history" hidden>Unresolved: {{baseUrl}}</span>
+      </div>
+
+      <nav class="subtabs" aria-label="Request">
+        <button type="button" class="subtab" data-sub="params">Params <span class="n" data-on="params" hidden>2</span></button>
+        <button type="button" class="subtab" data-sub="body">Body <span class="n" data-on="post loading save vars menu">1</span></button>
+        <button type="button" class="subtab">Headers <span class="n">2</span></button>
+        <button type="button" class="subtab">Auth</button>
+        <button type="button" class="icon-btn push" title="Copy as cURL" aria-label="Copy as cURL"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg></button>
+      </nav>
+
+      <!-- body editor -->
+      <div class="section" data-on="post loading save vars menu" style="flex:1">
+        <div class="modes" role="group" aria-label="Body type">
+          <button type="button" class="mode">none</button>
+          <button type="button" class="mode" aria-pressed="true">json</button>
+          <button type="button" class="mode">text</button>
+          <button type="button" class="mode">xml</button>
+          <button type="button" class="mode">x-www-form-urlencoded</button>
+          <button type="button" class="mode">form-data</button>
+        </div>
+        <div class="editor">
+        <div class="editor-bar"><button type="button" class="btn btn--quiet"><svg aria-hidden="true" class="ico"><use href="#i-wand-sparkles"/></svg>Beautify</button></div>
+        <pre class="code" aria-label="Request body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"metadata"</span><span class="j-p">: {</span> <span class="j-key">"source"</span><span class="j-p">:</span> <span class="j-str">"{{$guid}}"</span> <span class="j-p">}</span></span><span class="l"><span class="j-p">}</span></span></pre>
+        </div>
+      </div>
+
+      <!-- params editor -->
+      <div class="section" data-on="params" hidden style="flex:1">
+        <table class="kv">
+          <thead><tr><th class="check"><span class="visually-hidden">Enabled</span></th><th>Name</th><th>Value</th><th class="del"><span class="visually-hidden">Remove</span></th></tr></thead>
+          <tbody>
+            <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="limit" aria-label="Name"></td><td><input class="field" value="20" aria-label="Value"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
+            <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="email" aria-label="Name"></td><td><input class="field" value="ada@example.com" aria-label="Value"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
+            <tr class="off"><td class="check"><input type="checkbox" aria-label="Enabled"></td><td><input class="field" value="starting_after" aria-label="Name"></td><td><input class="field" value="cus_1a9" aria-label="Value"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
+            <tr class="add"><td class="check"></td><td><input class="field" placeholder="Add a param" aria-label="Name"></td><td><input class="field" placeholder="Value" aria-label="Value"></td><td class="del"></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- empty body section for history/error screens -->
+      <div class="section" data-on="history error" hidden style="flex:1">
+        <div class="modes" role="group" aria-label="Body type"><button type="button" class="mode" aria-pressed="true">none</button><button type="button" class="mode">json</button><button type="button" class="mode">text</button><button type="button" class="mode">xml</button><button type="button" class="mode">x-www-form-urlencoded</button><button type="button" class="mode">form-data</button></div>
+        <p class="pv-muted">This request has no body.</p>
+      </div>
+
+      <div class="divider" role="separator" aria-orientation="horizontal" aria-label="Resize panes"></div>
+
+      <!-- response -->
+      <section class="response" aria-label="Response">
+        <nav class="subtabs" aria-label="Response" data-on="post params save vars menu">
+          <button type="button" class="subtab" aria-pressed="true">Body</button>
+          <button type="button" class="subtab">Headers <span class="n">9</span></button>
+          <span class="push meta" data-on="post save vars menu"><span class="ok">201 Created</span><span class="dim">142 ms</span><span class="dim">412&nbsp;B</span><span class="dim">HTTP/2</span></span>
+          <span class="push meta" data-on="params" hidden><span class="ok">200 OK</span><span class="dim">88 ms</span><span class="dim">1.8&nbsp;KB</span><span class="dim">HTTP/2</span></span>
+        </nav>
+        <div class="res-tools" data-on="post params save vars menu">
+          <div class="seg" role="group" aria-label="View"><button type="button" aria-pressed="true">Pretty</button><button type="button" aria-pressed="false">Raw</button></div>
+          <span class="push"></span>
+          <button type="button" class="icon-btn" style="margin-left:auto" title="Copy response" aria-label="Copy response"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
+        </div>
+        <pre class="code" data-on="post save vars menu" aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"customer"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"delinquent"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"deleted_at"</span><span class="j-p">:</span> <span class="j-null">null</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"created"</span><span class="j-p">:</span> <span class="j-num">1794470400</span></span><span class="l"><span class="j-p">}</span></span></pre>
+        <pre class="code" data-on="params" hidden aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"list"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"has_more"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"data"</span><span class="j-p">: [</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span> <span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span> <span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span> <span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span> <span class="j-p">}</span></span><span class="l"><span class="ind">  </span><span class="j-p">]</span></span><span class="l"><span class="j-p">}</span></span></pre>
+        <div class="empty" data-on="history" hidden><strong>No response yet</strong><span>Press <kbd>⌘</kbd> <kbd>Enter</kbd> to send</span></div>
+        <div class="empty" data-on="loading" hidden role="status"><div class="spinner"></div><span>Sending…</span></div>
+        <div class="error-box" data-on="error" hidden role="alert"><strong>Could not get a response</strong><span class="msg">Connection failed: error sending request for url (http://localhost:4000/v1/customers/cus_8f2): tcp connect error: Connection refused (os error 61)</span></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ===== dialogs ===== -->
+<div class="backdrop" data-on="save" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-label="Save request">
+    <h3>Save request</h3>
+    <label>Name<input class="field" value="Create customer"></label>
+    <label>Save to<select class="field"><option>Payments API</option><option>&nbsp;&nbsp;Customers</option><option>&nbsp;&nbsp;Invoices</option><option>Auth service</option><option>New collection…</option></select></label>
+    <footer><button type="button" class="btn">Cancel</button><button type="button" class="btn btn--primary">Save</button></footer>
+  </div>
+</div>
+<div class="backdrop" data-on="vars" hidden>
+  <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Variables">
+    <h3>Variables</h3>
+    <div class="vars">
+      <ul>
+        <li class="group">Environments</li>
+        <li><button type="button" aria-current="true">Production</button></li>
+        <li><button type="button">Local</button></li>
+        <li class="group">Collection variables</li>
+        <li><button type="button">Payments API</button></li>
+        <li><button type="button">Auth service</button></li>
+      </ul>
+      <div>
+        <table class="kv">
+          <thead><tr><th class="check"><span class="visually-hidden">Enabled</span></th><th>Variable</th><th>Value</th><th class="del"><span class="visually-hidden">Remove</span></th></tr></thead>
+          <tbody>
+            <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="baseUrl" aria-label="Variable"></td><td><input class="field" value="https://api.example.com" aria-label="Value"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
+            <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="token" aria-label="Variable"></td><td><input class="field" value="sk_live_••••••••" aria-label="Value"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
+            <tr class="add"><td class="check"></td><td><input class="field" placeholder="Add a variable" aria-label="Variable"></td><td><input class="field" placeholder="Value" aria-label="Value"></td><td class="del"></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <footer><button type="button" class="btn">Cancel</button><button type="button" class="btn btn--primary">Save</button></footer>
+  </div>
+</div>
+</div>
+
+<script>
+  const go = (screen) => {
+    document.querySelectorAll("[data-on]").forEach((el) => { el.hidden = !el.dataset.on.split(" ").includes(screen); });
+    document.querySelectorAll("[data-cur]").forEach((el) => {
+      if (el.dataset.cur.split(" ").includes(screen)) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
+    });
+    document.querySelectorAll("[data-go]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.go === screen)));
+    const rail = screen === "history" ? "history" : screen === "vars" ? "vars" : "collections";
+    document.querySelectorAll("[data-rail]").forEach((b) => b.dataset.rail === rail ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+    const sub = screen === "params" ? "params" : "body";
+    document.querySelectorAll("[data-sub]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.sub === sub)));
+    try { location.hash = screen; } catch {}
+  };
+  document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => {
+    document.documentElement.dataset.theme = b.dataset.themeSet;
+    document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  }));
+  document.querySelectorAll("[data-font], [data-size]").forEach((sel) => sel.addEventListener("change", () => {
+    const prop = sel.dataset.font || sel.dataset.size;
+    if (sel.value) document.documentElement.style.setProperty(prop, sel.value); else document.documentElement.style.removeProperty(prop);
+    if (sel.dataset.size) document.documentElement.style.setProperty("--font-size-code", sel.value ? `calc(${sel.value} - 1px)` : "");
+  }));
+  const fromHash = location.hash.slice(1);
+  go(document.querySelector(`[data-go="${fromHash}"]`) ? fromHash : "post");
+  if (new URLSearchParams(location.search).get("theme") === "dark") document.querySelector('[data-theme-set="dark"]').click();
+</script>
+</body>
+</html>
