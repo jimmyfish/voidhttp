@@ -660,6 +660,10 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
 .set-ctl { display: flex; align-items: center; gap: var(--space-xs); flex-shrink: 0; }
 .set-font { width: 180px; }
 .set-size { width: 76px; }
+/* colour scheme picker: the scheme's background with four of its hues, beside the dropdown */
+.set-scheme { width: 200px; }
+.scheme-dots { display: inline-flex; align-items: center; gap: 3px; height: 20px; padding: 0 6px; border-radius: var(--radius-pill); box-shadow: inset 0 0 0 1px var(--color-rule); }
+.scheme-dots i { width: 8px; height: 8px; border-radius: 50%; }
 .unit-field { position: relative; display: inline-flex; }
 .unit-field .field { width: 128px; padding-right: 40px; text-align: right; font-variant-numeric: tabular-nums; }
 .unit-field .unit { position: absolute; right: var(--space-sm); top: 50%; transform: translateY(-50%); color: var(--color-muted); font-size: var(--text-sm); pointer-events: none; }

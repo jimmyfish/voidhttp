@@ -7,6 +7,7 @@
 <meta name="description" content="Design preview of the Apidog-style restyle for voidHTTP, before it is applied to the app.">
 <link rel="stylesheet" href="./app.css">
 <link rel="stylesheet" href="./preview.css">
+<script src="./themes.js"></script>
 </head>
 <body>
 <!-- icons: Lucide v0.460.0 (ISC), inlined from lucide-static -->
@@ -593,6 +594,14 @@
             <div class="set-text"><span class="set-label" id="pv-theme-l">Theme</span><span class="desc">Auto follows your Mac's appearance</span></div>
             <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="pv-theme-l"><button type="button" aria-pressed="true" data-set-theme="">Auto</button><button type="button" aria-pressed="false" data-set-theme="light">Light</button><button type="button" aria-pressed="false" data-set-theme="dark">Dark</button></div></div>
           </div>
+          <div class="set-item" data-scheme-row="light">
+            <div class="set-text"><label for="pv-scheme-light" data-scheme-label>Light theme</label><span class="desc" data-scheme-desc>Used while your Mac is light</span></div>
+            <div class="set-ctl"><span class="scheme-dots" aria-hidden="true"></span><select id="pv-scheme-light" class="field set-scheme" data-scheme="light"></select></div>
+          </div>
+          <div class="set-item" data-scheme-row="dark">
+            <div class="set-text"><label for="pv-scheme-dark" data-scheme-label>Dark theme</label><span class="desc" data-scheme-desc>Used while your Mac is dark</span></div>
+            <div class="set-ctl"><span class="scheme-dots" aria-hidden="true"></span><select id="pv-scheme-dark" class="field set-scheme" data-scheme="dark"></select></div>
+          </div>
           <div class="set-item">
             <div class="set-text"><label for="pv-ui-font">Interface font</label><span class="desc">Menus, tabs and dialogs</span></div>
             <div class="set-ctl"><input id="pv-ui-font" class="field set-font" list="pv-fonts-ui" placeholder="System default"><select class="field set-size" aria-label="Interface font size"><option>12</option><option>13</option><option selected>14</option><option>15</option><option>16</option></select></div>
@@ -638,10 +647,6 @@
   const go = (screen) => {
     const base = BASE[screen] || screen;
     document.querySelector(".app").dataset.variant = screen;
-    document.querySelectorAll("[data-set-theme]").forEach((b) => b.addEventListener("click", () => {
-    if (b.dataset.setTheme) document.documentElement.dataset.theme = b.dataset.setTheme; else delete document.documentElement.dataset.theme;
-    document.querySelectorAll("[data-set-theme]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-  }));
   document.querySelectorAll("[data-fmt]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.fmt === screen || (x.dataset.fmt === "vars" && !["varsjson", "varsenv"].includes(screen)))));
     document.querySelectorAll("[data-on]").forEach((el) => { el.hidden = !el.dataset.on.split(" ").includes(base); });
     document.querySelectorAll("[data-only]").forEach((el) => { el.hidden = !el.dataset.only.split(" ").includes(screen); });
@@ -667,10 +672,47 @@
     go(b.dataset.fmt);
     document.querySelectorAll("[data-fmt]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
   }));
-  document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => {
-    document.documentElement.dataset.theme = b.dataset.themeSet;
-    document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-  }));
+  // Theme: Auto/Light/Dark plus a colour scheme per appearance. The bar's Light/Dark stands in for the Mac's appearance.
+  {
+    const { SCHEMES, tokens, isDark, swatch } = window.VoidThemes;
+    const BUILTIN = { "void-light": ["#ffffff", "#01804a", "#c74200", "#2e67e5", "#d00000"], "void-dark": ["#161b25", "#01bf71", "#ff7a33", "#4f85fc", "#ff5c5c"] };
+    const q = new URLSearchParams(location.search);
+    const st = { mode: q.get("mode") || "auto", light: q.get("light") || "void-light", dark: q.get("dark") || "void-dark", os: "light" };
+    const opts = `<optgroup label="voidHTTP"><option value="void-light">voidHTTP Light</option><option value="void-dark">voidHTTP Dark</option></optgroup>` +
+      [...new Set(SCHEMES.map((x) => x.family))].map((f) => `<optgroup label="${f}">${SCHEMES.filter((x) => x.family === f).map((x) => `<option value="${x.id}">${x.name}</option>`).join("")}</optgroup>`).join("");
+    const sels = document.querySelectorAll("[data-scheme]");
+    sels.forEach((sel) => { sel.innerHTML = opts; sel.addEventListener("change", () => { st[sel.dataset.scheme === "one" ? st.mode : sel.dataset.scheme] = sel.value; apply(); }); });
+    const dotsFor = (id) => BUILTIN[id] || swatch(SCHEMES.find((x) => x.id === id));
+    let set = [];
+    function apply() {
+      const root = document.documentElement;
+      const look = st.mode === "auto" ? st.os : st.mode;
+      const id = st[look];
+      set.forEach((k) => root.style.removeProperty(k)); set = [];
+      const sc = SCHEMES.find((x) => x.id === id);
+      root.dataset.theme = sc ? (isDark(sc) ? "dark" : "light") : id === "void-dark" ? "dark" : "light";
+      if (sc) Object.entries(tokens(sc)).forEach(([k, v]) => { root.style.setProperty(k, v); set.push(k); });
+      // rows: both slots under Auto, one under Light or Dark
+      const auto = st.mode === "auto";
+      document.querySelectorAll("[data-scheme-row]").forEach((row) => {
+        const slot = row.dataset.schemeRow;
+        row.hidden = !auto && slot !== st.mode;
+        if (row.hidden) return;
+        const key = auto ? slot : st.mode;
+        row.querySelector("[data-scheme-label]").textContent = auto ? (slot === "light" ? "Light theme" : "Dark theme") : "Color scheme";
+        row.querySelector("[data-scheme-desc]").textContent = auto ? `Used while your Mac is ${slot}` : "Any scheme, light or dark";
+        const sel = row.querySelector("select"); sel.value = st[key]; sel.dataset.scheme = auto ? slot : "one";
+        const [bg, ...dots] = dotsFor(st[key]);
+        const d = row.querySelector(".scheme-dots"); d.style.background = bg; d.innerHTML = dots.map((c) => `<i style="background:${c}"></i>`).join("");
+      });
+      document.querySelectorAll("[data-set-theme]").forEach((x) => x.setAttribute("aria-pressed", String((x.dataset.setTheme || "auto") === st.mode)));
+      document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.themeSet === st.os)));
+    }
+    document.querySelectorAll("[data-set-theme]").forEach((b) => b.addEventListener("click", () => { st.mode = b.dataset.setTheme || "auto"; apply(); }));
+    document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => { st.os = b.dataset.themeSet; apply(); }));
+    window.pvApply = apply;
+    apply();
+  }
   document.querySelectorAll("[data-font], [data-size]").forEach((sel) => sel.addEventListener("change", () => {
     const prop = sel.dataset.font || sel.dataset.size;
     if (sel.value) document.documentElement.style.setProperty(prop, sel.value); else document.documentElement.style.removeProperty(prop);

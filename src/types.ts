@@ -106,6 +106,10 @@ export interface Settings {
   layout?: "stacked" | "split";
   /** auto follows the OS appearance */
   theme?: "auto" | "light" | "dark";
+  /** colour scheme id (src/lib/themes.ts) used while the look is light: Auto with a light Mac, or Theme Light. Any scheme fits either slot. */
+  lightScheme?: string;
+  /** colour scheme id used while the look is dark */
+  darkScheme?: string;
   /** how the Variables dialog shows variables; remembered between openings */
   variablesFormat?: "table" | "json" | "env";
 }

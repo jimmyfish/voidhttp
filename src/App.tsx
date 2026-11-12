@@ -7,6 +7,7 @@ import { ResponsePane } from "./components/ResponsePane";
 import { Modals } from "./components/Modals";
 import { Home } from "./components/Home";
 import { ProjectTile } from "./components/ProjectIcon";
+import { DEFAULT_SCHEME, findScheme, isDark, schemeTokens } from "./lib/themes";
 import { Braces, HistoryIcon, House, Layers, Mark, Settings, X, ico, icoLg } from "./components/Icon";
 
 export const SIDEBAR_DEFAULT = 296;
@@ -24,14 +25,34 @@ function stack(font: string | undefined, fallback: string): string | undefined {
   return f.includes(",") ? f : `"${f.replace(/"/g, "")}", ${fallback}`;
 }
 
-/** Auto leaves the OS in charge (prefers-color-scheme); Light and Dark pin the tokens with data-theme. */
+/**
+ * Theme picks the look (Auto follows the OS), the look picks a slot, the slot holds a colour scheme.
+ * Built-in schemes are tokens.css under data-theme; an imported scheme also writes its tokens inline on :root.
+ * data-theme follows the scheme's own lightness, so a dark scheme in the light slot still renders dark.
+ */
 function useTheme() {
-  const theme = useStore((st) => st.settings.theme);
+  const theme = useStore((st) => st.settings.theme) ?? "auto";
+  const lightScheme = useStore((st) => st.settings.lightScheme) ?? DEFAULT_SCHEME.light;
+  const darkScheme = useStore((st) => st.settings.darkScheme) ?? DEFAULT_SCHEME.dark;
+  const [osDark, setOsDark] = useState(() => window.matchMedia("(prefers-color-scheme: dark)").matches);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const on = () => setOsDark(mq.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === "light" || theme === "dark") root.dataset.theme = theme;
-    else delete root.dataset.theme;
-  }, [theme]);
+    const look = theme === "auto" ? (osDark ? "dark" : "light") : theme;
+    const id = look === "dark" ? darkScheme : lightScheme;
+    const scheme = findScheme(id);
+    const vars = scheme ? schemeTokens(scheme) : {};
+    root.dataset.theme = scheme ? (isDark(scheme) ? "dark" : "light") : id === "void-dark" ? "dark" : id === "void-light" ? "light" : look;
+    for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
+    return () => {
+      for (const k of Object.keys(vars)) root.style.removeProperty(k);
+    };
+  }, [theme, osDark, lightScheme, darkScheme]);
 }
 
 /** The four type tokens a future Settings screen writes; empty settings keep the CSS defaults. */

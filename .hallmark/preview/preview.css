@@ -25,3 +25,8 @@ body { display: flex; flex-direction: column; }
 .pv-stage { flex: 1; min-height: 0; position: relative; }
 .pv-stage .app { height: 100%; }
 .pv-muted { color: var(--color-muted); }
+
+/* colour scheme picker: the scheme's background with four of its hues, beside the dropdown */
+.set-scheme { width: 200px; }
+.scheme-dots { display: inline-flex; align-items: center; gap: 3px; height: 20px; padding: 0 6px; border-radius: var(--radius-pill); box-shadow: inset 0 0 0 1px var(--color-rule); }
+.scheme-dots i { width: 8px; height: 8px; border-radius: 50%; }

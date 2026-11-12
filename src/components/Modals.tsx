@@ -8,6 +8,7 @@ import { RowMenu, type MenuItem } from "./RowMenu";
 import { CodeArea } from "./CodeArea";
 import { formatVars, parseVars, type VarsFormat } from "../lib/varsFormat";
 import { systemFonts } from "../lib/fonts";
+import { BUILTIN, DEFAULT_SCHEME, FAMILIES, SCHEMES, schemeSwatch, type BuiltinId } from "../lib/themes";
 import { PROJECT_COLORS, PROJECT_ICONS, ProjectTile, tileStyle } from "./ProjectIcon";
 
 export function Modals() {
@@ -420,6 +421,20 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
                   </div>
                 </div>
               </div>
+              {theme === "auto" ? (
+                <>
+                  <SchemeRow id="set-scheme-light" label="Light theme" desc="Used while your Mac is light" value={settings.lightScheme ?? DEFAULT_SCHEME.light} onChange={(lightScheme) => setSettings({ lightScheme })} />
+                  <SchemeRow id="set-scheme-dark" label="Dark theme" desc="Used while your Mac is dark" value={settings.darkScheme ?? DEFAULT_SCHEME.dark} onChange={(darkScheme) => setSettings({ darkScheme })} />
+                </>
+              ) : (
+                <SchemeRow
+                  id="set-scheme"
+                  label="Color scheme"
+                  desc="Any scheme, light or dark"
+                  value={(theme === "dark" ? settings.darkScheme : settings.lightScheme) ?? DEFAULT_SCHEME[theme]}
+                  onChange={(v) => setSettings(theme === "dark" ? { darkScheme: v } : { lightScheme: v })}
+                />
+              )}
               <FontRow
                 id="set-ui-font"
                 label="Interface font"
@@ -456,7 +471,7 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
             <button
               type="button"
               className="link set-reset"
-              onClick={() => setSettings({ theme: undefined, fontUi: undefined, fontMono: undefined, fontSizeUi: undefined, fontSizeCode: undefined })}
+              onClick={() => setSettings({ theme: undefined, lightScheme: undefined, darkScheme: undefined, fontUi: undefined, fontMono: undefined, fontSizeUi: undefined, fontSizeCode: undefined })}
             >
               Reset to defaults
             </button>
@@ -526,6 +541,44 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
         </button>
       </footer>
     </Shell>
+  );
+}
+
+/** One colour scheme slot: the scheme's chip and a dropdown of every scheme, grouped by family. */
+function SchemeRow(p: { id: string; label: string; desc: string; value: string; onChange: (id: string) => void }) {
+  const [bg, ...dots] = schemeSwatch(p.value);
+  return (
+    <div className="set-item">
+      <div className="set-text">
+        <label htmlFor={p.id}>{p.label}</label>
+        <span className="desc">{p.desc}</span>
+      </div>
+      <div className="set-ctl">
+        <span className="scheme-dots" aria-hidden="true" style={{ background: bg }}>
+          {dots.map((c, i) => (
+            <i key={i} style={{ background: c }} />
+          ))}
+        </span>
+        <select id={p.id} className="field set-scheme" value={p.value} onChange={(e) => p.onChange(e.target.value)}>
+          <optgroup label="voidHTTP">
+            {(Object.keys(BUILTIN) as BuiltinId[]).map((id) => (
+              <option key={id} value={id}>
+                {BUILTIN[id].name}
+              </option>
+            ))}
+          </optgroup>
+          {FAMILIES.map((f) => (
+            <optgroup key={f} label={f}>
+              {SCHEMES.filter((s) => s.family === f).map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+    </div>
   );
 }
 
