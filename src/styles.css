@@ -312,6 +312,9 @@ select.field {
 .editor-bar { position: absolute; top: var(--space-2xs); right: var(--space-xs); z-index: var(--z-raised); display: flex; gap: var(--space-2xs); }
 .editor-bar .btn { background: var(--color-paper); }
 .editor-bar .btn { font-size: var(--text-sm); }
+.editor-bar .icon-btn { background: var(--color-paper); }
+/* toggles (Wrap lines): tinted while on */
+.icon-btn[aria-pressed="true"], .editor-bar .icon-btn[aria-pressed="true"] { background: var(--color-accent-soft); color: var(--color-accent); }
 .editor .code { border: none; border-radius: 0; }
 
 /* code with a line gutter */
@@ -499,6 +502,11 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
 .editor:focus-within { outline: 2px solid var(--color-focus); outline-offset: -1px; }
 .code .l:empty::after { content: ""; }
 .code.plain { white-space: pre-wrap; word-break: break-word; padding: var(--space-xs) var(--space-md); }
+/* Wrap off in the response: long lines scroll sideways */
+.code.nowrap .l, .code.plain.nowrap { white-space: pre; word-break: normal; }
+/* Wrap on in the editor: the grid is held to the pane width and both layers wrap at the same points */
+.code-edit.wrap .code-edit-grid { grid-template-columns: minmax(0, 1fr); }
+.code-edit.wrap .code .l, .code-edit.wrap .code-input { white-space: pre-wrap; word-break: normal; overflow-wrap: anywhere; }
 
 /* forms inside a section */
 .form-row { display: grid; grid-template-columns: 120px minmax(0, 420px); align-items: center; gap: var(--space-sm); margin-bottom: var(--space-xs); }

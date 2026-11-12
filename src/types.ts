@@ -141,6 +141,9 @@ export interface Settings {
   keepResponseMaxMb?: number;
   /** how the Variables dialog shows variables; remembered between openings */
   variablesFormat?: "table" | "json" | "env";
+  /** Soft-wrap long lines in the request body editor (default off) and the response body (default on). */
+  wrapRequestBody?: boolean;
+  wrapResponseBody?: boolean;
 }
 
 /** A project: the unit shown as a tab in the title strip and as a card on Home. */

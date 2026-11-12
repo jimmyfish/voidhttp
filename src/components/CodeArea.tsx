@@ -11,6 +11,8 @@ interface Props {
   /** floats in the editor's top-right corner (Beautify) */
   tools?: ReactNode;
   label?: string;
+  /** soft-wrap long lines instead of scrolling sideways */
+  wrap?: boolean;
 }
 
 /** Above this the highlight layer is skipped: plain text, still line-numbered. */
@@ -21,7 +23,7 @@ const HIGHLIGHT_LIMIT = 200 * 1024;
  * a highlighted, line-numbered <pre> sits under a transparent <textarea> in one grid cell,
  * so both share one scroll and the caret, selection and typing stay native.
  */
-export function CodeArea({ value, onChange, placeholder, json, tools, label = "Request body" }: Props) {
+export function CodeArea({ value, onChange, placeholder, json, tools, label = "Request body", wrap = false }: Props) {
   const html = useMemo(
     () => highlightLines(value, !!json && value.length <= HIGHLIGHT_LIMIT),
     [value, json],
@@ -49,7 +51,7 @@ export function CodeArea({ value, onChange, placeholder, json, tools, label = "R
   return (
     <div className="editor">
       {tools && <div className="editor-bar">{tools}</div>}
-      <div className="code-edit">
+      <div className={`code-edit${wrap ? " wrap" : ""}`}>
         <div className="code-edit-grid">
           <pre className="code" aria-hidden="true" dangerouslySetInnerHTML={{ __html: html }} />
           <textarea
@@ -58,7 +60,7 @@ export function CodeArea({ value, onChange, placeholder, json, tools, label = "R
             spellCheck={false}
             autoCorrect="off"
             autoCapitalize="off"
-            wrap="off"
+            wrap={wrap ? "soft" : "off"}
             value={value}
             placeholder={placeholder}
             onChange={(e) => onChange(e.target.value)}

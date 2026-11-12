@@ -4,7 +4,7 @@ import { findNode, formatBytes } from "../lib/model";
 import { highlightLines } from "../lib/highlight";
 import { compile, query } from "../lib/jsonpath";
 import { useStore } from "../store";
-import { Bookmark, BookmarkPlus, ChevronDown, ChevronUp, CircleHelp, Clock, Copy, EyeOff, Filter, Search, X, ico } from "./Icon";
+import { Bookmark, BookmarkPlus, ChevronDown, ChevronUp, CircleHelp, Clock, Copy, EyeOff, Filter, Search, WrapText, X, ico } from "./Icon";
 
 /** Above this size lines are not split or highlighted, to keep the UI snappy. */
 const LINES_LIMIT = 512 * 1024;
@@ -43,6 +43,8 @@ export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   const notify = useStore((s) => s.notify);
   const openModal = useStore((s) => s.openModal);
   const maxMb = useStore((s) => s.settings.keepResponseMaxMb ?? 1);
+  const wrap = useStore((s) => s.settings.wrapResponseBody ?? true);
+  const setSettings = useStore((s) => s.setSettings);
   // an example tab reads when it was saved and what was masked from the example in its collection
   const example = useStore((s) => {
     const ref = tab.example;
@@ -298,6 +300,16 @@ export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
                 Raw
               </button>
             </div>
+            <button
+              type="button"
+              className="icon-btn"
+              title={wrap ? "Don't wrap lines" : "Wrap lines"}
+              aria-label="Wrap lines"
+              aria-pressed={wrap}
+              onClick={() => setSettings({ wrapResponseBody: !wrap })}
+            >
+              <WrapText {...ico} />
+            </button>
             {!tab.example && (
               <button
                 type="button"
@@ -323,7 +335,7 @@ export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
             <div className="res-body">
               <pre
                 ref={codeRef}
-                className={`code${rendered?.html === null ? " plain" : ""}`}
+                className={`code${rendered?.html === null ? " plain" : ""}${wrap ? "" : " nowrap"}`}
                 aria-label={filtered?.text !== undefined ? "Filtered response body" : "Response body"}
               />
               <div className="res-filter">

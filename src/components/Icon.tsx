@@ -40,6 +40,7 @@ export {
   Trash2,
   Type,
   WandSparkles,
+  WrapText,
   X,
 } from "lucide-react";
 

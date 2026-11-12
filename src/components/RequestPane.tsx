@@ -10,7 +10,7 @@ import { looksLikeCurl, parseCurl, toCurl } from "../lib/curl";
 import { KVEditor } from "./KVEditor";
 import { CodeArea } from "./CodeArea";
 import { formatJsonc, stripJsonComments } from "../lib/jsonc";
-import { ChevronDown, CircleCheck, CircleDashed, CircleDot, CodeXml, SlidersHorizontal, WandSparkles, ico } from "./Icon";
+import { ChevronDown, CircleCheck, CircleDashed, CircleDot, CodeXml, SlidersHorizontal, WandSparkles, WrapText, ico } from "./Icon";
 
 type Section = "params" | "headers" | "body" | "auth";
 
@@ -265,6 +265,8 @@ const BODY_MODES: { mode: BodyMode; label: string }[] = [
 function BodyEditor({ tab }: { tab: Tab }) {
   const update = useStore((s) => s.updateRequest);
   const notify = useStore((s) => s.notify);
+  const wrap = useStore((s) => s.settings.wrapRequestBody ?? false);
+  const setSettings = useStore((s) => s.setSettings);
   const body = tab.request.body;
   const set = (patch: Partial<typeof body>) => update(tab.id, { body: { ...body, ...patch } });
 
@@ -292,13 +294,26 @@ function BodyEditor({ tab }: { tab: Tab }) {
           json={body.mode === "json"}
           onChange={(raw) => set({ raw })}
           placeholder={body.mode === "json" ? '{ "hello": "world" }' : ""}
+          wrap={wrap}
           tools={
-            body.mode === "json" && (
-              <button type="button" className="btn btn--quiet" onClick={beautify}>
-                <WandSparkles {...ico} />
-                Beautify
+            <>
+              <button
+                type="button"
+                className="icon-btn"
+                title={wrap ? "Don't wrap lines" : "Wrap lines"}
+                aria-label="Wrap lines"
+                aria-pressed={wrap}
+                onClick={() => setSettings({ wrapRequestBody: !wrap })}
+              >
+                <WrapText {...ico} />
               </button>
-            )
+              {body.mode === "json" && (
+                <button type="button" className="btn btn--quiet" onClick={beautify}>
+                  <WandSparkles {...ico} />
+                  Beautify
+                </button>
+              )}
+            </>
           }
         />
       )}
