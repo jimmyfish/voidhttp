@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useStore } from "../store";
 import type { Environment, KV } from "../types";
 import { listFolders, uid } from "../lib/model";
+import { ExampleModal } from "./ExampleModal";
 import { KVEditor } from "./KVEditor";
 import { Check, CopyPlus, Ellipsis, Plus, Send, Trash2, Type, ico } from "./Icon";
 import { RowMenu, type MenuItem } from "./RowMenu";
@@ -49,6 +50,8 @@ export function Modals() {
       return <ProjectModal projectId={modal.projectId} onClose={close} />;
     case "import":
       return <ImportModal text={modal.text} onClose={close} />;
+    case "example":
+      return <ExampleModal request={modal.request} response={modal.response} target={modal.target} onClose={close} />;
   }
 }
 
@@ -529,6 +532,42 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
                     checked={settings.insecure}
                     onChange={(e) => setSettings({ insecure: e.target.checked })}
                   />
+                </div>
+              </div>
+              <div className="set-item">
+                <div className="set-text">
+                  <label htmlFor="set-keep">Keep responses in history</label>
+                  <span className="desc">Status, headers and body of each send, stored on this Mac as received</span>
+                </div>
+                <div className="set-ctl">
+                  <input
+                    id="set-keep"
+                    className="switch"
+                    type="checkbox"
+                    role="switch"
+                    checked={settings.keepResponses !== false}
+                    onChange={(e) => setSettings({ keepResponses: e.target.checked })}
+                  />
+                </div>
+              </div>
+              <div className="set-item">
+                <div className="set-text">
+                  <label htmlFor="set-keep-max">Largest body kept</label>
+                  <span className="desc">Bigger responses keep only status and headers</span>
+                </div>
+                <div className="set-ctl">
+                  <span className="unit-field">
+                    <input
+                      id="set-keep-max"
+                      className="field"
+                      type="number"
+                      min={1}
+                      disabled={settings.keepResponses === false}
+                      value={settings.keepResponseMaxMb ?? 1}
+                      onChange={(e) => setSettings({ keepResponseMaxMb: Math.max(1, Number(e.target.value) || 1) })}
+                    />
+                    <span className="unit">MB</span>
+                  </span>
                 </div>
               </div>
             </div>

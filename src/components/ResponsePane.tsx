@@ -1,10 +1,10 @@
 import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Tab } from "../types";
-import { formatBytes } from "../lib/model";
+import { findNode, formatBytes } from "../lib/model";
 import { highlightLines } from "../lib/highlight";
 import { compile, query } from "../lib/jsonpath";
 import { useStore } from "../store";
-import { ChevronDown, ChevronUp, CircleHelp, Copy, Filter, Search, X, ico } from "./Icon";
+import { Bookmark, BookmarkPlus, ChevronDown, ChevronUp, CircleHelp, Clock, Copy, EyeOff, Filter, Search, X, ico } from "./Icon";
 
 /** Above this size lines are not split or highlighted, to keep the UI snappy. */
 const LINES_LIMIT = 512 * 1024;
@@ -41,6 +41,17 @@ export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   const [hits, setHits] = useState(0);
   const [cur, setCur] = useState(0);
   const notify = useStore((s) => s.notify);
+  const openModal = useStore((s) => s.openModal);
+  const maxMb = useStore((s) => s.settings.keepResponseMaxMb ?? 1);
+  // an example tab reads when it was saved and what was masked from the example in its collection
+  const example = useStore((s) => {
+    const ref = tab.example;
+    const col = ref && s.collections.find((c) => c.id === ref.collectionId);
+    const node = col && findNode(col.children, ref.nodeId);
+    return node?.type === "request" ? node.examples?.find((e) => e.id === ref!.exampleId) : undefined;
+  });
+  const masked = example?.masked;
+  const savedAt = example?.savedAt;
   const res = tab.response;
   const codeRef = useRef<HTMLPreElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -106,6 +117,8 @@ export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
     if (!pre || !rendered) return;
     if (rendered.html !== null) pre.innerHTML = rendered.html;
     else pre.textContent = rendered.text;
+    // in an example, tint the values that were masked when it was saved
+    if (tab.example) pre.querySelectorAll(".j-str").forEach((el) => el.textContent?.includes("•") && el.classList.add("masked"));
     marks.current = search ? markMatches(pre, search) : [];
     setHits(marks.current.length);
     setCur(0);
@@ -202,8 +215,33 @@ export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
       </span>
     );
 
+  const when = (ts: number) =>
+    `${new Date(ts).toDateString() === new Date().toDateString() ? "Today" : new Date(ts).toLocaleDateString([], { day: "numeric", month: "short" })}, ${new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  const dropped = !!tab.fromHistory?.bodyDropped;
+
   return shell(
     <>
+      {tab.fromHistory && (
+        <div className="res-banner">
+          <Clock {...ico} />
+          <span>From history</span>
+          <span className="dim">{when(tab.fromHistory.at)}</span>
+          <span className="push dim">Send to get a fresh response</span>
+        </div>
+      )}
+      {tab.example && (
+        <div className="res-banner">
+          <Bookmark {...ico} />
+          <span>Example</span>
+          {savedAt && <span className="dim">Saved {when(savedAt)}</span>}
+          {!!masked?.length && (
+            <span className="push masked-note" title={masked.join("\n")}>
+              <EyeOff {...ico} />
+              {masked.length === 1 ? "1 field masked" : `${masked.length} fields masked`}
+            </span>
+          )}
+        </div>
+      )}
       <nav className="subtabs" aria-label="Response">
         <button type="button" className="subtab" aria-pressed={sub === "body"} onClick={() => setSub("body")}>
           Body
@@ -242,6 +280,13 @@ export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
             </tbody>
           </table>
         </div>
+      ) : dropped ? (
+        <div className="empty">
+          <strong>Body not kept</strong>
+          <span>
+            {formatBytes(res.size)} is over the {maxMb} MB history limit. Status and headers were kept.
+          </span>
+        </div>
       ) : (
         <>
           <div className="res-tools">
@@ -253,6 +298,17 @@ export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
                 Raw
               </button>
             </div>
+            {!tab.example && (
+              <button
+                type="button"
+                className="icon-btn"
+                title="Save as example"
+                aria-label="Save as example"
+                onClick={() => openModal({ kind: "example", request: tab.request, response: res, target: tab.savedRef })}
+              >
+                <BookmarkPlus {...ico} />
+              </button>
+            )}
             <button type="button" className="icon-btn" title="Copy response" aria-label="Copy response" onClick={copyBody}>
               <Copy {...ico} />
             </button>

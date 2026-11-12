@@ -30,6 +30,25 @@ export interface RequestDef {
 
 export interface RequestNode extends RequestDef {
   type: "request";
+  /** Saved responses, each with the request that produced it. Sensitive values were masked when it was saved. */
+  examples?: Example[];
+}
+
+export interface Example {
+  id: string;
+  name: string;
+  savedAt: number;
+  request: RequestDef;
+  response: HttpResponse;
+  /** What was masked before saving, e.g. "Response body $.email" */
+  masked: string[];
+}
+
+/** Points at one example: the request node that holds it, and the example. */
+export interface ExampleRef {
+  collectionId: string;
+  nodeId: string;
+  exampleId: string;
 }
 
 export interface FolderNode {
@@ -76,10 +95,14 @@ export interface Tab {
   request: RequestDef;
   savedRef?: SavedRef;
   dirty: boolean;
+  /** The tab shows a saved example: read-only, no Send. */
+  example?: ExampleRef;
   // runtime only (not persisted)
   inflightId?: string;
   response?: HttpResponse;
   error?: string;
+  /** The response came from history, not from a send in this tab. Cleared by the next send. */
+  fromHistory?: { at: number; bodyDropped: boolean };
 }
 
 export interface HistoryEntry {
@@ -88,6 +111,8 @@ export interface HistoryEntry {
   request: RequestDef;
   status?: number;
   elapsedMs?: number;
+  /** The response is stored in responses/<id>.json: "full", or "meta" when the body was over the size limit and left out. */
+  kept?: "full" | "meta";
 }
 
 export interface Settings {
@@ -110,6 +135,10 @@ export interface Settings {
   lightScheme?: string;
   /** colour scheme id used while the look is dark */
   darkScheme?: string;
+  /** Store each response with its history entry (default on). */
+  keepResponses?: boolean;
+  /** Bodies bigger than this many MB keep only status and headers (default 1). */
+  keepResponseMaxMb?: number;
   /** how the Variables dialog shows variables; remembered between openings */
   variablesFormat?: "table" | "json" | "env";
 }

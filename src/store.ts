@@ -3,6 +3,10 @@ import { invoke } from "@tauri-apps/api/core";
 import type {
   Collection,
   Environment,
+  Example,
+  ExampleRef,
+  HistoryEntry,
+  HttpResponse,
   ProjectData,
   ProjectMeta,
   RequestDef,
@@ -42,7 +46,9 @@ export type Modal =
   /** create a project (no id) or edit one */
   | { kind: "project"; projectId?: string }
   /** a file was picked on Home: choose which project it goes into */
-  | { kind: "import"; text: string };
+  | { kind: "import"; text: string }
+  /** save a response as an example; target is the request it goes under when known */
+  | { kind: "example"; request: RequestDef; response: HttpResponse; target?: SavedRef };
 
 export type View = "home" | "project";
 
@@ -84,6 +90,17 @@ interface State extends ProjectData {
   sendTab(tabId: string): Promise<void>;
   cancelTab(tabId: string): void;
   scopeFor(tabId: string): VarScope;
+
+  /** Open a history entry in a new tab, with its stored response when there is one. */
+  openHistory(entryId: string): Promise<void>;
+  /** The stored response of a history entry, or null. */
+  historyResponse(entryId: string): Promise<HttpResponse | null>;
+  deleteHistory(entryId: string): void;
+
+  saveExample(target: SavedRef, example: Example): void;
+  openExample(ref: ExampleRef): void;
+  renameExample(ref: ExampleRef, name: string): void;
+  deleteExample(ref: ExampleRef): void;
 
   saveTab(tabId: string): void;
   saveTabAs(tabId: string, collectionId: string, parentId: string | null, name: string): void;
@@ -134,6 +151,45 @@ let initStarted = false;
 
 const patchTab = (tabs: Tab[], id: string, fn: (t: Tab) => Tab) => tabs.map((t) => (t.id === id ? fn(t) : t));
 
+/** A duplicated collection copies its example ids, so a ref is only the same with its collection and request. */
+export const sameExample = (a: ExampleRef | undefined, b: ExampleRef) =>
+  !!a && a.exampleId === b.exampleId && a.nodeId === b.nodeId && a.collectionId === b.collectionId;
+
+function findExample(collections: Collection[], ref: ExampleRef): Example | undefined {
+  const col = collections.find((c) => c.id === ref.collectionId);
+  const node = col && findNode(col.children, ref.nodeId);
+  return node?.type === "request" ? node.examples?.find((e) => e.id === ref.exampleId) : undefined;
+}
+
+function mapExamples(collections: Collection[], ref: ExampleRef, fn: (list: Example[]) => Example[]): Collection[] {
+  return collections.map((c) =>
+    c.id !== ref.collectionId
+      ? c
+      : { ...c, children: mapTree(c.children, ref.nodeId, (n) => (n.type === "request" ? { ...n, examples: fn(n.examples ?? []) } : n)) },
+  );
+}
+
+/**
+ * Stores the response of history entry `id` as received (never masked), when the setting allows.
+ * A body over the size limit is left out; status and headers are kept.
+ */
+function keepResponse(id: string, response: HttpResponse, settings: Settings): HistoryEntry["kept"] {
+  if (settings.keepResponses === false) return undefined;
+  const over = response.size > (settings.keepResponseMaxMb ?? 1) * 1024 * 1024;
+  const data = over ? { ...response, body: "" } : response;
+  invoke("save_response", { id, data }).catch((e) => useStore.getState().notify(`Could not keep the response: ${e}`));
+  return over ? "meta" : "full";
+}
+
+/** Session tabs come back without responses; example tabs get theirs from the collection, or close when it is gone. */
+function restoreTabs(tabs: Tab[], collections: Collection[]): Tab[] {
+  return tabs.flatMap((t) => {
+    if (!t.example) return [t];
+    const ex = findExample(collections, t.example);
+    return ex ? [{ ...t, response: ex.response }] : [];
+  });
+}
+
 export const useStore = create<State>((set, get) => {
   /** Apply a change to one project's data, whether it is open (top of state) or stashed. */
   const applyToProject = (pid: string | null, fn: (d: ProjectData) => Partial<ProjectData>) => {
@@ -177,7 +233,7 @@ export const useStore = create<State>((set, get) => {
               environments,
               activeEnvironmentId,
               history: raw.history?.[p.id] ?? [],
-              tabs: per?.tabs ?? [],
+              tabs: restoreTabs(per?.tabs ?? [], collections),
               activeTabId: per?.activeTabId ?? null,
             };
           }
@@ -351,7 +407,7 @@ export const useStore = create<State>((set, get) => {
 
     async sendTab(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
-      if (!tab || tab.inflightId) return;
+      if (!tab || tab.inflightId || tab.example) return;
       // the response lands in this project even if another one is open by the time it arrives
       const pid = get().currentProjectId;
       const inflightId = uid();
@@ -360,17 +416,19 @@ export const useStore = create<State>((set, get) => {
       try {
         const prepared = prepare(request, get().scopeFor(tabId));
         const response = await send(prepared, get().settings, inflightId);
+        const entryId = uid();
+        const kept = keepResponse(entryId, response, get().settings);
         applyToProject(pid, (d) => ({
-          tabs: patchTab(d.tabs, tabId, (t) => ({ ...t, inflightId: undefined, response, error: undefined })),
+          tabs: patchTab(d.tabs, tabId, (t) => ({ ...t, inflightId: undefined, response, error: undefined, fromHistory: undefined })),
           history: [
-            { id: uid(), at: Date.now(), request, status: response.status, elapsedMs: response.elapsedMs },
+            { id: entryId, at: Date.now(), request, status: response.status, elapsedMs: response.elapsedMs, kept },
             ...d.history,
           ].slice(0, HISTORY_LIMIT),
         }));
       } catch (e) {
         const error = String(e);
         applyToProject(pid, (d) => ({
-          tabs: patchTab(d.tabs, tabId, (t) => ({ ...t, inflightId: undefined, response: undefined, error })),
+          tabs: patchTab(d.tabs, tabId, (t) => ({ ...t, inflightId: undefined, response: undefined, error, fromHistory: undefined })),
           history:
             error === "Request cancelled"
               ? d.history
@@ -384,9 +442,78 @@ export const useStore = create<State>((set, get) => {
       if (id) cancel(id);
     },
 
+    async historyResponse(entryId) {
+      const entry = get().history.find((h) => h.id === entryId);
+      if (!entry?.kept) return null;
+      try {
+        return (await invoke<HttpResponse | null>("load_response", { id: entryId })) ?? null;
+      } catch {
+        return null;
+      }
+    },
+
+    async openHistory(entryId) {
+      const entry = get().history.find((h) => h.id === entryId);
+      if (!entry) return;
+      get().newTab({ ...toRequestDef(entry.request), name: entry.request.url || entry.request.name });
+      const tabId = get().activeTabId!;
+      if (!entry.kept) return;
+      const pid = get().currentProjectId;
+      const response = await get().historyResponse(entryId);
+      if (!response) return get().notify("The saved response is missing");
+      // the tab may have been sent (or closed) while the file was read
+      applyToProject(pid, (d) => ({
+        tabs: patchTab(d.tabs, tabId, (t) =>
+          t.response || t.inflightId || t.error ? t : { ...t, response, fromHistory: { at: entry.at, bodyDropped: entry.kept === "meta" } },
+        ),
+      }));
+    },
+
+    deleteHistory(entryId) {
+      // the stored response goes with it on the next prune (see the history persist below)
+      set((s) => ({ history: s.history.filter((h) => h.id !== entryId) }));
+    },
+
+    saveExample(target, example) {
+      set((s) => ({
+        collections: s.collections.map((c) =>
+          c.id !== target.collectionId
+            ? c
+            : {
+                ...c,
+                children: mapTree(c.children, target.nodeId, (n) =>
+                  n.type === "request" ? { ...n, examples: [...(n.examples ?? []), example] } : n,
+                ),
+              },
+        ),
+      }));
+      get().notify(`Example “${example.name}” saved`);
+    },
+
+    openExample(ref) {
+      const existing = get().tabs.find((t) => sameExample(t.example, ref));
+      if (existing) return set({ activeTabId: existing.id });
+      const ex = findExample(get().collections, ref);
+      if (!ex) return;
+      const tab: Tab = { id: uid(), request: { ...structuredClone(ex.request), name: ex.name }, example: ref, response: ex.response, dirty: false };
+      set((s) => ({ tabs: [...s.tabs, tab], activeTabId: tab.id }));
+    },
+
+    renameExample(ref, name) {
+      set((s) => ({
+        collections: mapExamples(s.collections, ref, (list) => list.map((e) => (e.id === ref.exampleId ? { ...e, name } : e))),
+        tabs: s.tabs.map((t) => (sameExample(t.example, ref) ? { ...t, request: { ...t.request, name } } : t)),
+      }));
+    },
+
+    deleteExample(ref) {
+      set((s) => ({ collections: mapExamples(s.collections, ref, (list) => list.filter((e) => e.id !== ref.exampleId)) }));
+      for (const t of get().tabs.filter((t) => sameExample(t.example, ref))) get().closeTab(t.id);
+    },
+
     saveTab(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
-      if (!tab) return;
+      if (!tab || tab.example) return;
       const ref = tab.savedRef;
       const col = ref && get().collections.find((c) => c.id === ref.collectionId);
       if (!ref || !col || !findNode(col.children, ref.nodeId)) {
@@ -397,7 +524,15 @@ export const useStore = create<State>((set, get) => {
         collections: s.collections.map((c) =>
           c.id !== ref.collectionId
             ? c
-            : { ...c, children: mapTree(c.children, ref.nodeId, () => ({ type: "request", ...toRequestDef(tab.request), id: ref.nodeId })) },
+            : {
+                ...c,
+                children: mapTree(c.children, ref.nodeId, (n) => ({
+                  type: "request",
+                  ...toRequestDef(tab.request),
+                  id: ref.nodeId,
+                  examples: n.type === "request" ? n.examples : undefined,
+                })),
+              },
         ),
         tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, dirty: false })),
       }));
@@ -505,7 +640,13 @@ export const useStore = create<State>((set, get) => {
         tabs:
           fromId === toId
             ? s.tabs
-            : s.tabs.map((t) => (t.savedRef && moved.has(t.savedRef.nodeId) ? { ...t, savedRef: { ...t.savedRef, collectionId: toId } } : t)),
+            : s.tabs.map((t) =>
+                t.savedRef && moved.has(t.savedRef.nodeId)
+                  ? { ...t, savedRef: { ...t.savedRef, collectionId: toId } }
+                  : t.example && moved.has(t.example.nodeId)
+                    ? { ...t, example: { ...t.example, collectionId: toId } }
+                    : t,
+              ),
       });
     },
 
@@ -580,7 +721,7 @@ export const useStore = create<State>((set, get) => {
 
 // ---------- persistence: debounced, only when the slices a file depends on changed ----------
 
-function persist<T>(name: string, select: (s: State) => T, toFile: (v: T) => unknown, delay = 400) {
+function persist<T>(name: string, select: (s: State) => T, toFile: (v: T) => unknown, delay = 400, after?: (v: T) => void) {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let prev: T | undefined;
   useStore.subscribe((s) => {
@@ -590,7 +731,9 @@ function persist<T>(name: string, select: (s: State) => T, toFile: (v: T) => unk
     prev = next;
     clearTimeout(timer);
     timer = setTimeout(() => {
-      invoke("save_state", { name, data: toFile(next) }).catch((e) => useStore.getState().notify(`Save failed: ${e}`));
+      invoke("save_state", { name, data: toFile(next) })
+        .then(() => after?.(next))
+        .catch((e) => useStore.getState().notify(`Save failed: ${e}`));
     }, delay);
   });
 }
@@ -644,6 +787,13 @@ persist(
   },
   (v) => Object.fromEntries(v.projects.map((p) => [p.id, dataOf(v as Refs, p.id).history])),
   1000,
+  // stored responses live only as long as their history entry, across every project.
+  // Read the state now, not the debounced snapshot: a send that landed since then has its file already.
+  () => {
+    const v = refs(useStore.getState());
+    const keep = v.projects.flatMap((p) => dataOf(v, p.id).history.filter((h) => h.kept).map((h) => h.id));
+    invoke("prune_responses", { keep }).catch(() => undefined);
+  },
 );
 
 persist(
@@ -659,8 +809,8 @@ persist(
     perProject: Object.fromEntries(
       v.projects.map((p) => {
         const d = dataOf(v as Refs, p.id);
-        // responses are not persisted: they can be huge and are stale anyway
-        return [p.id, { activeTabId: d.activeTabId, tabs: d.tabs.map(({ id, request, savedRef, dirty }) => ({ id, request, savedRef, dirty })) }];
+        // tab responses are not persisted: history keeps its own copy, and examples come from their collection
+        return [p.id, { activeTabId: d.activeTabId, tabs: d.tabs.map(({ id, request, savedRef, dirty, example }) => ({ id, request, savedRef, dirty, example })) }];
       }),
     ),
   }),

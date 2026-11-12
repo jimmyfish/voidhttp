@@ -87,7 +87,7 @@ export function placeNode(nodes: TreeNode[], targetId: string, where: DropWhere,
 /** A deep copy with fresh ids for the node, its descendants and their rows. */
 export function cloneNode(n: TreeNode): TreeNode {
   if (n.type === "folder") return { ...n, id: uid(), children: n.children.map(cloneNode) };
-  return { ...n, ...cloneRequest(n), type: "request", id: uid() };
+  return { ...n, ...cloneRequest(n), type: "request", id: uid(), examples: n.examples?.map((e) => ({ ...structuredClone(e), id: uid() })) };
 }
 
 /** Ids of a node and everything inside it. */

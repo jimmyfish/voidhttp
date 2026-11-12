@@ -597,3 +597,44 @@ kbd { font: var(--text-xs) var(--font-mono); padding: var(--space-3xs) var(--spa
 .env-item:hover .row-more, .env-item:focus-within .row-more, .env-item.menu-open .row-more { display: inline-grid; }
 .env-item.menu-open > button:not(.icon-btn) { background: var(--color-paper-3); }
 .env-item.menu-open > button[aria-current="true"] { background: var(--color-accent-soft); }
+
+/* ---------- response history + examples ---------- */
+/* history rows: when it was sent, then the status */
+.htime { margin-left: auto; color: var(--color-muted); font: var(--text-xs) var(--font-mono); font-variant-numeric: tabular-nums; }
+.htime + .hstatus { margin-left: var(--space-xs); min-width: 3ch; text-align: right; }
+/* examples sit under their request in the tree; same bookmark marks an example tab */
+.row.example .name { color: var(--color-ink-2); }
+.ex-ico { color: var(--color-muted); }
+.res-tools .icon-btn.on { background: var(--color-paper-2); color: var(--color-ink); }
+/* a response that did not come from this send: one quiet strip above it */
+.res-banner {
+  display: flex; align-items: center; gap: var(--space-xs); min-height: 32px; margin: var(--space-xs) var(--space-md) 0;
+  padding: 0 var(--space-sm); border-radius: var(--radius-control); background: var(--color-paper-2);
+  color: var(--color-ink-2); font-size: var(--text-sm); flex-shrink: 0;
+}
+.res-banner .ico { color: var(--color-muted); }
+.res-banner .dim { color: var(--color-muted); }
+.res-banner .push { margin-left: auto; }
+.masked-note { display: inline-flex; align-items: center; gap: var(--space-2xs); color: var(--color-muted); }
+.code .masked { border-radius: 3px; background: var(--color-paper-3); box-shadow: inset 0 0 0 1px var(--color-rule); }
+/* save as example */
+.dialog--example { width: 600px; }
+.ex-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: var(--space-sm); }
+.mask-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-sm); }
+.mask-list { border: 1px solid var(--color-rule); border-radius: 10px; overflow: hidden; }
+.dialog label.mask-row {
+  display: grid; grid-template-columns: 16px 112px minmax(0, 1fr) auto; align-items: center; gap: var(--space-sm);
+  min-height: 40px; margin: 0; padding: 0 var(--space-md); color: var(--color-ink); font-size: var(--text-md); cursor: pointer;
+}
+.mask-row:hover { background: var(--color-paper-3); }
+.mask-row + .mask-row, .mask-row + .mask-add { border-top: 1px solid var(--color-rule); }
+.mask-row input { width: 16px; height: 16px; margin: 0; accent-color: var(--color-ok); }
+.mask-where { color: var(--color-muted); font-size: var(--text-sm); }
+.mask-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: var(--text-code) var(--font-mono); }
+.mask-val { font: var(--text-code) var(--font-mono); color: var(--color-muted); }
+/* unticked: the value is saved as it came, so it reads in the warning colour */
+.mask-row:has(input:not(:checked)) .mask-val { color: var(--color-warn); }
+.mask-add { padding: var(--space-xs) var(--space-md); }
+.mask-add .field { width: 100%; background: var(--color-paper-3); font: var(--text-code) var(--font-mono); }
+.dialog--example footer { align-items: center; }
+.mask-count { margin-right: auto; color: var(--color-muted); font-size: var(--text-sm); }

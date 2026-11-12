@@ -28,11 +28,16 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
   const set = (patch: Parameters<typeof update>[1]) => update(tab.id, patch);
   const missing = unresolved(req.url, scopeFor(tab.id));
   const loading = !!tab.inflightId;
+  // an example is a saved record: shown read-only, never sent
+  const ex = tab.example;
 
   // where the saved request lives, for the title row
   const col = tab.savedRef && collections.find((c) => c.id === tab.savedRef!.collectionId);
   const saved = !!(col && findNode(col.children, tab.savedRef!.nodeId));
   const folders = saved ? pathTo(col!.children, tab.savedRef!.nodeId) ?? [] : [];
+  const exCol = ex && collections.find((c) => c.id === ex.collectionId);
+  const exNode = exCol ? findNode(exCol.children, ex.nodeId) : undefined;
+  const exPath = exCol && exNode ? [exCol.name, ...(pathTo(exCol.children, ex.nodeId) ?? []), exNode.name].join(" / ") : "Request deleted";
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -56,6 +61,14 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
       st.notify(`Copy failed: ${e}`);
     }
   };
+  const removeExample = () =>
+    ex &&
+    st.openModal({
+      kind: "confirm",
+      title: `Delete example “${req.name}”?`,
+      message: "This cannot be undone.",
+      onConfirm: () => st.deleteExample(ex),
+    });
   const remove = () =>
     st.openModal({
       kind: "confirm",
@@ -74,14 +87,14 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
         className="request-line"
         onSubmit={(e) => {
           e.preventDefault();
-          loading ? st.cancelTab(tab.id) : st.sendTab(tab.id);
+          if (!ex) loading ? st.cancelTab(tab.id) : st.sendTab(tab.id);
         }}
       >
         <div className="url-field">
           {/* the label sizes to the method; the real <select> lies over it */}
           <label className={`method-pick m-${req.method}`}>
             {req.method}
-            <select aria-label="Method" value={req.method} onChange={(e) => set({ method: e.target.value })}>
+            <select aria-label="Method" value={req.method} disabled={!!ex} onChange={(e) => set({ method: e.target.value })}>
               {METHODS.map((m) => (
                 <option key={m}>{m}</option>
               ))}
@@ -90,13 +103,14 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
           <input
             aria-label="URL"
             spellCheck={false}
-            autoFocus
+            autoFocus={!ex}
+            readOnly={!!ex}
             placeholder="https://api.example.com/users or {{baseUrl}}/users"
             value={req.url}
             onChange={(e) => set({ url: e.target.value, params: paramsFromUrl(e.target.value, req.params) })}
             onPaste={(e) => {
               const text = e.clipboardData.getData("text");
-              if (!looksLikeCurl(text)) return;
+              if (ex || !looksLikeCurl(text)) return;
               e.preventDefault();
               const parsed = parseCurl(text);
               if (!parsed) return st.notify("Couldn’t find a URL in that cURL command");
@@ -107,7 +121,11 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
           />
         </div>
 
-        {loading ? (
+        {ex ? (
+          <button type="button" className="btn" onClick={removeExample}>
+            Delete
+          </button>
+        ) : loading ? (
           <button type="submit" className="btn btn--danger" aria-busy="true">
             Cancel
           </button>
@@ -148,25 +166,27 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
           </div>
         )}
 
-        <div className="joined">
-          <button type="button" className="btn" onClick={() => st.saveTab(tab.id)}>
-            Save
-          </button>
-          {!saved ? (
-            <span className="btn joined-tail save-state" role="img" aria-label="Not saved yet" title="Not saved yet">
-              <CircleDashed {...ico} />
-            </span>
-          ) : tab.dirty ? (
-            <span className="btn joined-tail save-state dirty-state" role="img" aria-label="Unsaved changes" title="Unsaved changes">
-              <CircleDot {...ico} />
-            </span>
-          ) : (
-            <span className="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved">
-              <CircleCheck {...ico} />
-            </span>
-          )}
-        </div>
-        {saved && (
+        {!ex && (
+          <div className="joined">
+            <button type="button" className="btn" onClick={() => st.saveTab(tab.id)}>
+              Save
+            </button>
+            {!saved ? (
+              <span className="btn joined-tail save-state" role="img" aria-label="Not saved yet" title="Not saved yet">
+                <CircleDashed {...ico} />
+              </span>
+            ) : tab.dirty ? (
+              <span className="btn joined-tail save-state dirty-state" role="img" aria-label="Unsaved changes" title="Unsaved changes">
+                <CircleDot {...ico} />
+              </span>
+            ) : (
+              <span className="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved">
+                <CircleCheck {...ico} />
+              </span>
+            )}
+          </div>
+        )}
+        {saved && !ex && (
           <button type="button" className="btn" onClick={remove}>
             Delete
           </button>
@@ -175,7 +195,7 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
 
       <div className="req-title">
         <span className="name">{req.name}</span>
-        <span className="path">{saved ? [col!.name, ...folders].join(" / ") : "Not saved"}</span>
+        <span className="path">{ex ? `${exPath} · example` : saved ? [col!.name, ...folders].join(" / ") : "Not saved"}</span>
         {missing.length > 0 && <span className="hint">Unresolved: {missing.map((m) => `{{${m}}}`).join(", ")}</span>}
       </div>
 
@@ -195,16 +215,18 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
       </nav>
 
       <div className="section">
-        {section === "params" && (
-          <KVEditor
-            rows={req.params}
-            addLabel="Add a param"
-            onChange={(params) => set({ params, url: urlWithParams(req.url, params) })}
-          />
-        )}
-        {section === "headers" && <KVEditor rows={req.headers} nameLabel="Header" addLabel="Add a header" onChange={(headers) => set({ headers })} />}
-        {section === "body" && <BodyEditor tab={tab} />}
-        {section === "auth" && <AuthEditor auth={req.auth} onChange={(auth) => set({ auth })} />}
+        <fieldset className="ro" disabled={!!ex}>
+          {section === "params" && (
+            <KVEditor
+              rows={req.params}
+              addLabel="Add a param"
+              onChange={(params) => set({ params, url: urlWithParams(req.url, params) })}
+            />
+          )}
+          {section === "headers" && <KVEditor rows={req.headers} nameLabel="Header" addLabel="Add a header" onChange={(headers) => set({ headers })} />}
+          {section === "body" && <BodyEditor tab={tab} />}
+          {section === "auth" && <AuthEditor auth={req.auth} onChange={(auth) => set({ auth })} />}
+        </fieldset>
       </div>
     </div>
   );

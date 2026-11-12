@@ -1,6 +1,6 @@
 import { useStore } from "../store";
 import { methodLabel } from "../lib/model";
-import { ChevronDown, Columns2, Menu, PanelLeftClose, PanelLeftOpen, Plus, Rows2, X, ico } from "./Icon";
+import { Bookmark, ChevronDown, Columns2, Menu, PanelLeftClose, PanelLeftOpen, Plus, Rows2, X, ico } from "./Icon";
 
 export function TabsBar() {
   const tabs = useStore((s) => s.tabs);
@@ -34,7 +34,7 @@ export function TabsBar() {
             onAuxClick={(e) => e.button === 1 && s.closeTab(t.id)}
           >
             <button type="button" className="tab-main" title={t.request.url} onClick={() => s.setActiveTab(t.id)}>
-              <span className={`m m-${t.request.method}`}>{methodLabel(t.request.method)}</span>
+              {t.example ? <Bookmark {...ico} className="ico ex-ico" /> : <span className={`m m-${t.request.method}`}>{methodLabel(t.request.method)}</span>}
               <span className="name">{t.request.name}</span>
               {t.dirty && t.savedRef && <span className="dirty" role="img" aria-label="Unsaved changes" />}
             </button>

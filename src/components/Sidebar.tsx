@@ -1,9 +1,11 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { RowMenu, type MenuItem } from "./RowMenu";
 import { useStore } from "../store";
-import type { Collection, TreeNode } from "../types";
-import { countRequests, findNode, methodLabel, toRequestDef, type DropWhere } from "../lib/model";
+import type { Collection, Example, HistoryEntry, TreeNode } from "../types";
+import { countRequests, findNode, methodLabel, type DropWhere } from "../lib/model";
 import {
+  Bookmark,
+  BookmarkPlus,
   Braces,
   ChevronDown,
   ChevronRight,
@@ -260,23 +262,44 @@ function Node({ node, collectionId, depth, filter }: { node: TreeNode; collectio
   const [open, setOpen] = useState(false);
   const openSaved = useStore((s) => s.openSaved);
   const activeNodeId = useStore((s) => s.tabs.find((t) => t.id === s.activeTabId)?.savedRef?.nodeId);
-  // a folder opens by itself when it holds the request in the active tab
-  const holdsActive = node.type === "folder" && !!activeNodeId && !!findNode(node.children, activeNodeId);
+  const activeEx = useStore((s) => s.tabs.find((t) => t.id === s.activeTabId)?.example);
+  // a folder opens by itself when it holds the request (or example) in the active tab; a request, when it holds the example
+  const holdsActive =
+    node.type === "folder"
+      ? [activeNodeId, activeEx?.nodeId].some((id) => !!id && !!findNode(node.children, id))
+      : activeEx?.collectionId === collectionId && activeEx.nodeId === node.id;
   useEffect(() => {
     if (holdsActive) setOpen(true);
   }, [holdsActive]);
 
   if (node.type === "request") {
+    const examples = node.examples ?? [];
+    const shownEx = examples.length > 0 && (open || !!filter);
     return (
-      <Row
-        collectionId={collectionId}
-        nodeId={node.id}
-        name={node.name}
-        method={node.method}
-        depth={depth}
-        active={activeNodeId === node.id}
-        onClick={() => openSaved(collectionId, node.id)}
-      />
+      <>
+        <Row
+          collectionId={collectionId}
+          nodeId={node.id}
+          name={node.name}
+          method={node.method}
+          depth={depth}
+          active={activeNodeId === node.id}
+          onClick={() => openSaved(collectionId, node.id)}
+          open={examples.length ? shownEx : undefined}
+          onToggle={examples.length ? () => setOpen(!open) : undefined}
+        />
+        {shownEx &&
+          examples.map((ex) => (
+            <ExampleRow
+              key={ex.id}
+              example={ex}
+              collectionId={collectionId}
+              nodeId={node.id}
+              depth={depth}
+              active={activeEx?.exampleId === ex.id && activeEx.nodeId === node.id && activeEx.collectionId === collectionId}
+            />
+          ))}
+      </>
     );
   }
   const shown = open || !!filter;
@@ -321,6 +344,8 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
   const moreRef = useRef<HTMLButtonElement>(null);
   const [menu, setMenu] = useState(false);
   const container = folder || isCollection;
+  // a request with examples: the caret toggles them, the row still opens the request
+  const expandable = !container && !!onToggle;
   const parentId = isCollection ? null : nodeId;
   const kind = isCollection ? "collection" : folder ? "folder" : "request";
 
@@ -365,11 +390,34 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
       data-id={nodeId}
       data-col={collectionId}
       data-kind={kind}
-      style={{ "--indent": `${depth * 16 + (container ? 0 : 24)}px` } as React.CSSProperties}
+      style={{ "--indent": `${depth * 16 + (container || expandable ? 0 : 24)}px` } as React.CSSProperties}
       onMouseDown={(e) => start(e, item)}
     >
-      <button type="button" className="row-main" aria-expanded={container ? !!open : undefined} onClick={container ? onToggle : onClick}>
+      <button
+        type="button"
+        className="row-main"
+        aria-expanded={container || expandable ? !!open : undefined}
+        onClick={container ? onToggle : onClick}
+        onKeyDown={(e) => {
+          if (expandable && (e.key === "ArrowRight" ? !open : e.key === "ArrowLeft" && open)) {
+            e.preventDefault();
+            onToggle!();
+          }
+        }}
+      >
         {container && <span className="caret">{open ? <ChevronDown {...ico} /> : <ChevronRight {...ico} />}</span>}
+        {expandable && (
+          <span
+            className="caret"
+            title={open ? "Hide examples" : "Show examples"}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle!();
+            }}
+          >
+            {open ? <ChevronDown {...ico} /> : <ChevronRight {...ico} />}
+          </span>
+        )}
         {folder && (
           <span className="folder">
             <Folder {...ico} />
@@ -398,9 +446,109 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
   );
 }
 
+/** A saved example under its request: opens read-only; renamed or deleted from its "…" menu. Not draggable. */
+function ExampleRow({ example, collectionId, nodeId, depth, active }: { example: Example; collectionId: string; nodeId: string; depth: number; active: boolean }) {
+  const s = useStore.getState(); // actions only
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const [menu, setMenu] = useState(false);
+  const ref = { collectionId, nodeId, exampleId: example.id };
+  const items: MenuItem[] = [
+    {
+      label: "Rename",
+      icon: <Pencil {...ico} />,
+      run: () => s.openModal({ kind: "prompt", title: "Rename example", initial: example.name, onSubmit: (v) => s.renameExample(ref, v) }),
+    },
+    "sep",
+    {
+      label: "Delete",
+      icon: <Trash2 {...ico} />,
+      danger: true,
+      run: () =>
+        s.openModal({ kind: "confirm", title: `Delete example “${example.name}”?`, message: "This cannot be undone.", onConfirm: () => s.deleteExample(ref) }),
+    },
+  ];
+  const st = example.response.status;
+  return (
+    <div
+      className={`row example${menu ? " menu-open" : ""}`}
+      aria-current={active ? "page" : undefined}
+      style={{ "--indent": `${depth * 16 + 40}px` } as React.CSSProperties}
+    >
+      <button type="button" className="row-main" onClick={() => s.openExample(ref)}>
+        <Bookmark {...ico} className="ico ex-ico" />
+        <span className="name" title={example.name}>
+          {example.name}
+        </span>
+        <span className={`hstatus ${st < 400 ? "ok" : "fail"}`}>{st}</span>
+      </button>
+      <button
+        ref={moreRef}
+        type="button"
+        className="icon-btn row-more"
+        title="More actions"
+        aria-label={`More actions for ${example.name}`}
+        aria-haspopup="menu"
+        aria-expanded={menu}
+        onClick={() => setMenu(!menu)}
+      >
+        <Ellipsis {...ico} />
+      </button>
+      {menu && <RowMenu anchor={moreRef} label={`${example.name} actions`} items={items} onClose={() => setMenu(false)} />}
+    </div>
+  );
+}
+
+function HistoryRow({ entry: h }: { entry: HistoryEntry }) {
+  const s = useStore.getState(); // actions only
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const [menu, setMenu] = useState(false);
+  const label = `${h.request.method} ${h.request.url}`;
+  const asExample = async () => {
+    const response = await s.historyResponse(h.id);
+    if (!response) return s.notify("The saved response is missing");
+    s.openModal({ kind: "example", request: h.request, response });
+  };
+  const toCollection = async () => {
+    await s.openHistory(h.id);
+    const tabId = useStore.getState().activeTabId;
+    if (tabId) s.openModal({ kind: "save", tabId });
+  };
+  const items: MenuItem[] = [
+    { label: "Open in new tab", icon: <FilePlus {...ico} />, run: () => s.openHistory(h.id) },
+    ...(h.kept === "full" ? ([{ label: "Save response as example…", icon: <BookmarkPlus {...ico} />, run: asExample }] as MenuItem[]) : []),
+    { label: "Save request to collection…", icon: <CopyPlus {...ico} />, run: toCollection },
+    "sep",
+    { label: "Delete from history", icon: <Trash2 {...ico} />, run: () => s.deleteHistory(h.id), danger: true },
+  ];
+  return (
+    <div className={`row${menu ? " menu-open" : ""}`}>
+      <button type="button" className="row-main" onClick={() => s.openHistory(h.id)}>
+        <span className={`m m-${h.request.method}`}>{methodLabel(h.request.method)}</span>
+        <span className="name" title={h.request.url}>
+          {h.request.url.replace(/^(https?:\/\/|\{\{[^}]+\}\})/, "") || "(empty)"}
+        </span>
+        <span className="htime">{new Date(h.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+        <span className={`hstatus ${h.status && h.status < 400 ? "ok" : "fail"}`}>{h.status ?? "ERR"}</span>
+      </button>
+      <button
+        ref={moreRef}
+        type="button"
+        className="icon-btn row-more"
+        title="More actions"
+        aria-label={`More actions for ${label}`}
+        aria-haspopup="menu"
+        aria-expanded={menu}
+        onClick={() => setMenu(!menu)}
+      >
+        <Ellipsis {...ico} />
+      </button>
+      {menu && <RowMenu anchor={moreRef} label="History entry actions" items={items} onClose={() => setMenu(false)} />}
+    </div>
+  );
+}
+
 function HistoryList({ filter }: { filter: string }) {
   const history = useStore((s) => s.history);
-  const newTab = useStore((s) => s.newTab);
   const items = history.filter((h) => !filter || h.request.url.toLowerCase().includes(filter));
   if (items.length === 0)
     return (
@@ -425,19 +573,7 @@ function HistoryList({ filter }: { filter: string }) {
         return (
           <div key={h.id}>
             {header}
-            <div className="row">
-              <button
-                type="button"
-                className="row-main"
-                onClick={() => newTab({ ...toRequestDef(h.request), name: h.request.url || h.request.name })}
-              >
-                <span className={`m m-${h.request.method}`}>{methodLabel(h.request.method)}</span>
-                <span className="name" title={h.request.url}>
-                  {h.request.url.replace(/^(https?:\/\/|\{\{[^}]+\}\})/, "") || "(empty)"}
-                </span>
-                <span className={`hstatus ${h.status && h.status < 400 ? "ok" : "fail"}`}>{h.status ?? "ERR"}</span>
-              </button>
-            </div>
+            <HistoryRow entry={h} />
           </div>
         );
       })}

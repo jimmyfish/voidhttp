@@ -80,6 +80,12 @@
   <symbol id="i-circle-help" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></g></symbol>
   <symbol id="i-chevron-up" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></g></symbol>
   <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+  <symbol id="i-bookmark-plus" viewBox="0 0 24 24"><svg class="lucide lucide-bookmark-plus" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /> <line x1="12" x2="12" y1="7" y2="13" /> <line x1="15" x2="9" y1="10" y2="10" /></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><svg class="lucide lucide-bookmark" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><svg class="lucide lucide-clock" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="10" /> <polyline points="12 6 12 12 16 14" /></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><svg class="lucide lucide-eye-off" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" /> <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" /> <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" /> <path d="m2 2 20 20" /></symbol>
+  <symbol id="i-refresh-cw" viewBox="0 0 24 24"><svg class="lucide lucide-refresh-cw" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /> <path d="M21 3v5h-5" /> <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /> <path d="M8 16H3v5" /></symbol>
+  <symbol id="i-shield-alert" viewBox="0 0 24 24"><svg class="lucide lucide-shield-alert" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="M12 8v4" /> <path d="M12 16h.01" /></symbol>
 </svg>
 
 <header class="pv-bar">
@@ -110,6 +116,11 @@
     <button type="button" data-go="fsearch" aria-pressed="false">Filter · search</button>
     <button type="button" data-go="ferror" aria-pressed="false">Filter · error</button>
     <button type="button" data-go="fhelp" aria-pressed="false">Filter · help</button>
+    <button type="button" data-go="hresp" aria-pressed="false">History · response</button>
+    <button type="button" data-go="hmenu" aria-pressed="false">History · row menu</button>
+    <button type="button" data-go="hbig" aria-pressed="false">History · large body</button>
+    <button type="button" data-go="example" aria-pressed="false">Save as example</button>
+    <button type="button" data-go="exview" aria-pressed="false">Example</button>
   </nav>
   <div class="pv-fonts">
     <label>UI font <select data-font="--font-ui">
@@ -135,7 +146,7 @@
     <nav class="ptabs" aria-label="Projects">
       <button type="button" class="ptab" data-cur="home newproj"><svg aria-hidden="true" class="ico"><use href="#i-house"/></svg>Home</button>
       <span class="ptab-sep" aria-hidden="true"></span>
-      <div class="ptab ptab--project" data-cur="post params history loading error menu save vars" aria-current="page">
+      <div class="ptab ptab--project" data-cur="post params history loading error menu save vars hresp exview" aria-current="page">
         <button type="button" class="ptab-main"><span class="proj-tile proj-tile--sm" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>Amarbank</button>
         <button type="button" class="icon-btn ptab-close" aria-label="Close Amarbank"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
       </div>
@@ -146,7 +157,7 @@
     </nav>
     <button type="button" class="icon-btn strip-settings" title="Settings  ⌘," aria-label="Settings" data-add="settings settingsreq:on"><svg aria-hidden="true" class="ico"><use href="#i-settings"/></svg></button>
   </div>
-  <nav class="rail" aria-label="Sections" data-on="post params history loading error menu save vars">
+  <nav class="rail" aria-label="Sections" data-on="post params history loading error menu save vars hresp exview">
     <div class="rail-mark" aria-hidden="true">
       <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke-width="2" style="stroke: var(--color-accent)"/><circle cx="8" cy="8" r="2.25" fill="none" stroke-width="1.5" style="stroke: var(--color-ok)"/></svg>
     </div>
@@ -155,9 +166,9 @@
     <button type="button" class="rail-item" data-rail="vars" aria-label="Variables" title="Variables"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-braces"/></svg></button>
   </nav>
 
-  <div class="panel" data-on="post params history loading error menu save vars">
+  <div class="panel" data-on="post params history loading error menu save vars hresp exview">
     <!-- ===== sidebar: collections ===== -->
-    <aside class="sidebar" data-on="post params loading error save vars menu" data-not="empty">
+    <aside class="sidebar" data-on="post params loading error save vars menu exview" data-not="empty">
       <div class="side-resize" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize, drag past the edge to hide"></div>
       <div class="drag-ghost" data-only="dragin" hidden style="top:338px;left:120px"><span class="m m-GET">GET</span>Get a customer</div>
       <div class="drag-ghost" data-only="reorder" hidden style="top:200px;left:110px"><span class="m m-DELETE">DEL</span>Delete customer</div>
@@ -171,7 +182,9 @@
         <div class="row collection"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><span class="name">trx-service</span><span class="count">(6)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for trx-service" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
         <div class="row" style="--indent:16px" data-add="rowmenu:menu-open"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg><span class="name">Customers</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button><div class="menu row-menu" role="menu" aria-label="Customers actions" data-only="rowmenu" hidden><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-file-plus"/></svg>Add request</button><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-folder-plus"/></svg>Add folder</button><hr><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-pencil"/></svg>Rename</button><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-copy-plus"/></svg>Duplicate</button><hr><button type="button" role="menuitem" class="danger"><svg aria-hidden="true" class="ico"><use href="#i-trash-2"/></svg>Delete</button></div></div>
         <div class="row" style="--indent:40px" data-cur="params"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">List customers</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for List customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="row" style="--indent:40px" data-cur="post loading save vars menu" aria-current="page" data-add="reorder:drop-before"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">Create customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Create customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px" data-cur="post loading save vars menu" aria-current="page" data-add="reorder:drop-before"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" data-not="exview" class="ico caret"><use href="#i-chevron-right"/></svg><svg aria-hidden="true" data-only="exview" hidden class="ico caret"><use href="#i-chevron-down"/></svg><span class="m m-POST">POST</span><span class="name">Create customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Create customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row example" style="--indent:48px" data-only="exview" hidden aria-current="page"><button type="button" class="row-main"><svg aria-hidden="true" class="ico ex-ico"><use href="#i-bookmark"/></svg><span class="name">201 Created</span><span class="hstatus ok">201</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for 201 Created" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row example" style="--indent:48px" data-only="exview" hidden><button type="button" class="row-main"><svg aria-hidden="true" class="ico ex-ico"><use href="#i-bookmark"/></svg><span class="name">Missing email</span><span class="hstatus fail">422</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Missing email" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
         <div class="row" style="--indent:40px" data-add="dragin:dragging"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">Get a customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Get a customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
         <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-PATCH">PATCH</span><span class="name">Update customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Update customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
         <div class="row" style="--indent:40px" data-cur="error" data-add="reorder:dragging"><button type="button" class="row-main"><span class="m m-DELETE">DEL</span><span class="name">Delete customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Delete customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
@@ -182,17 +195,18 @@
     </aside>
 
     <!-- ===== sidebar: history ===== -->
-    <aside class="sidebar" data-on="history" data-not="empty" hidden>
+    <aside class="sidebar" data-on="history hresp" data-not="empty" hidden>
       <div class="side-head"><h2>History</h2><button type="button" class="btn" style="min-height:28px;font-size:var(--text-sm)">Clear</button></div>
       <div class="side-tools"><div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search history"></div></div>
       <div class="tree">
         <div class="day">Today</div>
-        <div class="row"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">api.example.com/v1/customers</span><span class="hstatus ok">201</span></button></div>
-        <div class="row"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/customers?limit=20</span><span class="hstatus ok">200</span></button></div>
-        <div class="row"><button type="button" class="row-main"><span class="m m-DELETE">DEL</span><span class="name">localhost:4000/v1/customers/cus_8f2</span><span class="hstatus fail">ERR</span></button></div>
+        <div class="row" data-cur="hresp" data-cur-not="hbig" data-add="hmenu:menu-open"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">api.example.com/v1/customers</span><span class="htime">14:02</span><span class="hstatus ok">201</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for POST api.example.com/v1/customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button><div class="menu row-menu" role="menu" aria-label="History entry actions" data-only="hmenu" hidden><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-file-plus"/></svg>Open in new tab</button><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-bookmark-plus"/></svg>Save response as example…</button><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-copy-plus"/></svg>Save request to collection…</button><hr><button type="button" role="menuitem" class="danger"><svg aria-hidden="true" class="ico"><use href="#i-trash-2"/></svg>Delete from history</button></div></div>
+        <div class="row" data-cur="hbig"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/transactions/export?month=2026-10</span><span class="htime">13:41</span><span class="hstatus ok">200</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for GET transactions export" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/customers?limit=20</span><span class="htime">11:15</span><span class="hstatus ok">200</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for GET customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row"><button type="button" class="row-main"><span class="m m-DELETE">DEL</span><span class="name">localhost:4000/v1/customers/cus_8f2</span><span class="htime">10:48</span><span class="hstatus fail">ERR</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for history entry" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
         <div class="day">Yesterday</div>
-        <div class="row"><button type="button" class="row-main"><span class="m m-PATCH">PATCH</span><span class="name">api.example.com/v1/customers/cus_1a9</span><span class="hstatus ok">200</span></button></div>
-        <div class="row"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/invoices</span><span class="hstatus fail">401</span></button></div>
+        <div class="row"><button type="button" class="row-main"><span class="m m-PATCH">PATCH</span><span class="name">api.example.com/v1/customers/cus_1a9</span><span class="htime">17:30</span><span class="hstatus ok">200</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for history entry" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/invoices</span><span class="htime">16:05</span><span class="hstatus fail">401</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for history entry" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
       </div>
     </aside>
 
@@ -222,14 +236,17 @@
           <div class="tab" data-cur="params"><button type="button" class="tab-main"><span class="m m-GET">GET</span><span class="name">List customers</span><span class="dirty" role="img" aria-label="Unsaved changes"></span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
           <div class="tab" data-cur="error"><button type="button" class="tab-main"><span class="m m-DELETE">DEL</span><span class="name">Delete customer</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
           <div class="tab" data-cur="history" data-on="history" hidden><button type="button" class="tab-main"><span class="m m-GET">GET</span><span class="name">Untitled request</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab" data-cur="hresp" data-on="hresp" data-not="hbig" hidden><button type="button" class="tab-main"><span class="m m-POST">POST</span><span class="name">api.example.com/v1/customers</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab" data-cur="hbig" data-only="hbig" hidden><button type="button" class="tab-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/transactions/export</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab" data-cur="exview" data-on="exview" hidden><button type="button" class="tab-main"><svg aria-hidden="true" class="ico ex-ico"><use href="#i-bookmark"/></svg><span class="name">201 Created</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
           <button type="button" class="icon-btn tab-add" aria-label="New tab"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
         </div>
         <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request" data-not="split"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
         <button type="button" class="icon-btn layout-toggle" aria-label="Stacked" title="Response below the request" data-only="split" hidden><svg aria-hidden="true" class="ico"><use href="#i-rows-2"/></svg></button>
         <div class="joined env-group">
         <button type="button" class="env-picker" aria-label="Environment">
-          <span class="env-badge" data-on="post params loading error save vars menu">Pr</span>
-          <span data-on="post params loading error save vars menu">Production</span>
+          <span class="env-badge" data-on="post params loading error save vars menu hresp exview">Pr</span>
+          <span data-on="post params loading error save vars menu hresp exview">Production</span>
           <span data-on="history" hidden>No environment</span>
           <svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg>
         </button>
@@ -240,17 +257,19 @@
       <!-- request line -->
       <div class="request-line">
         <div class="url-field">
-          <select aria-label="Method" class="m-POST" data-on="post loading save vars menu"><option>POST</option></select>
+          <select aria-label="Method" class="m-POST" data-on="post loading save vars menu hresp exview" data-not="hbig"><option>POST</option></select>
           <select aria-label="Method" class="m-GET" data-on="params history" hidden><option>GET</option></select>
+          <select aria-label="Method" class="m-GET" data-only="hbig" hidden><option>GET</option></select>
           <select aria-label="Method" class="m-DELETE" data-on="error" hidden><option>DELETE</option></select>
-          <input aria-label="URL" value="{{baseUrl}}/v1/customers" data-on="post loading save vars menu">
+          <input aria-label="URL" value="{{baseUrl}}/v1/customers" data-on="post loading save vars menu hresp exview" data-not="hbig">
+          <input aria-label="URL" value="{{baseUrl}}/v1/transactions/export?month=2026-10" data-only="hbig" hidden>
           <input aria-label="URL" value="{{baseUrl}}/v1/customers?limit=20&amp;email=ada@example.com" data-on="params" hidden>
           <input aria-label="URL" value="{{baseUrl}}/v1/health" data-on="history" hidden>
           <input aria-label="URL" value="localhost:4000/v1/customers/cus_8f2" data-on="error" hidden>
         </div>
-        <div class="joined send-group" data-on="post params history error save vars menu">
+        <div class="joined send-group" data-on="post params history error save vars menu hresp">
           <button type="button" class="btn btn--primary">Send</button>
-          <button type="button" class="btn btn--primary joined-tail" aria-label="More send options" aria-haspopup="menu" data-on="post params history error save vars" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          <button type="button" class="btn btn--primary joined-tail" aria-label="More send options" aria-haspopup="menu" data-on="post params history error save vars hresp" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
           <button type="button" class="btn btn--primary joined-tail" aria-label="More send options" aria-haspopup="menu" data-on="menu" hidden aria-expanded="true"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
           <div class="menu" role="menu" aria-label="Send options" data-on="menu" hidden>
             <button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg>Copy as cURL</button>
@@ -260,32 +279,36 @@
         <button type="button" class="btn btn--danger" data-on="loading" hidden aria-busy="true">Cancel</button>
         <div class="joined">
           <button type="button" class="btn">Save</button>
-          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved" data-on="post error save vars menu loading"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
+          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved" data-on="post error save vars menu loading exview"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
           <span class="btn joined-tail save-state dirty-state" role="img" aria-label="Unsaved changes" title="Unsaved changes" data-on="params" hidden><svg aria-hidden="true" class="ico"><use href="#i-circle-dot"/></svg></span>
-          <span class="btn joined-tail save-state" role="img" aria-label="Not saved yet" title="Not saved yet" data-on="history" hidden><svg aria-hidden="true" class="ico"><use href="#i-circle-dashed"/></svg></span>
+          <span class="btn joined-tail save-state" role="img" aria-label="Not saved yet" title="Not saved yet" data-on="history hresp" hidden><svg aria-hidden="true" class="ico"><use href="#i-circle-dashed"/></svg></span>
         </div>
-        <button type="button" class="btn" data-on="post params error save vars menu loading">Delete</button>
+        <button type="button" class="btn" data-on="post params error save vars menu loading exview">Delete</button>
       </div>
       <div class="req-title">
         <span class="name" data-on="post loading save vars menu">Create customer</span>
         <span class="name" data-on="params" hidden>List customers</span>
         <span class="name" data-on="error" hidden>Delete customer</span>
         <span class="name" data-on="history" hidden>Untitled request</span>
+        <span class="name" data-on="hresp" data-not="hbig" hidden>api.example.com/v1/customers</span>
+        <span class="name" data-only="hbig" hidden>api.example.com/v1/transactions/export</span>
+        <span class="name" data-on="exview" hidden>201 Created</span>
         <span class="path" data-on="post loading save vars params error menu">trx-service / Customers</span>
-        <span class="path" data-on="history" hidden>Not saved</span>
+        <span class="path" data-on="history hresp" hidden>Not saved</span>
+        <span class="path" data-on="exview" hidden>trx-service / Customers / Create customer · example</span>
         <span class="hint" data-on="history" hidden>Unresolved: {{baseUrl}}</span>
       </div>
 
       <nav class="subtabs" aria-label="Request">
         <button type="button" class="subtab" data-sub="params">Params <span class="n" data-on="params" hidden>2</span></button>
-        <button type="button" class="subtab" data-sub="body">Body <span class="n" data-on="post loading save vars menu">1</span></button>
+        <button type="button" class="subtab" data-sub="body">Body <span class="n" data-on="post loading save vars menu hresp exview" data-not="hbig">1</span></button>
         <button type="button" class="subtab">Headers <span class="n">2</span></button>
         <button type="button" class="subtab">Auth</button>
         <button type="button" class="icon-btn push" title="Copy as cURL" aria-label="Copy as cURL"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg></button>
       </nav>
 
       <!-- body editor -->
-      <div class="section" data-on="post loading save vars menu" style="flex:1">
+      <div class="section" data-on="post loading save vars menu hresp" data-not="hbig" style="flex:1">
         <div class="modes" role="group" aria-label="Body type">
           <button type="button" class="mode">none</button>
           <button type="button" class="mode" aria-pressed="true">json</button>
@@ -298,6 +321,15 @@
         <div class="editor-bar"><button type="button" class="btn btn--quiet"><svg aria-hidden="true" class="ico"><use href="#i-wand-sparkles"/></svg>Beautify</button></div>
         <pre class="code" aria-label="Request body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"metadata"</span><span class="j-p">: {</span> <span class="j-key">"source"</span><span class="j-p">:</span> <span class="j-str">"{{$guid}}"</span> <span class="j-p">}</span></span><span class="l"><span class="j-p">}</span></span></pre>
         </div>
+      </div>
+
+      <div class="section" data-on="exview" hidden style="flex:1">
+        <div class="modes" role="group" aria-label="Body type"><button type="button" class="mode">none</button><button type="button" class="mode" aria-pressed="true">json</button><button type="button" class="mode">text</button><button type="button" class="mode">xml</button><button type="button" class="mode">x-www-form-urlencoded</button><button type="button" class="mode">form-data</button></div>
+        <div class="editor"><pre class="code" aria-label="Example request body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str masked" title="Masked">"a••@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str masked" title="Masked">"A•• L•••••••"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"metadata"</span><span class="j-p">: {</span> <span class="j-key">"source"</span><span class="j-p">:</span> <span class="j-str">"{{$guid}}"</span> <span class="j-p">}</span></span><span class="l"><span class="j-p">}</span></span></pre></div>
+      </div>
+      <div class="section" data-only="hbig" hidden style="flex:1">
+        <div class="modes" role="group" aria-label="Body type"><button type="button" class="mode" aria-pressed="true">none</button><button type="button" class="mode">json</button><button type="button" class="mode">text</button><button type="button" class="mode">xml</button><button type="button" class="mode">x-www-form-urlencoded</button><button type="button" class="mode">form-data</button></div>
+        <p class="pv-muted">This request has no body.</p>
       </div>
 
       <!-- params editor -->
@@ -323,19 +355,24 @@
 
       <!-- response -->
       <section class="response" aria-label="Response">
-        <nav class="subtabs" aria-label="Response" data-on="post params save vars menu">
+        <div class="res-banner" data-on="hresp" hidden><svg aria-hidden="true" class="ico"><use href="#i-clock"/></svg><span>From history</span><span class="dim" data-not="hbig">Today, 14:02</span><span class="dim" data-only="hbig" hidden>Today, 13:41</span><span class="push dim">Send to get a fresh response</span></div>
+        <div class="res-banner res-banner--example" data-on="exview" hidden><svg aria-hidden="true" class="ico"><use href="#i-bookmark"/></svg><span>Example</span><span class="dim">Saved 12 Nov, 14:20</span><span class="push masked-note" title="Authorization, $.email, $.name in request and response"><svg aria-hidden="true" class="ico"><use href="#i-eye-off"/></svg>4 values masked</span></div>
+        <nav class="subtabs" aria-label="Response" data-on="post params save vars menu hresp exview">
           <button type="button" class="subtab" aria-pressed="true">Body</button>
           <button type="button" class="subtab">Headers <span class="n">9</span></button>
-          <span class="push meta" data-on="post save vars menu"><span class="ok">201 Created</span><span class="dim">142 ms</span><span class="dim">412&nbsp;B</span><span class="dim">HTTP/2</span></span>
+          <span class="push meta" data-on="post save vars menu hresp exview" data-not="hbig"><span class="ok">201 Created</span><span class="dim">142 ms</span><span class="dim">412&nbsp;B</span><span class="dim">HTTP/2</span></span>
+          <span class="push meta" data-only="hbig" hidden><span class="ok">200 OK</span><span class="dim">1.84 s</span><span class="dim">3.4&nbsp;MB</span><span class="dim">HTTP/2</span></span>
           <span class="push meta" data-on="params" hidden><span class="ok">200 OK</span><span class="dim">88 ms</span><span class="dim">1.8&nbsp;KB</span><span class="dim">HTTP/2</span></span>
         </nav>
-        <div class="res-tools" data-on="post params save vars menu">
+        <div class="res-tools" data-on="post params save vars menu hresp exview" data-not="hbig">
           <div class="seg" role="group" aria-label="View"><button type="button" aria-pressed="true">Pretty</button><button type="button" aria-pressed="false">Raw</button></div>
           <span class="push"></span>
-          <button type="button" class="icon-btn" style="margin-left:auto" title="Copy response" aria-label="Copy response"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
+          <button type="button" class="icon-btn" style="margin-left:auto" title="Save as example" aria-label="Save as example" data-not="exview" data-add="example:on"><svg aria-hidden="true" class="ico"><use href="#i-bookmark-plus"/></svg></button>
+          <button type="button" class="icon-btn" title="Copy response" aria-label="Copy response"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
         </div>
-        <div class="res-body" data-on="post params save vars menu">
-          <pre class="code" data-on="post save vars menu" aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"customer"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"delinquent"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"deleted_at"</span><span class="j-p">:</span> <span class="j-null">null</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"created"</span><span class="j-p">:</span> <span class="j-num">1794470400</span></span><span class="l"><span class="j-p">}</span></span></pre>
+        <div class="res-body" data-on="post params save vars menu hresp exview" data-not="hbig">
+          <pre class="code" data-on="post save vars menu hresp" aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"customer"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"delinquent"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"deleted_at"</span><span class="j-p">:</span> <span class="j-null">null</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"created"</span><span class="j-p">:</span> <span class="j-num">1794470400</span></span><span class="l"><span class="j-p">}</span></span></pre>
+          <pre class="code" data-on="exview" hidden aria-label="Example response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"customer"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str masked" title="Masked">"a••@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str masked" title="Masked">"A•• L•••••••"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"delinquent"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"deleted_at"</span><span class="j-p">:</span> <span class="j-null">null</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"created"</span><span class="j-p">:</span> <span class="j-num">1794470400</span></span><span class="l"><span class="j-p">}</span></span></pre>
           <pre class="code" data-on="params" data-not="filter fsearch ferror fhelp" hidden aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"list"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"has_more"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"data"</span><span class="j-p">: [</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span> <span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span> <span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span> <span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span> <span class="j-p">}</span></span><span class="l"><span class="ind">  </span><span class="j-p">]</span></span><span class="l"><span class="j-p">}</span></span></pre>
           <pre class="code" data-only="filter" hidden aria-label="Filtered response body"><span class="l"><span class="j-p">[</span></span><span class="l"><span class="ind">  </span><span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-str">"Grace Hopper"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-str">"Alan Turing"</span></span><span class="l"><span class="j-p">]</span></span></pre>
           <pre class="code" data-only="ferror fhelp" hidden aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"list"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"has_more"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"data"</span><span class="j-p">:</span> <span class="j-p">[</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span></span><span class="l"><span class="ind">      </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span></span><span class="l"><span class="ind">    </span><span class="j-p">}</span><span class="j-p">,</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span></span><span class="l"><span class="ind">      </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_3b91d7"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Grace Hopper"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"grace@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">1250</span></span><span class="l"><span class="ind">    </span><span class="j-p">}</span><span class="j-p">,</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span></span><span class="l"><span class="ind">      </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_c04e5a"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Alan Turing"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"alan@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">300</span></span><span class="l"><span class="ind">    </span><span class="j-p">}</span></span><span class="l"><span class="ind">  </span><span class="j-p">]</span></span><span class="l"><span class="j-p">}</span></span></pre>
@@ -364,6 +401,7 @@
           </div>
         </div>
         <div class="empty" data-on="history" hidden><strong>No response yet</strong><span>Press <kbd>⌘</kbd> <kbd>Enter</kbd> to send</span></div>
+        <div class="empty" data-only="hbig" hidden><strong>Body not kept</strong><span>3.4 MB is over the 1 MB history limit. Status and headers were kept.</span></div>
         <div class="empty" data-on="loading" hidden role="status"><div class="spinner"></div><span>Sending…</span></div>
         <div class="error-box" data-on="error" hidden role="alert"><strong>Could not get a response</strong><span class="msg">Connection failed: error sending request for url (http://localhost:4000/v1/customers/cus_8f2): tcp connect error: Connection refused (os error 61)</span></div>
       </section>
@@ -538,6 +576,29 @@
     <footer><button type="button" class="btn">Cancel</button><button type="button" class="btn btn--primary">Save</button></footer>
   </div>
 </div>
+<div class="backdrop" data-only="example" hidden>
+  <div class="dialog dialog--example" role="dialog" aria-modal="true" aria-label="Save as example">
+    <h3>Save as example</h3>
+    <div class="ex-grid">
+      <label>Name<input class="field" value="201 Created"></label>
+      <label>Save under<select class="field"><option>trx-service / Customers / Create customer</option><option>trx-service / Customers / Get a customer</option><option>Centralized Login / Login</option></select></label>
+    </div>
+    <div class="mask-head">
+      <div class="set-text"><span class="set-label">Mask before saving</span><span class="desc">Found by name. History keeps the original values.</span></div>
+      <div class="seg" role="group" aria-label="Mask style"><button type="button" aria-pressed="true">Partial</button><button type="button" aria-pressed="false">Full</button></div>
+    </div>
+    <div class="mask-list">
+      <label class="mask-row"><input type="checkbox" checked><span class="mask-where">Request header</span><code class="mask-path">Authorization</code><code class="mask-val">Bearer ••••••••</code></label>
+      <label class="mask-row"><input type="checkbox" checked><span class="mask-where">Request body</span><code class="mask-path">$.email</code><code class="mask-val">a••@example.com</code></label>
+      <label class="mask-row"><input type="checkbox" checked><span class="mask-where">Request body</span><code class="mask-path">$.name</code><code class="mask-val">A•• L•••••••</code></label>
+      <label class="mask-row"><input type="checkbox" checked><span class="mask-where">Response body</span><code class="mask-path">$.email</code><code class="mask-val">a••@example.com</code></label>
+      <label class="mask-row"><input type="checkbox" checked><span class="mask-where">Response body</span><code class="mask-path">$.name</code><code class="mask-val">A•• L•••••••</code></label>
+      <label class="mask-row"><input type="checkbox"><span class="mask-where">Response header</span><code class="mask-path">Set-Cookie</code><code class="mask-val">session=8f2c41a9e0…</code></label>
+      <div class="mask-add"><input class="field" placeholder="Mask another field: $.data[*].phone or X-Api-Key" aria-label="Field to mask"></div>
+    </div>
+    <footer><span class="mask-count">5 of 6 masked</span><button type="button" class="btn">Cancel</button><button type="button" class="btn btn--primary">Save example</button></footer>
+  </div>
+</div>
 <div class="backdrop" data-on="vars" data-only="vars varsjson varsenv varsmenu" hidden>
   <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Variables">
     <h3>Variables</h3>
@@ -634,6 +695,14 @@
             <div class="set-text"><label for="pv-tls">Skip TLS verification</label><span class="desc">Accept self-signed or invalid certificates. Use only for local servers.</span></div>
             <div class="set-ctl"><input id="pv-tls" class="switch switch--warn" type="checkbox" role="switch"></div>
           </div>
+          <div class="set-item">
+            <div class="set-text"><label for="pv-keep">Keep responses in history</label><span class="desc">Status, headers and body of each send, stored on this Mac as received</span></div>
+            <div class="set-ctl"><input id="pv-keep" class="switch" type="checkbox" role="switch" checked></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label for="pv-keep-max">Largest body kept</label><span class="desc">Bigger responses keep only status and headers</span></div>
+            <div class="set-ctl"><span class="unit-field"><input id="pv-keep-max" class="field" type="number" value="1"><span class="unit">MB</span></span></div>
+          </div>
         </div>
       </div>
     </div>
@@ -643,7 +712,7 @@
 </div>
 
 <script>
-  const BASE = { filter: "params", fsearch: "params", ferror: "params", fhelp: "params", varsmenu: "vars", varsjson: "vars", varsenv: "vars", settings: "post", settingsreq: "post", rowmenu: "post", dragin: "post", reorder: "post", hidden: "post", split: "post", empty: "history" };
+  const BASE = { hmenu: "hresp", hbig: "hresp", example: "post", filter: "params", fsearch: "params", ferror: "params", fhelp: "params", varsmenu: "vars", varsjson: "vars", varsenv: "vars", settings: "post", settingsreq: "post", rowmenu: "post", dragin: "post", reorder: "post", hidden: "post", split: "post", empty: "history" };
   const go = (screen) => {
     const base = BASE[screen] || screen;
     document.querySelector(".app").dataset.variant = screen;
@@ -656,10 +725,12 @@
       el.classList.toggle(cls, scr.split(" ").includes(screen));
     });
     document.querySelectorAll("[data-cur]").forEach((el) => {
-      if (el.dataset.cur.split(" ").includes(el.closest(".settings") ? screen : base)) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
+      const list = el.dataset.cur.split(" ");
+      const on = (list.includes(el.closest(".settings") ? screen : base) || list.includes(screen)) && !(el.dataset.curNot || "").split(" ").includes(screen);
+      if (on) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
     });
     document.querySelectorAll("[data-go]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.go === screen)));
-    const rail = base === "history" && screen !== "empty" ? "history" : screen === "vars" ? "vars" : "collections";
+    const rail = (base === "history" && screen !== "empty") || base === "hresp" ? "history" : screen === "vars" ? "vars" : "collections";
     document.querySelectorAll("[data-rail]").forEach((b) => b.dataset.rail === rail ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
     const sub = base === "params" ? "params" : "body";
     document.querySelectorAll("[data-sub]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.sub === sub)));

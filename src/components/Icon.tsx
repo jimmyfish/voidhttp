@@ -1,10 +1,13 @@
 /** Icons: Lucide (lucide-react), one stroke weight everywhere. The app mark is voidHTTP's own. */
 export {
+  Bookmark,
+  BookmarkPlus,
   Braces,
   ChevronDown,
   ChevronRight,
   ChevronUp,
   CircleHelp,
+  Clock,
   CircleCheck,
   CircleDashed,
   CircleDot,
@@ -14,6 +17,7 @@ export {
   Copy,
   CopyPlus,
   Ellipsis,
+  EyeOff,
   FilePlus,
   Filter,
   Folder,

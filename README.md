@@ -15,11 +15,12 @@ A lightweight, local-first API client. Rust + React + Tauri v2.
 - Large-response guard: highlighting is off above 512 KB, and rendering is truncated above 4 MB
 - Collections with nested folders, plus collection variables
 - Environments with `{{variables}}`. Nested variables and `{{$guid}}`, `{{$timestamp}}`, `{{$isoTimestamp}}`, `{{$randomInt}}` work
-- History (last 200 requests)
+- History (last 200 requests), with each response kept on disk as received. Bodies over a size limit (1 MB by default) keep only status and headers
+- Examples: save a response under a saved request. Tokens, cookies and personal data (email, phone, NIK, account numbers…) are found by name and masked in the saved copy
 - **Import Postman** collection v2.0/v2.1 and environment exports (auth inheritance is flattened)
 - Copy as cURL
 - Cookie jar shared across requests (in memory)
-- Settings: timeout, follow redirects, skip TLS verification
+- Settings: timeout, follow redirects, skip TLS verification, keep responses in history and the largest body kept
 - Request cancellation
 
 ### Shortcuts

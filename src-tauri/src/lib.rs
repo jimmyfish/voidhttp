@@ -11,6 +11,9 @@ pub fn run() {
             http::cancel_request,
             store::load_state,
             store::save_state,
+            store::save_response,
+            store::load_response,
+            store::prune_responses,
             fonts::list_fonts,
         ])
         .run(tauri::generate_context!())
