@@ -41,7 +41,8 @@ export type Modal =
   | { kind: "confirm"; title: string; message: string; onConfirm: () => void; confirmLabel?: string }
   | { kind: "save"; tabId: string }
   /** select: an environment or collection id to open on */
-  | { kind: "environments"; select?: string }
+  /** addVar: start a new, empty variable of that name in the selected environment or collection */
+  | { kind: "environments"; select?: string; addVar?: string }
   | { kind: "settings"; section?: "appearance" | "requests" }
   /** create a project (no id) or edit one */
   | { kind: "project"; projectId?: string }

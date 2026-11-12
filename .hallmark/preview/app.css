@@ -75,7 +75,7 @@ select.field {
 .rail { display: flex; flex-direction: column; align-items: center; gap: var(--space-2xs); padding: var(--space-xs) 0; }
 .rail-mark {
   display: grid; place-items: center; width: 32px; height: 32px; margin-bottom: var(--space-xs);
-  border-radius: var(--radius-control); background: var(--color-paper); border: 1px solid var(--color-rule);
+  border-radius: var(--radius-control); background: var(--color-paper);
 }
 .rail-item {
   display: grid; place-items: center; width: 34px; height: 34px; padding: 0;
@@ -90,7 +90,7 @@ select.field {
 .panel {
   display: grid; grid-template-columns: 296px minmax(0, 1fr); min-height: 0;
   margin: var(--space-xs) var(--space-xs) var(--space-xs) 0; border-radius: var(--radius-card);
-  background: var(--color-paper); color: var(--color-ink); border: 1px solid var(--color-rule); overflow: hidden;
+  background: var(--color-paper); color: var(--color-ink); overflow: hidden;
 }
 
 /* ---------- sidebar ---------- */
@@ -411,13 +411,13 @@ kbd { font: var(--text-xs) var(--font-mono); padding: var(--space-3xs) var(--spa
 .app { grid-template-rows: 40px minmax(0, 1fr); }
 .app > .panel { margin-top: 0; }
 .app-strip { grid-column: 1 / -1; display: flex; align-items: center; min-width: 0; padding-left: 84px; -webkit-user-select: none; user-select: none; }
-.ptabs { display: flex; align-items: center; gap: var(--space-2xs); min-width: 0; overflow-x: auto; }
+.ptabs { display: flex; align-items: center; align-self: stretch; gap: var(--space-2xs); min-width: 0; overflow-x: auto; overflow-y: hidden; }
 .ptab {
   display: inline-flex; align-items: center; gap: var(--space-xs); flex-shrink: 0; height: 30px; padding: 0 var(--space-sm);
   border: none; border-radius: var(--radius-control); background: none; color: var(--color-muted); white-space: nowrap;
 }
 .ptab:hover { color: var(--color-ink); background: var(--color-paper-3); }
-.ptab[aria-current="page"] { background: var(--color-paper); color: var(--color-ink); font-weight: 600; box-shadow: 0 0 0 1px var(--color-rule); }
+.ptab[aria-current="page"] { background: var(--color-paper); color: var(--color-ink); font-weight: 600; }
 .ptab:focus-visible, .ptab-main:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .ptab--project { padding: 0 var(--space-2xs) 0 0; }
 .ptab-main { display: inline-flex; align-items: center; gap: var(--space-xs); height: 100%; padding: 0 var(--space-2xs) 0 var(--space-xs); border: none; background: none; color: inherit; font: inherit; }
@@ -638,3 +638,38 @@ kbd { font: var(--text-xs) var(--font-mono); padding: var(--space-3xs) var(--spa
 .mask-add .field { width: 100%; background: var(--color-paper-3); font: var(--text-code) var(--font-mono); }
 .dialog--example footer { align-items: center; }
 .mask-count { margin-right: auto; color: var(--color-muted); font-size: var(--text-sm); }
+
+/* Address bar tokens: a painted layer sits behind the input, whose own text is transparent.
+   Both share font, padding and letter-spacing so glyphs line up. Tokens may only grow
+   vertically (padding-block on an inline box); any horizontal padding, border or shadow
+   spread would either shift the text off the caret or paint over the neighbouring glyphs. */
+.url-input { position: relative; flex: 1; min-width: 0; align-self: stretch; display: flex; }
+.url-input .url-hl {
+  position: absolute; inset: 0; display: flex; align-items: center; pointer-events: none;
+  padding: 0 var(--space-sm) 0 var(--space-2xs); font: var(--text-md) var(--font-ui); color: var(--color-ink);
+  white-space: pre; overflow: hidden;
+}
+.url-field .url-input input { color: transparent; caret-color: var(--color-ink); position: relative; }
+.url-field .url-input input::placeholder { color: var(--color-placeholder); }
+.url-field .url-input input::selection { color: transparent; background: color-mix(in srgb, var(--color-focus) 28%, transparent); }
+
+.tok-var, .tok-path { padding-block: 2px; border-radius: 3px; background: var(--tok-bg); }
+.tok-var { color: var(--color-link); --tok-bg: color-mix(in srgb, var(--color-link) 12%, transparent); }
+.tok-var i { font-style: normal; opacity: 0.55; }
+.tok-var.is-missing { color: var(--color-warn); --tok-bg: color-mix(in srgb, var(--color-warn) 14%, transparent); text-decoration: underline wavy color-mix(in srgb, var(--color-warn) 60%, transparent); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.tok-path { color: var(--m-patch); --tok-bg: color-mix(in srgb, var(--m-patch) 12%, transparent); }
+.tok-q { color: var(--color-muted); }
+
+.url-tip {
+  position: absolute; top: calc(100% + 6px); z-index: 20; display: grid; gap: 2px; min-width: 200px; max-width: 360px;
+  padding: var(--space-xs) var(--space-sm); border: 1px solid var(--color-edge-soft); border-radius: var(--radius-control);
+  background: var(--color-paper); box-shadow: 0 6px 20px var(--color-shadow); font: var(--text-sm) var(--font-ui);
+}
+.url-tip .tip-k { font: 600 var(--text-sm) var(--font-mono); color: var(--color-link); }
+.url-tip .tip-k.is-missing { color: var(--color-warn); }
+.url-tip .tip-k.is-path { color: var(--m-patch); }
+.url-tip code { font: var(--text-sm) var(--font-mono); color: var(--color-ink); word-break: break-all; }
+.url-tip .tip-src { color: var(--color-muted); }
+.url-tip .tip-link { justify-self: start; margin-top: 2px; padding: 0; border: none; background: none; color: var(--color-link); font: inherit; cursor: pointer; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--color-link) 40%, transparent); text-underline-offset: 3px; }
+.url-hl-in { display: inline-block; }
+.url-tip::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; height: 8px; }

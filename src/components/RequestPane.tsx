@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store";
 import type { Auth, BodyMode, Tab } from "../types";
 import { METHODS, findNode, paramsFromUrl, pathTo, urlWithParams } from "../lib/model";
-import { unresolved } from "../lib/vars";
+import { DYNAMIC, resolve, unresolved } from "../lib/vars";
+import { isSecretKey } from "../lib/mask";
+import { UrlInput, type VarInfo } from "./UrlInput";
 import { prepare } from "../lib/http";
 import { looksLikeCurl, parseCurl, toCurl } from "../lib/curl";
 import { KVEditor } from "./KVEditor";
@@ -18,15 +20,16 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
   const menuRef = useRef<HTMLDivElement>(null);
   const update = useStore((s) => s.updateRequest);
   const scopeFor = useStore((s) => s.scopeFor);
-  // re-render when variables change so the unresolved hint stays correct
-  useStore((s) => s.activeEnvironmentId);
-  useStore((s) => s.environments);
+  // re-render when variables change so the unresolved hint and the address bar stay correct
+  const activeEnvId = useStore((s) => s.activeEnvironmentId);
+  const environments = useStore((s) => s.environments);
   const collections = useStore((s) => s.collections);
   const st = useStore.getState(); // actions only
 
   const req = tab.request;
   const set = (patch: Parameters<typeof update>[1]) => update(tab.id, patch);
-  const missing = unresolved(req.url, scopeFor(tab.id));
+  const scope = scopeFor(tab.id);
+  const missing = unresolved(req.url, scope);
   const loading = !!tab.inflightId;
   // an example is a saved record: shown read-only, never sent
   const ex = tab.example;
@@ -38,6 +41,23 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
   const exCol = ex && collections.find((c) => c.id === ex.collectionId);
   const exNode = exCol ? findNode(exCol.children, ex.nodeId) : undefined;
   const exPath = exCol && exNode ? [exCol.name, ...(pathTo(exCol.children, ex.nodeId) ?? []), exNode.name].join(" / ") : "Request deleted";
+
+  // where a {{name}} in the address bar gets its value; the environment overrides the collection
+  const env = environments.find((e) => e.id === activeEnvId);
+  const lookup = (name: string): VarInfo => {
+    const on = (v: { enabled: boolean; key: string }) => v.enabled && v.key === name;
+    const hit = env?.variables.find(on);
+    const colHit = col ? col.variables.find(on) : undefined;
+    const v = hit ?? colHit;
+    if (v) return { kind: "value", value: resolve(v.value, scope), source: hit ? env!.name : `Collection · ${col && col.name}`, secret: isSecretKey(name) };
+    if (DYNAMIC.includes(name)) return { kind: "dynamic" };
+    const target = env ?? (col || undefined);
+    return {
+      kind: "missing",
+      addLabel: target ? `Add to ${target.name}` : "Open Variables",
+      onAdd: () => st.openModal({ kind: "environments", ...(target && { select: target.id, addVar: name }) }),
+    };
+  };
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -100,7 +120,8 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
               ))}
             </select>
           </label>
-          <input
+          <UrlInput
+            lookup={lookup}
             aria-label="URL"
             spellCheck={false}
             autoFocus={!ex}

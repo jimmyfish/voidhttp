@@ -14,6 +14,8 @@ export function buildScope(...layers: (KV[] | undefined)[]): VarScope {
   return scope;
 }
 
+export const DYNAMIC = ["$guid", "$randomUUID", "$timestamp", "$isoTimestamp", "$randomInt"];
+
 function dynamic(name: string): string | undefined {
   switch (name) {
     case "$guid":

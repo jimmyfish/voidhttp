@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
 import { useStore } from "./store";
 import { Sidebar, type SideView } from "./components/Sidebar";
 import { TabsBar } from "./components/TabsBar";
@@ -180,6 +181,19 @@ export default function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // ⌘W comes from the native menu (it never reaches keydown): close the open
+  // dialog first, otherwise the active request tab
+  useEffect(() => {
+    const unlisten = listen("menu:close-tab", () => {
+      const s = useStore.getState();
+      if (s.modal) s.openModal(null);
+      else if (s.view === "project" && s.activeTabId) s.closeTab(s.activeTabId);
+    });
+    return () => {
+      unlisten.then((off) => off());
+    };
   }, []);
 
   const startDrag = (e: React.MouseEvent) => {

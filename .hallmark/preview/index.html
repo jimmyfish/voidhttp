@@ -95,6 +95,7 @@
     <button type="button" data-go="newproj" aria-pressed="false">New project</button>
     <button type="button" data-go="post" aria-pressed="true">Body + response</button>
     <button type="button" data-go="params" aria-pressed="false">Params</button>
+    <button type="button" data-go="urlvars" aria-pressed="false">URL variables</button>
     <button type="button" data-go="history" aria-pressed="false">History, empty</button>
     <button type="button" data-go="loading" aria-pressed="false">Sending</button>
     <button type="button" data-go="error" aria-pressed="false">Error</button>
@@ -263,7 +264,8 @@
           <select aria-label="Method" class="m-DELETE" data-on="error" hidden><option>DELETE</option></select>
           <input aria-label="URL" value="{{baseUrl}}/v1/customers" data-on="post loading save vars menu hresp exview" data-not="hbig">
           <input aria-label="URL" value="{{baseUrl}}/v1/transactions/export?month=2026-10" data-only="hbig" hidden>
-          <input aria-label="URL" value="{{baseUrl}}/v1/customers?limit=20&amp;email=ada@example.com" data-on="params" hidden>
+          <input aria-label="URL" value="{{baseUrl}}/v1/customers?limit=20&amp;email=ada@example.com" data-on="params" data-not="urlvars" hidden>
+          <input aria-label="URL" value="{{baseUrl}}/v1/customers/:customerId/accounts/{{accountId}}?limit={{pageSize}}&amp;expand=owner" data-only="urlvars" hidden>
           <input aria-label="URL" value="{{baseUrl}}/v1/health" data-on="history" hidden>
           <input aria-label="URL" value="localhost:4000/v1/customers/cus_8f2" data-on="error" hidden>
         </div>
@@ -287,7 +289,8 @@
       </div>
       <div class="req-title">
         <span class="name" data-on="post loading save vars menu">Create customer</span>
-        <span class="name" data-on="params" hidden>List customers</span>
+        <span class="name" data-on="params" data-not="urlvars" hidden>List customers</span>
+        <span class="name" data-only="urlvars" hidden>Get account</span>
         <span class="name" data-on="error" hidden>Delete customer</span>
         <span class="name" data-on="history" hidden>Untitled request</span>
         <span class="name" data-on="hresp" data-not="hbig" hidden>api.example.com/v1/customers</span>
@@ -297,6 +300,7 @@
         <span class="path" data-on="history hresp" hidden>Not saved</span>
         <span class="path" data-on="exview" hidden>trx-service / Customers / Create customer · example</span>
         <span class="hint" data-on="history" hidden>Unresolved: {{baseUrl}}</span>
+        <span class="hint" data-only="urlvars" hidden>Unresolved: {{accountId}}</span>
       </div>
 
       <nav class="subtabs" aria-label="Request">
@@ -712,7 +716,7 @@
 </div>
 
 <script>
-  const BASE = { hmenu: "hresp", hbig: "hresp", example: "post", filter: "params", fsearch: "params", ferror: "params", fhelp: "params", varsmenu: "vars", varsjson: "vars", varsenv: "vars", settings: "post", settingsreq: "post", rowmenu: "post", dragin: "post", reorder: "post", hidden: "post", split: "post", empty: "history" };
+  const BASE = { urlvars: "params", hmenu: "hresp", hbig: "hresp", example: "post", filter: "params", fsearch: "params", ferror: "params", fhelp: "params", varsmenu: "vars", varsjson: "vars", varsenv: "vars", settings: "post", settingsreq: "post", rowmenu: "post", dragin: "post", reorder: "post", hidden: "post", split: "post", empty: "history" };
   const go = (screen) => {
     const base = BASE[screen] || screen;
     document.querySelector(".app").dataset.variant = screen;
@@ -737,6 +741,7 @@
     const FILTER = { filter: "$.data[*].name", fsearch: "example.com", ferror: "$.data[?(@.balance >" };
     document.querySelectorAll("[data-filter]").forEach((i) => { i.value = FILTER[screen] || ""; i.classList.toggle("is-path", (FILTER[screen] || "").startsWith("$")); });
     try { location.hash = screen; } catch {}
+    document.dispatchEvent(new Event("pv-screen"));
   };
   document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
   document.querySelectorAll("[data-fmt]").forEach((b) => b.addEventListener("click", () => {
@@ -806,6 +811,67 @@
       dlg.querySelector(".icon-grid").style.cssText = b.style.cssText;
     });
     dlg.querySelector("input.field").addEventListener("input", (e) => { dlg.querySelector(".proj-preview strong").textContent = e.target.value || "Untitled project"; });
+  }
+
+  // Address bar: {{var}} and :param tokens painted on a layer behind a transparent-text input
+  {
+    const SCOPE = { baseUrl: ["https://api.amarbank.dev", "Staging"], pageSize: ["20", "Collection · trx-service"] };
+    const TOKEN = /(\{\{\s*[^{}]+?\s*\}\})|((?<=\/):[A-Za-z_][\w-]*)|([?&=])/g;
+    const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    const scope = () => (document.querySelector(".app").dataset.variant === "history" ? {} : SCOPE);
+    const paint = (v) => {
+      let out = "", last = 0, inQuery = false;
+      for (const m of v.matchAll(TOKEN)) {
+        out += esc(v.slice(last, m.index)); last = m.index + m[0].length;
+        if (m[1]) {
+          const name = m[1].slice(2, -2).trim();
+          const ok = name in scope() || name.startsWith("$");
+          out += `<span class="tok-var${ok ? "" : " is-missing"}" data-var="${esc(name)}"><i>{{</i>${esc(m[1].slice(2, -2))}<i>}}</i></span>`;
+        } else if (m[2] && !inQuery) out += `<span class="tok-path" data-path="${esc(m[2].slice(1))}">${esc(m[2])}</span>`;
+        else { if (m[3] === "?") inQuery = true; out += inQuery ? `<span class="tok-q">${esc(m[0])}</span>` : esc(m[0]); }
+      }
+      return out + esc(v.slice(last));
+    };
+    document.querySelectorAll('.url-field input[aria-label="URL"]').forEach((input) => {
+      const wrap = document.createElement("div"); wrap.className = "url-input";
+      if (input.hidden) wrap.dataset.mirrorHidden = "";
+      input.replaceWith(wrap);
+      const hl = document.createElement("div"); hl.className = "url-hl"; hl.setAttribute("aria-hidden", "true");
+      wrap.append(hl, input);
+      const tip = document.createElement("div"); tip.className = "url-tip"; tip.hidden = true; wrap.append(tip);
+      const sync = () => { hl.innerHTML = `<span class="url-hl-in">${paint(input.value)} </span>`; hl.firstChild.style.transform = `translateX(${-input.scrollLeft}px)`; wrap.hidden = input.hidden; };
+      ["input", "scroll", "keyup", "select", "focus"].forEach((ev) => input.addEventListener(ev, sync));
+      new MutationObserver(sync).observe(input, { attributes: true, attributeFilter: ["hidden"] });
+      document.addEventListener("pv-screen", sync);
+      sync();
+      const show = (span) => {
+        const s = scope();
+        if (span.dataset.var) {
+          const n = span.dataset.var, hit = s[n];
+          tip.innerHTML = hit
+            ? `<span class="tip-k">${esc(n)}</span><code>${esc(hit[0])}</code><span class="tip-src">${esc(hit[1])}</span>`
+            : n.startsWith("$") ? `<span class="tip-k">${esc(n)}</span><span class="tip-src">Dynamic · new value on every send</span>`
+            : `<span class="tip-k is-missing">${esc(n)}</span><span class="tip-src">Not defined in ${document.querySelector(".app").dataset.variant === "history" ? "any environment" : "Staging or the collection"}</span><button type="button" class="tip-link">Add to Staging</button>`;
+        } else {
+          tip.innerHTML = `<span class="tip-k is-path">:${esc(span.dataset.path)}</span><span class="tip-src">Path variable · set it in Params</span>`;
+        }
+        const r = span.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+        tip.style.left = `${Math.max(0, r.left - w.left)}px`; tip.hidden = false;
+      };
+      let over = null;
+      wrap.addEventListener("mousemove", (e) => {
+        const span = [...hl.querySelectorAll(".tok-var, .tok-path")].find((x) => { const r = x.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top - 4 && e.clientY <= r.bottom + 4; });
+        if (span === over) return; over = span;
+        input.style.cursor = span ? "help" : "";
+        if (span) show(span); else if (!tip.matches(":hover")) tip.hidden = true;
+      });
+      wrap.addEventListener("mouseleave", () => { over = null; tip.hidden = true; });
+      // the urlvars screen pins the tip open on the first variable, for the screenshot
+      document.addEventListener("pv-screen", () => {
+        if (document.querySelector(".app").dataset.variant === "urlvars" && !input.hidden) requestAnimationFrame(() => show(hl.querySelector(".tok-var.is-missing")));
+        else tip.hidden = true;
+      });
+    });
   }
   const fromHash = location.hash.slice(1);
   go(document.querySelector(`[data-go="${fromHash}"]`) ? fromHash : "post");

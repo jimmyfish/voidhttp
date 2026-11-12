@@ -2,8 +2,105 @@ mod fonts;
 mod http;
 mod store;
 
+#[cfg(target_os = "macos")]
+mod menu {
+    use tauri::menu::{AboutMetadata, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
+    use tauri::{AppHandle, Emitter, Manager, Runtime};
+
+    pub const CLOSE_TAB: &str = "close_tab";
+    pub const CLOSE_WINDOW: &str = "close_window";
+
+    /// The stock Tauri menu binds ⌘W to the native "Close Window", which quits a
+    /// single-window app. This menu gives ⌘W to "Close Tab" (handled by the
+    /// frontend) and moves "Close Window" to ⇧⌘W.
+    pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
+        let pkg = app.package_info();
+        let about = AboutMetadata {
+            name: Some(pkg.name.clone()),
+            version: Some(pkg.version.to_string()),
+            ..Default::default()
+        };
+
+        let app_menu = Submenu::with_items(
+            app,
+            pkg.name.clone(),
+            true,
+            &[
+                &PredefinedMenuItem::about(app, None, Some(about))?,
+                &PredefinedMenuItem::separator(app)?,
+                &PredefinedMenuItem::services(app, None)?,
+                &PredefinedMenuItem::separator(app)?,
+                &PredefinedMenuItem::hide(app, None)?,
+                &PredefinedMenuItem::hide_others(app, None)?,
+                &PredefinedMenuItem::show_all(app, None)?,
+                &PredefinedMenuItem::separator(app)?,
+                &PredefinedMenuItem::quit(app, None)?,
+            ],
+        )?;
+
+        let file = Submenu::with_items(
+            app,
+            "File",
+            true,
+            &[
+                &MenuItem::with_id(app, CLOSE_TAB, "Close Tab", true, Some("CmdOrCtrl+W"))?,
+                &MenuItem::with_id(app, CLOSE_WINDOW, "Close Window", true, Some("CmdOrCtrl+Shift+W"))?,
+            ],
+        )?;
+
+        // Edit items are what make ⌘C/⌘V/⌘Z/⌘A work inside the webview on macOS.
+        let edit = Submenu::with_items(
+            app,
+            "Edit",
+            true,
+            &[
+                &PredefinedMenuItem::undo(app, None)?,
+                &PredefinedMenuItem::redo(app, None)?,
+                &PredefinedMenuItem::separator(app)?,
+                &PredefinedMenuItem::cut(app, None)?,
+                &PredefinedMenuItem::copy(app, None)?,
+                &PredefinedMenuItem::paste(app, None)?,
+                &PredefinedMenuItem::select_all(app, None)?,
+            ],
+        )?;
+
+        let view = Submenu::with_items(app, "View", true, &[&PredefinedMenuItem::fullscreen(app, None)?])?;
+
+        let window = Submenu::with_items(
+            app,
+            "Window",
+            true,
+            &[
+                &PredefinedMenuItem::minimize(app, None)?,
+                &PredefinedMenuItem::maximize(app, None)?,
+            ],
+        )?;
+
+        Menu::with_items(app, &[&app_menu, &file, &edit, &view, &window])
+    }
+
+    pub fn on_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
+        match event.id().as_ref() {
+            CLOSE_TAB => {
+                let _ = app.emit("menu:close-tab", ());
+            }
+            CLOSE_WINDOW => {
+                if let Some(w) = app.get_webview_window("main") {
+                    let _ = w.close();
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+
+    #[cfg(target_os = "macos")]
+    let builder = builder.menu(menu::build).on_menu_event(menu::on_event);
+
+    builder
         .plugin(tauri_plugin_dialog::init())
         .manage(http::HttpState::default())
         .invoke_handler(tauri::generate_handler![

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useStore } from "../store";
 import type { Environment, KV } from "../types";
-import { listFolders, uid } from "../lib/model";
+import { kv, listFolders, uid } from "../lib/model";
 import { ExampleModal } from "./ExampleModal";
 import { KVEditor } from "./KVEditor";
 import { Check, CopyPlus, Ellipsis, Plus, Send, Trash2, Type, ico } from "./Icon";
@@ -43,7 +43,7 @@ export function Modals() {
     case "save":
       return <SaveModal tabId={modal.tabId} onClose={close} />;
     case "environments":
-      return <VariablesModal onClose={close} select={modal.select} />;
+      return <VariablesModal onClose={close} select={modal.select} addVar={modal.addVar} />;
     case "settings":
       return <SettingsModal onClose={close} section={modal.section} />;
     case "project":
@@ -150,11 +150,15 @@ function SaveModal({ tabId, onClose }: { tabId: string; onClose: () => void }) {
 }
 
 /** Environments + collection variables, edited on a local draft and committed on Save. */
-function VariablesModal({ onClose, select }: { onClose: () => void; select?: string }) {
+function VariablesModal({ onClose, select, addVar }: { onClose: () => void; select?: string; addVar?: string }) {
   const s = useStore.getState();
-  const [envs, setEnvs] = useState<Environment[]>(() => structuredClone(s.environments));
+  // a variable added from the address bar lands in the draft, so Cancel drops it
+  const withNew = (id: string, vars: KV[]) => (addVar && id === select ? [...vars, kv(addVar)] : vars);
+  const [envs, setEnvs] = useState<Environment[]>(() =>
+    structuredClone(s.environments).map((e) => ({ ...e, variables: withNew(e.id, e.variables) })),
+  );
   const [colVars, setColVars] = useState<Record<string, KV[]>>(() =>
-    Object.fromEntries(s.collections.map((c) => [c.id, structuredClone(c.variables)])),
+    Object.fromEntries(s.collections.map((c) => [c.id, withNew(c.id, structuredClone(c.variables))])),
   );
   const [sel, setSel] = useState<string>(select ?? s.activeEnvironmentId ?? envs[0]?.id ?? s.collections[0]?.id ?? "");
   const [format, setFormat] = useState<VarsFormat>(s.settings.variablesFormat ?? "table");

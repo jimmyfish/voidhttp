@@ -22,6 +22,9 @@ const PII_EXACT = new Set([
 ]);
 
 type Kind = "secret" | "pii";
+
+/** True for names that carry credentials (token, password, …). */
+export const isSecretKey = (key: string) => kindOf(key, new Set()) === "secret";
 const norm = (k: string) => k.toLowerCase().replace(/[-_\s]/g, "");
 
 function kindOf(key: string, extra: Set<string>): Kind | null {
