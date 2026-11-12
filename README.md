@@ -29,6 +29,7 @@ A lightweight, local-first API client. Rust + React + Tauri v2.
 | `⌘/Ctrl + Enter` | Send |
 | `⌘/Ctrl + S` | Save to collection |
 | `⌘/Ctrl + T` | New tab |
+| `⌘/Ctrl + /` | Comment or uncomment lines in a JSON body (comments are stripped before sending) |
 | Middle-click a tab | Close it |
 
 ## Development

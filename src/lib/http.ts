@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type { HttpResponse, RequestDef, Settings } from "../types";
 import { resolve, type VarScope } from "./vars";
 import { uid } from "./model";
+import { stripJsonComments } from "./jsonc";
 
 type WireKV = { key: string; value: string };
 type WireBody =
@@ -46,7 +47,8 @@ export function prepare(req: RequestDef, scope: VarScope): Prepared {
   let body: WireBody | null = null;
   const b = req.body;
   if (b.mode === "json" || b.mode === "text" || b.mode === "xml") {
-    body = { type: "text", content: r(b.raw) };
+    // JSON bodies may carry // and /* */ comments while editing; they never go on the wire
+    body = { type: "text", content: r(b.mode === "json" ? stripJsonComments(b.raw) : b.raw) };
     if (!has("content-type")) headers.push({ key: "Content-Type", value: CONTENT_TYPES[b.mode] });
   } else if (b.mode === "form") {
     body = {

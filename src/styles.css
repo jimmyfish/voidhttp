@@ -292,7 +292,7 @@ select.field {
   display: inline-block; vertical-align: top; text-indent: 0; white-space: pre; height: 1.65em;
   background-image: linear-gradient(to right, var(--color-guide) 1px, transparent 1px); background-size: 2ch 100%; background-position: 0.5ch 0;
 }
-.j-key { color: var(--j-key); } .j-str { color: var(--j-str); } .j-num { color: var(--j-num); } .j-bool, .j-null { color: var(--j-bool); } .j-p { color: var(--j-punct); }
+.j-key { color: var(--j-key); } .j-str { color: var(--j-str); } .j-num { color: var(--j-num); } .j-bool, .j-null { color: var(--j-bool); } .j-p { color: var(--j-punct); } .j-com { color: var(--color-muted); }
 
 /* key/value table */
 .kv { width: 100%; border-collapse: collapse; }

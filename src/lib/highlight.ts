@@ -3,7 +3,7 @@
 export const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 const TOKEN =
-  /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?|\b(true|false)\b|\b(null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g;
+  /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?|\b(true|false)\b|\b(null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(\/\/.*|\/\*.*?(?:\*\/|$))/g;
 
 export function highlightJson(src: string): string {
   let out = "";
@@ -16,6 +16,7 @@ export function highlightJson(src: string): string {
     } else if (m[3]) out += `<span class="j-bool">${m[3]}</span>`;
     else if (m[4]) out += `<span class="j-null">${m[4]}</span>`;
     else if (m[5]) out += `<span class="j-num">${m[5]}</span>`;
+    else if (m[6]) out += `<span class="j-com">${esc(m[6])}</span>`;
     last = i + m[0].length;
   }
   return out + esc(src.slice(last));

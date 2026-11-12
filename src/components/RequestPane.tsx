@@ -4,9 +4,10 @@ import type { Auth, BodyMode, Tab } from "../types";
 import { METHODS, findNode, paramsFromUrl, pathTo, urlWithParams } from "../lib/model";
 import { unresolved } from "../lib/vars";
 import { prepare } from "../lib/http";
-import { toCurl } from "../lib/curl";
+import { looksLikeCurl, parseCurl, toCurl } from "../lib/curl";
 import { KVEditor } from "./KVEditor";
 import { CodeArea } from "./CodeArea";
+import { formatJsonc, stripJsonComments } from "../lib/jsonc";
 import { ChevronDown, CircleCheck, CircleDashed, CircleDot, CodeXml, SlidersHorizontal, WandSparkles, ico } from "./Icon";
 
 type Section = "params" | "headers" | "body" | "auth";
@@ -93,6 +94,16 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
             placeholder="https://api.example.com/users or {{baseUrl}}/users"
             value={req.url}
             onChange={(e) => set({ url: e.target.value, params: paramsFromUrl(e.target.value, req.params) })}
+            onPaste={(e) => {
+              const text = e.clipboardData.getData("text");
+              if (!looksLikeCurl(text)) return;
+              e.preventDefault();
+              const parsed = parseCurl(text);
+              if (!parsed) return st.notify("Couldn’t find a URL in that cURL command");
+              set(parsed);
+              if (parsed.body.mode !== "none") setSection("body");
+              st.notify("Imported from cURL");
+            }}
           />
         </div>
 
@@ -216,7 +227,8 @@ function BodyEditor({ tab }: { tab: Tab }) {
 
   const beautify = () => {
     try {
-      set({ raw: JSON.stringify(JSON.parse(body.raw), null, 2) });
+      JSON.parse(stripJsonComments(body.raw)); // validate; formatting keeps comments
+      set({ raw: formatJsonc(body.raw) });
     } catch (e) {
       notify(`Invalid JSON: ${(e as Error).message}`);
     }

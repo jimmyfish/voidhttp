@@ -1,11 +1,12 @@
 import { useMemo, type KeyboardEvent, type ReactNode } from "react";
 import { highlightLines } from "../lib/highlight";
+import { toggleLineComments } from "../lib/jsonc";
 
 interface Props {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
-  /** colour JSON tokens in the layer under the text */
+  /** colour JSON tokens in the layer under the text; ⌘/ toggles `//` line comments */
   json?: boolean;
   /** floats in the editor's top-right corner (Beautify) */
   tools?: ReactNode;
@@ -27,6 +28,16 @@ export function CodeArea({ value, onChange, placeholder, json, tools, label = "R
   );
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (json && (e.metaKey || e.ctrlKey) && !e.altKey && (e.key === "/" || e.code === "Slash")) {
+      e.preventDefault();
+      const el = e.currentTarget;
+      const edit = toggleLineComments(value, el.selectionStart, el.selectionEnd);
+      // insertText keeps the change on the native undo stack (⌘Z)
+      el.setSelectionRange(edit.from, edit.to);
+      if (!document.execCommand("insertText", false, edit.text)) onChange(edit.value);
+      requestAnimationFrame(() => el.setSelectionRange(edit.selStart, edit.selEnd));
+      return;
+    }
     if (e.key !== "Tab") return;
     e.preventDefault();
     const el = e.currentTarget;
