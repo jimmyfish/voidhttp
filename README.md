@@ -33,15 +33,15 @@ A lightweight, local-first API client. Rust + React + Tauri v2.
 
 ## Development
 
-Prerequisites: [Rust](https://rustup.rs), Node 18+, and the [Tauri v2 system dependencies](https://v2.tauri.app/start/prerequisites/). On macOS, the Xcode Command Line Tools are enough.
+Prerequisites: [Rust](https://rustup.rs), [Bun](https://bun.sh), and the [Tauri v2 system dependencies](https://v2.tauri.app/start/prerequisites/). On macOS, the Xcode Command Line Tools are enough.
 
 ```sh
-npm install
-npm run tauri dev      # run the app with hot reload
-npm run tauri build    # build the release bundle (.app / .dmg / .msi / .AppImage)
+bun install
+bun run tauri dev      # run the app with hot reload
+bun run tauri build    # build the release bundle (.app / .dmg / .msi / .AppImage)
 ```
 
-To regenerate icons: `npx tauri icon app-icon.svg`.
+To regenerate icons: `bunx tauri icon app-icon.svg`.
 
 ## Layout
 
