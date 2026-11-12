@@ -14,13 +14,17 @@ import type {
   WorkspaceV2,
 } from "./types";
 import {
+  cloneNode,
   findNode,
   insertNode,
   mapTree,
   newRequest,
+  nodeIds,
+  placeNode,
   removeFromTree,
   toRequestDef,
   uid,
+  type DropWhere,
 } from "./lib/model";
 import { buildScope, type VarScope } from "./lib/vars";
 import { cancel, prepare, send } from "./lib/http";
@@ -32,8 +36,9 @@ export type Modal =
   | { kind: "prompt"; title: string; initial: string; onSubmit: (v: string) => void }
   | { kind: "confirm"; title: string; message: string; onConfirm: () => void; confirmLabel?: string }
   | { kind: "save"; tabId: string }
-  | { kind: "environments" }
-  | { kind: "settings" }
+  /** select: an environment or collection id to open on */
+  | { kind: "environments"; select?: string }
+  | { kind: "settings"; section?: "appearance" | "requests" }
   /** create a project (no id) or edit one */
   | { kind: "project"; projectId?: string }
   /** a file was picked on Home: choose which project it goes into */
@@ -90,6 +95,11 @@ interface State extends ProjectData {
   addRequest(collectionId: string, parentId: string | null): void;
   renameNode(collectionId: string, nodeId: string, name: string): void;
   deleteNode(collectionId: string, nodeId: string): void;
+  /** Drag and drop in the tree. targetId is a node, or a collection id with "inside" for its root. */
+  moveNode(fromCollectionId: string, nodeId: string, toCollectionId: string, targetId: string, where: DropWhere): void;
+  moveCollection(collectionId: string, targetCollectionId: string, where: "before" | "after"): void;
+  /** Copy a node (or a whole collection when nodeId is the collection id) right after the original. */
+  duplicateNode(collectionId: string, nodeId: string): void;
   updateCollection(collectionId: string, patch: Partial<Collection>): void;
 
   setEnvironments(envs: Environment[]): void;
@@ -470,6 +480,62 @@ export const useStore = create<State>((set, get) => {
             ? s.collections.filter((c) => c.id !== collectionId)
             : s.collections.map((c) => (c.id === collectionId ? { ...c, children: removeFromTree(c.children, nodeId) } : c)),
       }));
+    },
+
+    moveNode(fromId, nodeId, toId, targetId, where) {
+      if (nodeId === targetId) return;
+      const s = get();
+      const from = s.collections.find((c) => c.id === fromId);
+      const to = s.collections.find((c) => c.id === toId);
+      const node = from && findNode(from.children, nodeId);
+      if (!from || !to || !node) return;
+      // a folder cannot go inside itself or one of its own folders
+      if (node.type === "folder" && findNode(node.children, targetId)) return;
+      const children = (c: typeof from) => (c.id === fromId ? removeFromTree(c.children, nodeId) : c.children);
+      let placed: typeof from.children | null;
+      if (targetId === toId) placed = [...children(to), node]; // the collection's root
+      else placed = placeNode(children(to), targetId, where, node);
+      if (!placed) return;
+      const moved = new Set(nodeIds(node));
+      set({
+        collections: s.collections.map((c) =>
+          c.id === toId ? { ...c, children: placed! } : c.id === fromId ? { ...c, children: removeFromTree(c.children, nodeId) } : c,
+        ),
+        // open tabs follow their request into the other collection
+        tabs:
+          fromId === toId
+            ? s.tabs
+            : s.tabs.map((t) => (t.savedRef && moved.has(t.savedRef.nodeId) ? { ...t, savedRef: { ...t.savedRef, collectionId: toId } } : t)),
+      });
+    },
+
+    moveCollection(collectionId, targetId, where) {
+      if (collectionId === targetId) return;
+      const s = get();
+      const c = s.collections.find((x) => x.id === collectionId);
+      if (!c) return;
+      const rest = s.collections.filter((x) => x.id !== collectionId);
+      const i = rest.findIndex((x) => x.id === targetId);
+      if (i < 0) return;
+      rest.splice(where === "before" ? i : i + 1, 0, c);
+      set({ collections: rest });
+    },
+
+    duplicateNode(collectionId, nodeId) {
+      const s = get();
+      const col = s.collections.find((c) => c.id === collectionId);
+      if (!col) return;
+      if (nodeId === collectionId) {
+        const copy = { ...structuredClone(col), id: uid(), name: `${col.name} copy`, children: col.children.map(cloneNode) };
+        const i = s.collections.indexOf(col);
+        set({ collections: [...s.collections.slice(0, i + 1), copy, ...s.collections.slice(i + 1)] });
+        return;
+      }
+      const node = findNode(col.children, nodeId);
+      if (!node) return;
+      const copy = { ...cloneNode(node), name: `${node.name} copy` };
+      const children = placeNode(col.children, nodeId, "after", copy);
+      if (children) set({ collections: s.collections.map((c) => (c.id === collectionId ? { ...c, children } : c)) });
     },
 
     updateCollection(collectionId, patch) {

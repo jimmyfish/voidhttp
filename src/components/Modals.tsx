@@ -1,9 +1,13 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useStore } from "../store";
 import type { Environment, KV } from "../types";
 import { listFolders, uid } from "../lib/model";
 import { KVEditor } from "./KVEditor";
-import { Check, Plus, ico } from "./Icon";
+import { Check, CopyPlus, Ellipsis, Plus, Send, Trash2, Type, ico } from "./Icon";
+import { RowMenu, type MenuItem } from "./RowMenu";
+import { CodeArea } from "./CodeArea";
+import { formatVars, parseVars, type VarsFormat } from "../lib/varsFormat";
+import { systemFonts } from "../lib/fonts";
 import { PROJECT_COLORS, PROJECT_ICONS, ProjectTile, tileStyle } from "./ProjectIcon";
 
 export function Modals() {
@@ -37,9 +41,9 @@ export function Modals() {
     case "save":
       return <SaveModal tabId={modal.tabId} onClose={close} />;
     case "environments":
-      return <VariablesModal onClose={close} />;
+      return <VariablesModal onClose={close} select={modal.select} />;
     case "settings":
-      return <SettingsModal onClose={close} />;
+      return <SettingsModal onClose={close} section={modal.section} />;
     case "project":
       return <ProjectModal projectId={modal.projectId} onClose={close} />;
     case "import":
@@ -142,29 +146,94 @@ function SaveModal({ tabId, onClose }: { tabId: string; onClose: () => void }) {
 }
 
 /** Environments + collection variables, edited on a local draft and committed on Save. */
-function VariablesModal({ onClose }: { onClose: () => void }) {
+function VariablesModal({ onClose, select }: { onClose: () => void; select?: string }) {
   const s = useStore.getState();
   const [envs, setEnvs] = useState<Environment[]>(() => structuredClone(s.environments));
   const [colVars, setColVars] = useState<Record<string, KV[]>>(() =>
     Object.fromEntries(s.collections.map((c) => [c.id, structuredClone(c.variables)])),
   );
-  const [sel, setSel] = useState<string>(s.activeEnvironmentId ?? envs[0]?.id ?? s.collections[0]?.id ?? "");
+  const [sel, setSel] = useState<string>(select ?? s.activeEnvironmentId ?? envs[0]?.id ?? s.collections[0]?.id ?? "");
+  const [format, setFormat] = useState<VarsFormat>(s.settings.variablesFormat ?? "table");
+  const [text, setText] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const env = envs.find((e) => e.id === sel);
   const col = s.collections.find((c) => c.id === sel);
+  const rows = env ? env.variables : col ? (colVars[col.id] ?? []) : [];
+  const setRows = (v: KV[]) => {
+    if (env) setEnvs(envs.map((e) => (e.id === env.id ? { ...e, variables: v } : e)));
+    else if (col) setColVars({ ...colVars, [col.id]: v });
+  };
+
+  // the text is written from the rows when the selection or the format changes, never while typing
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
+  useEffect(() => {
+    if (format !== "table") setText(formatVars(format, rowsRef.current));
+    setError(null);
+  }, [sel, format]);
+
+  const onText = (t: string) => {
+    setText(t);
+    try {
+      setRows(parseVars(format, t, rows));
+      setError(null);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+  const pickFormat = (f: VarsFormat) => {
+    if (error) return; // fix the text first, so nothing typed is lost
+    setFormat(f);
+    s.setSettings({ variablesFormat: f });
+  };
 
   const addEnv = () => {
     const e: Environment = { id: uid(), name: `Environment ${envs.length + 1}`, variables: [] };
     setEnvs([...envs, e]);
     setSel(e.id);
   };
-  const patchEnv = (patch: Partial<Environment>) => setEnvs(envs.map((e) => (e.id === sel ? { ...e, ...patch } : e)));
+  const duplicateEnv = (id: string) => {
+    const i = envs.findIndex((e) => e.id === id);
+    const src = envs[i];
+    const copy: Environment = { id: uid(), name: `${src.name} copy`, variables: src.variables.map((v) => ({ ...v, id: uid() })) };
+    setEnvs([...envs.slice(0, i + 1), copy, ...envs.slice(i + 1)]);
+    setSel(copy.id);
+  };
+  const deleteEnv = (id: string) => {
+    const i = envs.findIndex((e) => e.id === id);
+    const rest = envs.filter((e) => e.id !== id);
+    setEnvs(rest);
+    if (sel === id) setSel(rest[Math.min(i, rest.length - 1)]?.id ?? s.collections[0]?.id ?? "");
+  };
 
   const save = () => {
     s.setEnvironments(envs);
     for (const c of s.collections) if (colVars[c.id] !== c.variables) s.updateCollection(c.id, { variables: colVars[c.id] });
     onClose();
   };
+
+  const editor =
+    format === "table" ? (
+      <KVEditor rows={rows} nameLabel="Variable" addLabel="Add a variable" onChange={setRows} />
+    ) : (
+      <>
+        <div className="vars-code">
+          <CodeArea
+            value={text}
+            onChange={onText}
+            json={format === "json"}
+            label={format === "json" ? "Variables as JSON" : "Variables as .env"}
+            placeholder={format === "json" ? '{\n  "baseUrl": "https://api.example.com"\n}' : "baseUrl=https://api.example.com"}
+          />
+        </div>
+        {error && (
+          <p className="vars-error" role="alert">
+            {error}
+          </p>
+        )}
+      </>
+    );
 
   return (
     <Shell title="Variables" onClose={onClose} wide>
@@ -177,52 +246,53 @@ function VariablesModal({ onClose }: { onClose: () => void }) {
             </button>
           </li>
           {envs.map((e) => (
-            <li key={e.id}>
-              <button type="button" aria-current={sel === e.id} onClick={() => setSel(e.id)}>
-                {e.name}
-              </button>
-            </li>
+            <EnvItem
+              key={e.id}
+              env={e}
+              current={sel === e.id}
+              onSelect={() => !error && setSel(e.id)}
+              onDuplicate={() => duplicateEnv(e.id)}
+              onDelete={() => deleteEnv(e.id)}
+            />
           ))}
           {s.collections.length > 0 && <li className="group">Collection variables</li>}
           {s.collections.map((c) => (
             <li key={c.id}>
-              <button type="button" aria-current={sel === c.id} onClick={() => setSel(c.id)}>
+              <button type="button" aria-current={sel === c.id} onClick={() => !error && setSel(c.id)}>
                 {c.name}
               </button>
             </li>
           ))}
         </ul>
-        <div>
-          {env && (
+        <div className="vars-body">
+          {(env || col) && (
             <>
-              <div className="env-head">
-                <input className="field" aria-label="Environment name" value={env.name} onChange={(e) => patchEnv({ name: e.target.value })} />
-                <button
-                  type="button"
-                  className="btn btn--danger"
-                  onClick={() => {
-                    const rest = envs.filter((e) => e.id !== env.id);
-                    setEnvs(rest);
-                    setSel(rest[0]?.id ?? "");
-                  }}
-                >
-                  Delete
-                </button>
+              {env ? (
+                <div className="env-head">
+                  <input
+                    className="field"
+                    aria-label="Environment name"
+                    value={env.name}
+                    onChange={(ev) => setEnvs(envs.map((x) => (x.id === env.id ? { ...x, name: ev.target.value } : x)))}
+                  />
+                </div>
+              ) : (
+                <p className="muted">
+                  Used by requests saved in <b>{col!.name}</b>. Environment values override these.
+                </p>
+              )}
+              <div className="vars-tools">
+                <div className="seg" role="group" aria-label="Format">
+                  {(["table", "json", "env"] as VarsFormat[]).map((f) => (
+                    <button key={f} type="button" aria-pressed={format === f} disabled={!!error && format !== f} onClick={() => pickFormat(f)}>
+                      {f === "table" ? "Table" : f === "json" ? "JSON" : ".env"}
+                    </button>
+                  ))}
+                </div>
+                {format === "json" && rows.some((r) => !r.enabled && r.key) && <span className="vars-hint">Disabled variables are kept, not shown</span>}
+                {format === "env" && <span className="vars-hint">Lines starting with # are disabled</span>}
               </div>
-              <KVEditor rows={env.variables} nameLabel="Variable" addLabel="Add a variable" onChange={(variables) => patchEnv({ variables })} />
-            </>
-          )}
-          {col && (
-            <>
-              <p className="muted">
-                Used by requests saved in <b>{col.name}</b>. Environment values override these.
-              </p>
-              <KVEditor
-                rows={colVars[col.id] ?? []}
-                nameLabel="Variable"
-                addLabel="Add a variable"
-                onChange={(v) => setColVars({ ...colVars, [col.id]: v })}
-              />
+              {editor}
             </>
           )}
           {!env && !col && (
@@ -237,7 +307,7 @@ function VariablesModal({ onClose }: { onClose: () => void }) {
         <button type="button" className="btn" onClick={onClose}>
           Cancel
         </button>
-        <button type="button" className="btn btn--primary" onClick={save}>
+        <button type="button" className="btn btn--primary" disabled={!!error} title={error ? "Fix the variables text first" : undefined} onClick={save}>
           Save
         </button>
       </footer>
@@ -245,35 +315,262 @@ function VariablesModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function SettingsModal({ onClose }: { onClose: () => void }) {
+/** One environment in the Variables list, with its "…" menu (Duplicate, Delete). */
+function EnvItem({
+  env,
+  current,
+  onSelect,
+  onDuplicate,
+  onDelete,
+}: {
+  env: Environment;
+  current: boolean;
+  onSelect: () => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
+}) {
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const [menu, setMenu] = useState(false);
+  const items: MenuItem[] = [
+    { label: "Duplicate", icon: <CopyPlus {...ico} />, run: onDuplicate },
+    "sep",
+    { label: "Delete", icon: <Trash2 {...ico} />, run: onDelete, danger: true },
+  ];
+  return (
+    <li className={`env-item${menu ? " menu-open" : ""}`}>
+      <button type="button" aria-current={current} title={env.name} onClick={onSelect}>
+        {env.name}
+      </button>
+      <button
+        ref={moreRef}
+        type="button"
+        className="icon-btn row-more"
+        title="More actions"
+        aria-label={`More actions for ${env.name}`}
+        aria-haspopup="menu"
+        aria-expanded={menu}
+        onClick={() => setMenu(!menu)}
+      >
+        <Ellipsis {...ico} />
+      </button>
+      {menu && <RowMenu anchor={moreRef} label={`${env.name} actions`} items={items} onClose={() => setMenu(false)} />}
+    </li>
+  );
+}
+
+/** Fallback suggestions when the system font list is unavailable (browser dev build). */
+const UI_FONTS = ["Inter", "SF Pro Text", "Helvetica Neue", "Avenir Next", "IBM Plex Sans", "Roboto", "Georgia"];
+const MONO_FONTS = ["JetBrains Mono", "SF Mono", "Menlo", "Monaco", "Fira Code", "IBM Plex Mono", "Cascadia Code", "Courier New"];
+const UI_SIZES = [12, 13, 14, 15, 16, 17, 18];
+const CODE_SIZES = [11, 12, 13, 14, 15, 16];
+
+/** The one app-wide settings dialog: appearance (theme, fonts) and request defaults. */
+function SettingsModal({ onClose, section: initial }: { onClose: () => void; section?: "appearance" | "requests" }) {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
+  const [section, setSection] = useState(initial ?? "appearance");
+  const theme = settings.theme ?? "auto";
+  const [fonts, setFonts] = useState({ all: UI_FONTS, mono: MONO_FONTS });
+  useEffect(() => {
+    let live = true;
+    systemFonts().then((f) => {
+      if (live && f.all.length) setFonts({ all: f.all, mono: f.mono.length ? f.mono : MONO_FONTS });
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
   return (
-    <Shell title="Request settings" onClose={onClose}>
-      <label>
-        Timeout (ms)
-        <input
-          className="field"
-          type="number"
-          min={1}
-          value={settings.timeoutMs}
-          onChange={(e) => setSettings({ timeoutMs: Math.max(1, Number(e.target.value) || 30000) })}
-        />
-      </label>
-      <label className="check">
-        <input type="checkbox" checked={settings.followRedirects} onChange={(e) => setSettings({ followRedirects: e.target.checked })} />
-        Follow redirects
-      </label>
-      <label className="check">
-        <input type="checkbox" checked={settings.insecure} onChange={(e) => setSettings({ insecure: e.target.checked })} />
-        Skip TLS certificate verification (insecure)
-      </label>
+    <Shell title="Settings" onClose={onClose} wide>
+      <div className="vars settings">
+        <ul>
+          <li>
+            <button type="button" aria-current={section === "appearance"} onClick={() => setSection("appearance")}>
+              <Type {...ico} />
+              Appearance
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current={section === "requests"} onClick={() => setSection("requests")}>
+              <Send {...ico} />
+              Requests
+            </button>
+          </li>
+        </ul>
+
+        {section === "appearance" ? (
+          <div className="set-pane">
+            <h4>Appearance</h4>
+            <div className="set-list">
+              <div className="set-item">
+                <div className="set-text">
+                  <span className="set-label" id="set-theme">
+                    Theme
+                  </span>
+                  <span className="desc">Auto follows your Mac's appearance</span>
+                </div>
+                <div className="set-ctl">
+                  <div className="seg seg--lg" role="group" aria-labelledby="set-theme">
+                    {(["auto", "light", "dark"] as const).map((t) => (
+                      <button key={t} type="button" aria-pressed={theme === t} onClick={() => setSettings({ theme: t === "auto" ? undefined : t })}>
+                        {t[0].toUpperCase() + t.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <FontRow
+                id="set-ui-font"
+                label="Interface font"
+                desc="Menus, tabs and dialogs"
+                placeholder="System default"
+                fonts={fonts.all}
+                font={settings.fontUi}
+                size={settings.fontSizeUi ?? 14}
+                sizes={UI_SIZES}
+                onFont={(fontUi) => setSettings({ fontUi })}
+                onSize={(n) => setSettings({ fontSizeUi: n === 14 ? undefined : n })}
+              />
+              <FontRow
+                id="set-code-font"
+                label="Code font"
+                desc="URLs, bodies and responses"
+                placeholder="System monospace"
+                fonts={fonts.mono}
+                font={settings.fontMono}
+                size={settings.fontSizeCode ?? 13}
+                sizes={CODE_SIZES}
+                onFont={(fontMono) => setSettings({ fontMono })}
+                onSize={(n) => setSettings({ fontSizeCode: n === 13 ? undefined : n })}
+              />
+              <div className="set-sample" aria-label="Sample">
+                <span className="set-sample-ui">
+                  Create customer <span className="muted">trx-service / Customers</span>
+                </span>
+                <code>
+                  <span className="m m-POST">POST</span> {"{{baseUrl}}"}/v1/customers
+                </code>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="link set-reset"
+              onClick={() => setSettings({ theme: undefined, fontUi: undefined, fontMono: undefined, fontSizeUi: undefined, fontSizeCode: undefined })}
+            >
+              Reset to defaults
+            </button>
+          </div>
+        ) : (
+          <div className="set-pane">
+            <h4>Requests</h4>
+            <div className="set-list">
+              <div className="set-item">
+                <div className="set-text">
+                  <label htmlFor="set-timeout">Timeout</label>
+                  <span className="desc">How long to wait for a response before giving up</span>
+                </div>
+                <div className="set-ctl">
+                  <span className="unit-field">
+                    <input
+                      id="set-timeout"
+                      className="field"
+                      type="number"
+                      min={1}
+                      value={settings.timeoutMs}
+                      onChange={(e) => setSettings({ timeoutMs: Math.max(1, Number(e.target.value) || 30000) })}
+                    />
+                    <span className="unit">ms</span>
+                  </span>
+                </div>
+              </div>
+              <div className="set-item">
+                <div className="set-text">
+                  <label htmlFor="set-redirects">Follow redirects</label>
+                  <span className="desc">Follow 3xx responses to their Location</span>
+                </div>
+                <div className="set-ctl">
+                  <input
+                    id="set-redirects"
+                    className="switch"
+                    type="checkbox"
+                    role="switch"
+                    checked={settings.followRedirects}
+                    onChange={(e) => setSettings({ followRedirects: e.target.checked })}
+                  />
+                </div>
+              </div>
+              <div className="set-item">
+                <div className="set-text">
+                  <label htmlFor="set-insecure">Skip TLS verification</label>
+                  <span className="desc">Accept self-signed or invalid certificates. Use only for local servers.</span>
+                </div>
+                <div className="set-ctl">
+                  <input
+                    id="set-insecure"
+                    className="switch switch--warn"
+                    type="checkbox"
+                    role="switch"
+                    checked={settings.insecure}
+                    onChange={(e) => setSettings({ insecure: e.target.checked })}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
       <footer>
         <button type="button" className="btn btn--primary" onClick={onClose}>
           Done
         </button>
       </footer>
     </Shell>
+  );
+}
+
+function FontRow(p: {
+  id: string;
+  label: string;
+  desc: string;
+  placeholder: string;
+  fonts: string[];
+  font?: string;
+  size: number;
+  sizes: number[];
+  onFont: (v: string | undefined) => void;
+  onSize: (n: number) => void;
+}) {
+  return (
+    <div className="set-item">
+      <div className="set-text">
+        <label htmlFor={p.id}>{p.label}</label>
+        <span className="desc">{p.desc}</span>
+      </div>
+      <div className="set-ctl">
+        <input
+          id={p.id}
+          className="field set-font"
+          list={`${p.id}-list`}
+          placeholder={p.placeholder}
+          spellCheck={false}
+          value={p.font ?? ""}
+          onChange={(e) => p.onFont(e.target.value.trim() ? e.target.value : undefined)}
+        />
+        <datalist id={`${p.id}-list`}>
+          {p.fonts.map((f) => (
+            <option key={f} value={f} />
+          ))}
+        </datalist>
+        <select className="field set-size" aria-label={`${p.label} size`} value={p.size} onChange={(e) => p.onSize(Number(e.target.value))}>
+          {p.sizes.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
   );
 }
 

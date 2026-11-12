@@ -9,14 +9,39 @@ import { Home } from "./components/Home";
 import { ProjectTile } from "./components/ProjectIcon";
 import { Braces, HistoryIcon, House, Layers, Mark, Settings, X, ico, icoLg } from "./components/Icon";
 
+export const SIDEBAR_DEFAULT = 296;
+const SIDEBAR_MIN = 220;
+const SIDEBAR_MAX = 560;
+/** dragging the edge this far below the minimum hides the sidebar */
+const SIDEBAR_HIDE_AT = SIDEBAR_MIN - 80;
+
+const UI_FALLBACK = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+const MONO_FALLBACK = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+/** A family typed in Settings ("JetBrains Mono") becomes a quoted stack with system fallbacks; a full stack is used as is. */
+function stack(font: string | undefined, fallback: string): string | undefined {
+  const f = font?.trim();
+  if (!f) return undefined;
+  return f.includes(",") ? f : `"${f.replace(/"/g, "")}", ${fallback}`;
+}
+
+/** Auto leaves the OS in charge (prefers-color-scheme); Light and Dark pin the tokens with data-theme. */
+function useTheme() {
+  const theme = useStore((st) => st.settings.theme);
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "light" || theme === "dark") root.dataset.theme = theme;
+    else delete root.dataset.theme;
+  }, [theme]);
+}
+
 /** The four type tokens a future Settings screen writes; empty settings keep the CSS defaults. */
 function useTypeTokens() {
   const s = useStore((st) => st.settings);
   useEffect(() => {
     const root = document.documentElement.style;
     const set = (prop: string, v: string | undefined) => (v ? root.setProperty(prop, v) : root.removeProperty(prop));
-    set("--font-ui", s.fontUi);
-    set("--font-mono", s.fontMono);
+    set("--font-ui", stack(s.fontUi, UI_FALLBACK));
+    set("--font-mono", stack(s.fontMono, MONO_FALLBACK));
     set("--font-size-ui", s.fontSizeUi ? `${s.fontSizeUi}px` : undefined);
     set("--font-size-code", s.fontSizeCode ? `${s.fontSizeCode}px` : undefined);
   }, [s.fontUi, s.fontMono, s.fontSizeUi, s.fontSizeCode]);
@@ -28,6 +53,7 @@ function AppStrip() {
   const openIds = useStore((s) => s.openProjectIds);
   const view = useStore((s) => s.view);
   const current = useStore((s) => s.currentProjectId);
+  const settingsOpen = useStore((s) => s.modal?.kind === "settings");
   const st = useStore.getState(); // actions only
 
   return (
@@ -54,6 +80,16 @@ function AppStrip() {
           );
         })}
       </nav>
+      <button
+        type="button"
+        className="icon-btn strip-settings"
+        title="Settings (⌘,)"
+        aria-label="Settings"
+        aria-expanded={settingsOpen}
+        onClick={() => st.openModal({ kind: "settings" })}
+      >
+        <Settings {...ico} />
+      </button>
     </div>
   );
 }
@@ -67,10 +103,18 @@ export default function App() {
   const modalKind = useStore((s) => s.modal?.kind);
   const [view, setView] = useState<SideView>("collections");
   // the rail lights the dialog that is open, else the sidebar view
-  const lit = modalKind === "environments" ? "variables" : modalKind === "settings" ? "settings" : view;
-  const [split, setSplit] = useState(0.5);
+  const lit = modalKind === "environments" ? "variables" : view;
+  const [split, setSplit] = useState(0.5); // stacked: request height share
+  const [splitX, setSplitX] = useState(0.5); // side by side: request width share
   const bodyRef = useRef<HTMLDivElement>(null);
+  const settings = useStore((s) => s.settings);
+  const sideSplit = settings.layout === "split";
+  // while the edge is dragged the width lives here; it is saved to settings on release
+  const [liveSide, setLiveSide] = useState<{ width: number; hidden: boolean } | null>(null);
+  const sideWidth = liveSide?.width ?? settings.sidebarWidth ?? SIDEBAR_DEFAULT;
+  const sideHidden = liveSide?.hidden ?? !!settings.sidebarHidden;
   useTypeTokens();
+  useTheme();
 
   useEffect(() => {
     useStore.getState().init();
@@ -81,8 +125,21 @@ export default function App() {
       const mod = e.metaKey || e.ctrlKey;
       if (!mod) return;
       const s = useStore.getState();
+      if (e.key === ",") {
+        e.preventDefault();
+        s.openModal(s.modal?.kind === "settings" ? null : { kind: "settings" });
+        return;
+      }
       if (s.view !== "project") return; // request shortcuts only inside a project
-      if (e.key === "Enter" && s.activeTabId) {
+      if (e.key.toLowerCase() === "e") {
+        e.preventDefault();
+        // ⌘E toggles the Variables dialog; it never stacks on top of another dialog
+        if (s.modal?.kind === "environments") s.openModal(null);
+        else if (!s.modal) s.openModal({ kind: "environments" });
+      } else if (e.key === "\\") {
+        e.preventDefault();
+        s.setSettings({ sidebarHidden: !s.settings.sidebarHidden });
+      } else if (e.key === "Enter" && s.activeTabId) {
         e.preventDefault();
         s.sendTab(s.activeTabId);
       } else if (e.key.toLowerCase() === "s" && s.activeTabId) {
@@ -100,13 +157,44 @@ export default function App() {
   const startDrag = (e: React.MouseEvent) => {
     e.preventDefault();
     const rect = bodyRef.current!.getBoundingClientRect();
-    const move = (ev: MouseEvent) => setSplit(Math.min(0.85, Math.max(0.15, (ev.clientY - rect.top) / rect.height)));
+    const clamp = (v: number) => Math.min(0.85, Math.max(0.15, v));
+    const move = (ev: MouseEvent) =>
+      sideSplit ? setSplitX(clamp((ev.clientX - rect.left) / rect.width)) : setSplit(clamp((ev.clientY - rect.top) / rect.height));
     const up = () => {
       window.removeEventListener("mousemove", move);
       window.removeEventListener("mouseup", up);
     };
     window.addEventListener("mousemove", move);
     window.addEventListener("mouseup", up);
+  };
+
+  /** Drag the sidebar's right edge: resize between the limits, hide past the minimum, come back when dragged out again. */
+  const startSideResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const x0 = e.clientX;
+    const w0 = sideWidth;
+    let state = { width: w0, hidden: false };
+    document.body.classList.add("col-resizing");
+    const move = (ev: MouseEvent) => {
+      const w = w0 + ev.clientX - x0;
+      // hidden keeps the width it had before the drag, so showing it again restores that
+      state = w < SIDEBAR_HIDE_AT ? { width: w0, hidden: true } : { width: Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, w)), hidden: false };
+      setLiveSide(state);
+    };
+    const up = () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+      document.body.classList.remove("col-resizing");
+      useStore.getState().setSettings({ sidebarWidth: state.width, sidebarHidden: state.hidden });
+      setLiveSide(null);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  };
+  /** A rail section brings the sidebar back if it was hidden. */
+  const showSection = (v: SideView) => {
+    setView(v);
+    if (useStore.getState().settings.sidebarHidden) useStore.getState().setSettings({ sidebarHidden: false });
   };
 
   if (!loaded) return <div className="boot" />;
@@ -120,43 +208,41 @@ export default function App() {
         <>
           <nav className="rail" aria-label="Sections">
             <div className="rail-mark">
-              <Mark />
+              <Mark size={20} />
             </div>
             <button
               type="button"
               className="rail-item"
+              aria-label="Collections"
+              title="Collections"
               aria-current={lit === "collections" ? "page" : undefined}
-              onClick={() => setView("collections")}
+              onClick={() => showSection("collections")}
             >
               <Layers {...icoLg} />
-              Collections
             </button>
-            <button type="button" className="rail-item" aria-current={lit === "history" ? "page" : undefined} onClick={() => setView("history")}>
+            <button type="button" className="rail-item" aria-label="History" title="History" aria-current={lit === "history" ? "page" : undefined} onClick={() => showSection("history")}>
               <HistoryIcon {...icoLg} />
-              History
             </button>
-            <button type="button" className="rail-item" aria-current={lit === "variables" ? "page" : undefined} onClick={() => openModal({ kind: "environments" })}>
+            <button type="button" className="rail-item" aria-label="Variables" title="Variables" aria-current={lit === "variables" ? "page" : undefined} onClick={() => openModal({ kind: "environments" })}>
               <Braces {...icoLg} />
-              Variables
-            </button>
-            <span className="rail-spacer" />
-            <button type="button" className="rail-item" aria-current={lit === "settings" ? "page" : undefined} onClick={() => openModal({ kind: "settings" })}>
-              <Settings {...icoLg} />
-              Settings
             </button>
           </nav>
 
-          <div className="panel">
-            <Sidebar view={view} />
+          <div className="panel" style={{ gridTemplateColumns: sideHidden ? "minmax(0, 1fr)" : `${sideWidth}px minmax(0, 1fr)` }}>
+            {!sideHidden && <Sidebar view={view} onResizeStart={startSideResize} />}
             <main className="work">
               <TabsBar />
               {tab && (
-                <div className="work-body" ref={bodyRef}>
+                <div
+                  className={`work-body${sideSplit ? " split" : ""}`}
+                  ref={bodyRef}
+                  style={sideSplit ? { gridTemplateColumns: `minmax(0, ${splitX}fr) 12px minmax(0, ${1 - splitX}fr)` } : undefined}
+                >
                   <RequestPane key={tab.id} tab={tab} grow={split} />
                   <div
                     className="divider"
                     role="separator"
-                    aria-orientation="horizontal"
+                    aria-orientation={sideSplit ? "vertical" : "horizontal"}
                     aria-label="Resize request and response"
                     onMouseDown={startDrag}
                   />

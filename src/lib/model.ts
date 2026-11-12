@@ -59,6 +59,42 @@ export function removeFromTree(nodes: TreeNode[], id: string): TreeNode[] {
 }
 
 /** Inserts into folder `parentId`, or at the collection root when null. */
+/** Where a dragged node lands relative to a target row. */
+export type DropWhere = "before" | "after" | "inside";
+
+/** Put `node` before/after the node `targetId`, or at the end of folder `targetId` ("inside"). Returns null when the target is not in `nodes`. */
+export function placeNode(nodes: TreeNode[], targetId: string, where: DropWhere, node: TreeNode): TreeNode[] | null {
+  const i = nodes.findIndex((n) => n.id === targetId);
+  if (i >= 0) {
+    if (where === "inside") {
+      const t = nodes[i];
+      if (t.type !== "folder") return null;
+      return nodes.map((n, j) => (j === i ? { ...t, children: [...t.children, node] } : n));
+    }
+    const out = [...nodes];
+    out.splice(where === "before" ? i : i + 1, 0, node);
+    return out;
+  }
+  for (let j = 0; j < nodes.length; j++) {
+    const n = nodes[j];
+    if (n.type !== "folder") continue;
+    const kids = placeNode(n.children, targetId, where, node);
+    if (kids) return nodes.map((m, k) => (k === j ? { ...n, children: kids } : m));
+  }
+  return null;
+}
+
+/** A deep copy with fresh ids for the node, its descendants and their rows. */
+export function cloneNode(n: TreeNode): TreeNode {
+  if (n.type === "folder") return { ...n, id: uid(), children: n.children.map(cloneNode) };
+  return { ...n, ...cloneRequest(n), type: "request", id: uid() };
+}
+
+/** Ids of a node and everything inside it. */
+export function nodeIds(n: TreeNode): string[] {
+  return n.type === "folder" ? [n.id, ...n.children.flatMap(nodeIds)] : [n.id];
+}
+
 export function insertNode(c: Collection, parentId: string | null, node: TreeNode): Collection {
   if (!parentId || parentId === c.id) return { ...c, children: [...c.children, node] };
   return {

@@ -1,12 +1,14 @@
 import { useStore } from "../store";
 import { methodLabel } from "../lib/model";
-import { ChevronDown, Menu, Plus, X, ico } from "./Icon";
+import { ChevronDown, Columns2, Menu, PanelLeftClose, PanelLeftOpen, Plus, Rows2, X, ico } from "./Icon";
 
 export function TabsBar() {
   const tabs = useStore((s) => s.tabs);
   const activeTabId = useStore((s) => s.activeTabId);
   const environments = useStore((s) => s.environments);
   const activeEnvironmentId = useStore((s) => s.activeEnvironmentId);
+  const sidebarHidden = useStore((s) => !!s.settings.sidebarHidden);
+  const split = useStore((s) => s.settings.layout === "split");
   const s = useStore.getState(); // actions only
 
   const env = environments.find((e) => e.id === activeEnvironmentId);
@@ -14,6 +16,15 @@ export function TabsBar() {
 
   return (
     <div className="tabsbar">
+      <button
+        type="button"
+        className="icon-btn side-toggle"
+        title={`${sidebarHidden ? "Show" : "Hide"} sidebar (⌘\\)`}
+        aria-label={sidebarHidden ? "Show sidebar" : "Hide sidebar"}
+        onClick={() => s.setSettings({ sidebarHidden: !sidebarHidden })}
+      >
+        {sidebarHidden ? <PanelLeftOpen {...ico} /> : <PanelLeftClose {...ico} />}
+      </button>
       <div className="tabs">
         {tabs.map((t) => (
           <div
@@ -37,6 +48,15 @@ export function TabsBar() {
         </button>
       </div>
 
+      <button
+        type="button"
+        className="icon-btn layout-toggle"
+        title={split ? "Response below the request" : "Response beside the request"}
+        aria-label={split ? "Stacked layout" : "Side by side layout"}
+        onClick={() => s.setSettings({ layout: split ? "stacked" : "split" })}
+      >
+        {split ? <Rows2 {...ico} /> : <Columns2 {...ico} />}
+      </button>
       <div className="joined env-group">
         <label className="env-picker">
           {env && <span className="env-badge">{badge}</span>}
@@ -54,7 +74,7 @@ export function TabsBar() {
         <button
           type="button"
           className="btn joined-tail"
-          title="Manage environments"
+          title="Manage environments (⌘E)"
           aria-label="Manage environments"
           onClick={() => s.openModal({ kind: "environments" })}
         >

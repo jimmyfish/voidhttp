@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // .tool_response.filePath // empty'); case \"$f\" in \"$CLAUDE_PROJECT_DIR\"/*) case \"$f\" in */graphify-out/*|*/node_modules/*|*/dist/*|*/src-tauri/target/*|*/.git/*) ;; *) cd \"$CLAUDE_PROJECT_DIR\" && GRAPHIFY_NO_AUTO_REFRESH=1 graphify update . >/dev/null 2>&1 || true ;; esac ;; esac",
+            "async": true,
+            "statusMessage": "Updating graphify graph"
+          }
+        ]
+      }
+    ]
+  }
+}

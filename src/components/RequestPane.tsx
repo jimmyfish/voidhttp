@@ -126,7 +126,7 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
                   role="menuitem"
                   onClick={() => {
                     setMenuOpen(false);
-                    st.openModal({ kind: "settings" });
+                    st.openModal({ kind: "settings", section: "requests" });
                   }}
                 >
                   <SlidersHorizontal {...ico} />

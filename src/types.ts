@@ -99,6 +99,15 @@ export interface Settings {
   fontMono?: string;
   fontSizeUi?: number;
   fontSizeCode?: number;
+  /** Sidebar width in px; hidden when the edge is dragged past the minimum or toggled off. */
+  sidebarWidth?: number;
+  sidebarHidden?: boolean;
+  /** Where the response sits: below the request (stacked) or beside it (split). */
+  layout?: "stacked" | "split";
+  /** auto follows the OS appearance */
+  theme?: "auto" | "light" | "dark";
+  /** how the Variables dialog shows variables; remembered between openings */
+  variablesFormat?: "table" | "json" | "env";
 }
 
 /** A project: the unit shown as a tab in the title strip and as a card on Home. */
