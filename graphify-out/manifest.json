@@ -48,15 +48,15 @@
     "semantic_hash": ""
   },
   "src-tauri/tauri.conf.json": {
-    "mtime": 1794470825.4012341,
-    "seen": 1794471836.151732,
-    "ast_hash": "ac50b5c843ac2c624dc30c640d694368",
+    "mtime": 1794474482.1950583,
+    "seen": 1794475423.550497,
+    "ast_hash": "df7f4958e3a52daab4c2458e94ba91c9",
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1794473980.5803983,
-    "seen": 1794473982.1710458,
-    "ast_hash": "0179b212436ad45b0683bc95bb1bdfa6",
+    "mtime": 1794475705.2864206,
+    "seen": 1794475794.409579,
+    "ast_hash": "76c8bcff69adca18b115cb88b49caec4",
     "semantic_hash": ""
   },
   "src/components/CodeArea.tsx": {
@@ -84,9 +84,9 @@
     "semantic_hash": ""
   },
   "src/components/ResponsePane.tsx": {
-    "mtime": 1794469381.817481,
-    "seen": 1794471836.1517382,
-    "ast_hash": "73c47c9c5993c77209912052f2da2ad5",
+    "mtime": 1794475705.2860148,
+    "seen": 1794475794.409585,
+    "ast_hash": "e5c04f7b5c98bd203b5cf78ba2ccf13a",
     "semantic_hash": ""
   },
   "src/components/Sidebar.tsx": {
@@ -168,10 +168,10 @@
     "semantic_hash": "68b2561792597071c31052d4f422f30b"
   },
   "README.md": {
-    "mtime": 1794464430.3968465,
-    "seen": 1794465162.4875891,
-    "ast_hash": "6f28abb0e2c3575bf07dd78f5b0b08c0",
-    "semantic_hash": "6f28abb0e2c3575bf07dd78f5b0b08c0"
+    "mtime": 1794474482.195436,
+    "seen": 1794475423.5505211,
+    "ast_hash": "506e6402c04649627040a2b6a5050c79",
+    "semantic_hash": ""
   },
   "index.html": {
     "mtime": 1794465427.3427985,
@@ -180,105 +180,105 @@
     "semantic_hash": ""
   },
   "app-icon.svg": {
-    "mtime": 1794464103.9624145,
-    "seen": 1794465162.4875898,
-    "ast_hash": "1dbfdaa8c136da8f76446f1e823e9c9e",
-    "semantic_hash": "1dbfdaa8c136da8f76446f1e823e9c9e"
+    "mtime": 1794475415.4257047,
+    "seen": 1794475423.550546,
+    "ast_hash": "4cb309fcf00aec3836b2efe654c3ac6b",
+    "semantic_hash": ""
   },
   "src-tauri/icons/128x128.png": {
-    "mtime": 1794464107.6409843,
-    "seen": 1794465162.4875898,
-    "ast_hash": "5134e8d8ff65bed8872cdf48778d9243",
-    "semantic_hash": "5134e8d8ff65bed8872cdf48778d9243"
+    "mtime": 1794475416.121332,
+    "seen": 1794475423.550547,
+    "ast_hash": "48604f2665cefa236cebbc1c9dcb0487",
+    "semantic_hash": ""
   },
   "src-tauri/icons/128x128@2x.png": {
-    "mtime": 1794464107.6477737,
-    "seen": 1794465162.4875898,
-    "ast_hash": "d6ed769590f664cca085526cee5d4d58",
-    "semantic_hash": "d6ed769590f664cca085526cee5d4d58"
+    "mtime": 1794475416.1397138,
+    "seen": 1794475423.550548,
+    "ast_hash": "d164e706f9844e64af0dec8b86f52b13",
+    "semantic_hash": ""
   },
   "src-tauri/icons/32x32.png": {
-    "mtime": 1794464107.6375358,
-    "seen": 1794465162.487591,
-    "ast_hash": "07cfa45d357fb420844fa552eb6a34ad",
-    "semantic_hash": "07cfa45d357fb420844fa552eb6a34ad"
+    "mtime": 1794475416.1146483,
+    "seen": 1794475423.550548,
+    "ast_hash": "269c3d19c7676c5a22a02457305a5266",
+    "semantic_hash": ""
   },
   "src-tauri/icons/64x64.png": {
-    "mtime": 1794464107.63861,
-    "seen": 1794465162.487591,
-    "ast_hash": "769b56697cf0994b8150e407afa9b9f5",
-    "semantic_hash": "769b56697cf0994b8150e407afa9b9f5"
+    "mtime": 1794475416.1163044,
+    "seen": 1794475423.550549,
+    "ast_hash": "cad642af6cb85d5c909cc26127845857",
+    "semantic_hash": ""
   },
   "src-tauri/icons/Square107x107Logo.png": {
-    "mtime": 1794464107.4780002,
-    "seen": 1794465162.487592,
-    "ast_hash": "7b56809ac913f42daddf3d527549a8b9",
-    "semantic_hash": "7b56809ac913f42daddf3d527549a8b9"
+    "mtime": 1794475415.6727965,
+    "seen": 1794475423.550549,
+    "ast_hash": "27f49e5515e0608e5e6d9f02392145c6",
+    "semantic_hash": ""
   },
   "src-tauri/icons/Square142x142Logo.png": {
-    "mtime": 1794464107.4808164,
-    "seen": 1794465162.487592,
-    "ast_hash": "3a18ecf37b2276164ad307b53119c0a6",
-    "semantic_hash": "3a18ecf37b2276164ad307b53119c0a6"
+    "mtime": 1794475415.6793473,
+    "seen": 1794475423.55055,
+    "ast_hash": "008fb68ad854264e0197bb675ee42dda",
+    "semantic_hash": ""
   },
   "src-tauri/icons/Square150x150Logo.png": {
-    "mtime": 1794464107.484003,
-    "seen": 1794465162.487593,
-    "ast_hash": "a99530a17be431fd0f5f678d4f528cff",
-    "semantic_hash": "a99530a17be431fd0f5f678d4f528cff"
+    "mtime": 1794475415.6865146,
+    "seen": 1794475423.55055,
+    "ast_hash": "4af89ef81627184f8bb57dbd61de72c9",
+    "semantic_hash": ""
   },
   "src-tauri/icons/Square284x284Logo.png": {
-    "mtime": 1794464107.4917047,
-    "seen": 1794465162.487593,
-    "ast_hash": "8f08c76323e17a9d77064e89ed0c8e38",
-    "semantic_hash": "8f08c76323e17a9d77064e89ed0c8e38"
+    "mtime": 1794475415.7084868,
+    "seen": 1794475423.550551,
+    "ast_hash": "668f9fc28f733b5c13d5ced578119bf0",
+    "semantic_hash": ""
   },
   "src-tauri/icons/Square30x30Logo.png": {
-    "mtime": 1794464107.472186,
-    "seen": 1794465162.487594,
-    "ast_hash": "f678fee2091db470c5c0e51e6eec87b3",
-    "semantic_hash": "f678fee2091db470c5c0e51e6eec87b3"
+    "mtime": 1794475415.6597822,
+    "seen": 1794475423.550551,
+    "ast_hash": "580987f428aa09aa5e7d8c6d3a3da64b",
+    "semantic_hash": ""
   },
   "src-tauri/icons/Square310x310Logo.png": {
-    "mtime": 1794464107.5010483,
-    "seen": 1794465162.487594,
-    "ast_hash": "436e34d40dfaab74621d058cd24d65aa",
-    "semantic_hash": "436e34d40dfaab74621d058cd24d65aa"
+    "mtime": 1794475415.734993,
+    "seen": 1794475423.5505521,
+    "ast_hash": "e93b6772bc9ed0f87e541788efdd6782",
+    "semantic_hash": ""
   },
   "src-tauri/icons/Square44x44Logo.png": {
-    "mtime": 1794464107.4729342,
-    "seen": 1794465162.487595,
-    "ast_hash": "e2640f7c7069c472363142a20ae623b5",
-    "semantic_hash": "e2640f7c7069c472363142a20ae623b5"
+    "mtime": 1794475415.663739,
+    "seen": 1794475423.5505521,
+    "ast_hash": "07d49032b20f670a271ac42610f8f375",
+    "semantic_hash": ""
   },
   "src-tauri/icons/Square71x71Logo.png": {
-    "mtime": 1794464107.4741216,
-    "seen": 1794465162.487595,
-    "ast_hash": "b3dec7b294f2dbfebb72b2e46a4d8deb",
-    "semantic_hash": "b3dec7b294f2dbfebb72b2e46a4d8deb"
+    "mtime": 1794475415.6657002,
+    "seen": 1794475423.550553,
+    "ast_hash": "922dde8c0e7ade4b9d88ad2c64895fd3",
+    "semantic_hash": ""
   },
   "src-tauri/icons/Square89x89Logo.png": {
-    "mtime": 1794464107.4758995,
-    "seen": 1794465162.487596,
-    "ast_hash": "63fb7b7b30d87ad672144610d380adec",
-    "semantic_hash": "63fb7b7b30d87ad672144610d380adec"
+    "mtime": 1794475415.6685293,
+    "seen": 1794475423.550554,
+    "ast_hash": "a1e1d650e313a8aea456f410315b2d38",
+    "semantic_hash": ""
   },
   "src-tauri/icons/StoreLogo.png": {
-    "mtime": 1794464107.471713,
-    "seen": 1794465162.487596,
-    "ast_hash": "7a03ceac90e7acccba4a6b8867d99bd6",
-    "semantic_hash": "7a03ceac90e7acccba4a6b8867d99bd6"
+    "mtime": 1794475415.658976,
+    "seen": 1794475423.550554,
+    "ast_hash": "fe080f0bc7fd1f94f38c8a15bac96765",
+    "semantic_hash": ""
   },
   "src-tauri/icons/icon.png": {
-    "mtime": 1794464107.6680572,
-    "seen": 1794465162.487597,
-    "ast_hash": "9872a677f449228a8010c7b7fa987ac1",
-    "semantic_hash": "9872a677f449228a8010c7b7fa987ac1"
+    "mtime": 1794475416.2001553,
+    "seen": 1794475423.550555,
+    "ast_hash": "1ecea79402fc0e531363349151b214fb",
+    "semantic_hash": ""
   },
   ".hallmark/log.json": {
-    "mtime": 1794469321.4830487,
-    "seen": 1794471836.151722,
-    "ast_hash": "268ba4740832f2222eeb518713e5b7c1",
+    "mtime": 1794475625.7585413,
+    "seen": 1794475626.225867,
+    "ast_hash": "a62f9517666697bb56945ffffa4b3cc6",
     "semantic_hash": ""
   },
   "src/components/Home.tsx": {
@@ -288,9 +288,9 @@
     "semantic_hash": ""
   },
   "src/components/Icon.tsx": {
-    "mtime": 1794473212.2162757,
-    "seen": 1794473512.0864499,
-    "ast_hash": "a899db90596e748e45eb5b2be074c589",
+    "mtime": 1794475705.28621,
+    "seen": 1794475794.409581,
+    "ast_hash": "e6ac0509664a2ac42ac62ee8e0437069",
     "semantic_hash": ""
   },
   "src/components/ProjectIcon.tsx": {
@@ -306,15 +306,9 @@
     "semantic_hash": ""
   },
   ".hallmark/preview/index.html": {
-    "mtime": 1794473904.959821,
-    "seen": 1794473982.1710641,
-    "ast_hash": "d10630990536524105f363f85634735d",
-    "semantic_hash": ""
-  },
-  ".hallmark/preview/project-icons.html": {
-    "mtime": 1794470386.4005263,
-    "seen": 1794471836.1517482,
-    "ast_hash": "8ddbda7b36baefffaf955d2c948b84bd",
+    "mtime": 1794475705.287052,
+    "seen": 1794475794.4095979,
+    "ast_hash": "714e3412094b43681472e38244830283",
     "semantic_hash": ""
   },
   ".hallmark/reference-apidog.md": {
@@ -333,162 +327,6 @@
     "mtime": 1794471936.3836691,
     "seen": 1794471936.792394,
     "ast_hash": "c4109fe585384fc1fc2a1cfae5b1ac2e",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/body-response-dark.png": {
-    "mtime": 1794469395.4574394,
-    "seen": 1794471836.1517508,
-    "ast_hash": "e91d4c4936d3c213ffda153d8c1f941a",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/body-response-light.png": {
-    "mtime": 1794469392.402866,
-    "seen": 1794471836.151752,
-    "ast_hash": "de8f489ca18afcf3d009a835c491abfd",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/history-dark.png": {
-    "mtime": 1794469396.2803125,
-    "seen": 1794471836.151752,
-    "ast_hash": "34fac4e168b2951fab96faabb014a3e3",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/history-light.png": {
-    "mtime": 1794469393.2207103,
-    "seen": 1794471836.151753,
-    "ast_hash": "56679189b5d60de7270f56e39c9d8c2a",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/new-tab-empty-dark.png": {
-    "mtime": 1794469396.5535223,
-    "seen": 1794471836.151753,
-    "ast_hash": "1656035a0429157247ba92d00275bf5c",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/new-tab-empty-light.png": {
-    "mtime": 1794469393.4717534,
-    "seen": 1794471836.151754,
-    "ast_hash": "25b2939cf598d1d9183521561613a5e8",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/p-amarbank-dark.png": {
-    "mtime": 1794470833.529635,
-    "seen": 1794471836.151754,
-    "ast_hash": "8d9b4be52afe12633de67f119e3b2d69",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/p-amarbank-light.png": {
-    "mtime": 1794470829.4826055,
-    "seen": 1794471836.151755,
-    "ast_hash": "263e3a5b29f038a9bd72da2ca25b64f8",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/p-home-dark.png": {
-    "mtime": 1794470832.6348085,
-    "seen": 1794471836.151755,
-    "ast_hash": "f031803c7dc253544546e6e761c7e5d0",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/p-home-light.png": {
-    "mtime": 1794470828.587498,
-    "seen": 1794471836.151756,
-    "ast_hash": "9f0eb298f3cf4a2765fa939e7a37300c",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/p-home-two-dark.png": {
-    "mtime": 1794470833.8377354,
-    "seen": 1794471836.151756,
-    "ast_hash": "afb0c0eec562bcdcd45b8030c9fe2189",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/p-home-two-light.png": {
-    "mtime": 1794470829.775927,
-    "seen": 1794471836.151757,
-    "ast_hash": "40079401147c204a5aa15d4e61435fc8",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/p-migrated-project-dark.png": {
-    "mtime": 1794470832.3122933,
-    "seen": 1794471836.151757,
-    "ast_hash": "0c51ef6f673e9922703e5e670bf467d4",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/p-migrated-project-light.png": {
-    "mtime": 1794470828.2555156,
-    "seen": 1794471836.1517582,
-    "ast_hash": "a38aad7c9d9e3dd69029f4e2b64ea3ef",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/p-new-project-dark.png": {
-    "mtime": 1794470832.9890785,
-    "seen": 1794471836.1517582,
-    "ast_hash": "942fee21213c3726698395b161c6735c",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/p-new-project-light.png": {
-    "mtime": 1794470828.9375384,
-    "seen": 1794471836.1517591,
-    "ast_hash": "2a621f8a7362fd038141b3ee93e2a400",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/params-dirty-dark.png": {
-    "mtime": 1794469395.7292576,
-    "seen": 1794471836.1517591,
-    "ast_hash": "0ce425cb2c7363311496143beea61253",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/params-dirty-light.png": {
-    "mtime": 1794469392.6736128,
-    "seen": 1794471836.1517599,
-    "ast_hash": "55d068bb23923a173d881785cafeabb8",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/save-dialog-dark.png": {
-    "mtime": 1794469397.114479,
-    "seen": 1794471836.1517599,
-    "ast_hash": "6db641b8ef923e3ae6ea5e4c2914839f",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/save-dialog-existing-dark.png": {
-    "mtime": 1794469396.849181,
-    "seen": 1794471836.1517608,
-    "ast_hash": "16ddd7daf4602fdb4ef4b26e9cb313c5",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/save-dialog-existing-light.png": {
-    "mtime": 1794469393.7702148,
-    "seen": 1794471836.1517608,
-    "ast_hash": "d3fb00b46aa284220e8faef71b12dfe2",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/save-dialog-light.png": {
-    "mtime": 1794469394.0502977,
-    "seen": 1794471836.151762,
-    "ast_hash": "4f52ea31c79bbf1e3e1e27aa44b56aba",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/send-menu-dark.png": {
-    "mtime": 1794469396.015354,
-    "seen": 1794471836.151762,
-    "ast_hash": "aba92a3f3a444a80f2ad27c60b498fdd",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/send-menu-light.png": {
-    "mtime": 1794469392.9494557,
-    "seen": 1794471836.151763,
-    "ast_hash": "3d482950e083051c70c11f95ae358995",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/variables-dark.png": {
-    "mtime": 1794469397.3798032,
-    "seen": 1794471836.151763,
-    "ast_hash": "75b0bb67a2b390def498d14075f3ed53",
-    "semantic_hash": ""
-  },
-  ".hallmark/app-shots/variables-light.png": {
-    "mtime": 1794469394.324633,
-    "seen": 1794471836.151764,
-    "ast_hash": "a640cc1006c9b50edc01dc35ea3ca87e",
     "semantic_hash": ""
   },
   ".claude/settings.json": {
@@ -521,10 +359,10 @@
     "ast_hash": "bb24d42767d89a110fdc09459320106c",
     "semantic_hash": ""
   },
-  "package-lock.json": {
-    "mtime": 1794468884.567783,
-    "seen": 1794471836.151774,
-    "ast_hash": "0617c366212265827cd4932b3e40f4c5",
+  "src/lib/jsonpath.ts": {
+    "mtime": 1794475637.7174168,
+    "seen": 1794475638.350158,
+    "ast_hash": "6adc793bb3d275616662add98fb49fb1",
     "semantic_hash": ""
   }
 }

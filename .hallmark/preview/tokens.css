@@ -39,6 +39,7 @@
   --color-error: #d00000;
   --color-warn: #a34a00;
   --color-bar: #2e67e5;
+  --color-hit: #fff0b3; --color-hit-cur: #ffd24d; --color-hit-edge: #c79100;
   /* project identity tiles: text on a tint, each pair 4.5:1 or better */
   --proj-1-fg: #2e67e5; --proj-1-bg: #eef3fe; --proj-2-fg: #01804a; --proj-2-bg: #e8f6ef;
   --proj-3-fg: #a34a00; --proj-3-bg: #fcefe5; --proj-4-fg: #6d3fd1; --proj-4-bg: #f1ecfd;
@@ -67,6 +68,7 @@
     --color-rule: #262e3c; --color-edge-soft: #2e3747; --color-edge-aa: #6b778c; --color-gutter: #7f9ad6; --color-bar: #4f85fc; --proj-1-fg: #8db0ff; --proj-1-bg: #1d2b4a; --proj-2-fg: #3fd18d; --proj-2-bg: #13302a; --proj-3-fg: #ffab70; --proj-3-bg: #3a2618; --proj-4-fg: #c0a6ff; --proj-4-bg: #2a2145; --proj-5-fg: #2bc2d6; --proj-5-bg: #10303a; --proj-6-fg: #ff7aa8; --proj-6-bg: #3d1a2a; --color-guide: #3a4457;
     --color-accent: #2e67e5; --color-accent-ink: #ffffff; --color-accent-soft: #1d2b4a; --color-link: #6f9bff; --color-focus: #6f9bff;
     --color-ok: #01bf71; --color-redir: #6cb6ff; --color-error: #ff5c5c; --color-warn: #f5b84b;
+    --color-hit: rgb(245 184 75 / 0.22); --color-hit-cur: rgb(245 184 75 / 0.5); --color-hit-edge: #f5b84b;
     --color-overlay: rgb(0 0 0 / 0.55); --color-shadow: rgb(0 0 0 / 0.3);
     --m-get: #01bf71; --m-post: #ff7a33; --m-put: #38b6f0; --m-patch: #a78bfa; --m-delete: #ff5c5c; --m-other: #8a9bb8;
     --j-key: #ff7b72; --j-str: #79b8ff; --j-num: #ffab70; --j-bool: #b392f0; --j-punct: #8a9bb8;
@@ -79,6 +81,7 @@
   --color-rule: #262e3c; --color-edge-soft: #2e3747; --color-edge-aa: #6b778c; --color-gutter: #7f9ad6; --color-bar: #4f85fc; --proj-1-fg: #8db0ff; --proj-1-bg: #1d2b4a; --proj-2-fg: #3fd18d; --proj-2-bg: #13302a; --proj-3-fg: #ffab70; --proj-3-bg: #3a2618; --proj-4-fg: #c0a6ff; --proj-4-bg: #2a2145; --proj-5-fg: #2bc2d6; --proj-5-bg: #10303a; --proj-6-fg: #ff7aa8; --proj-6-bg: #3d1a2a; --color-guide: #3a4457;
   --color-accent: #2e67e5; --color-accent-ink: #ffffff; --color-accent-soft: #1d2b4a; --color-link: #6f9bff; --color-focus: #6f9bff;
   --color-ok: #01bf71; --color-redir: #6cb6ff; --color-error: #ff5c5c; --color-warn: #f5b84b;
+    --color-hit: rgb(245 184 75 / 0.22); --color-hit-cur: rgb(245 184 75 / 0.5); --color-hit-edge: #f5b84b;
   --color-overlay: rgb(0 0 0 / 0.55); --color-shadow: rgb(0 0 0 / 0.3);
   --m-get: #01bf71; --m-post: #ff7a33; --m-put: #38b6f0; --m-patch: #a78bfa; --m-delete: #ff5c5c; --m-other: #8a9bb8;
   --j-key: #ff7b72; --j-str: #79b8ff; --j-num: #ffab70; --j-bool: #b392f0; --j-punct: #8a9bb8;

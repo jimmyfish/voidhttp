@@ -28,17 +28,5 @@
   ],
   "prompt": "desktop API client restyled after Apidog, owner-approved preview",
   "date": "2026-11-12"
- },
- {
-  "mode": "redesign",
-  "depth": "polish",
-  "scope": "app",
-  "shape": "app screen",
-  "theme": "the project",
-  "genre": "modern-minimal",
-  "prompt": "desktop API client, Postman alternative",
-  "waived": [],
-  "signature": "request line over response pane",
-  "date": "2026-11-12"
  }
 ]

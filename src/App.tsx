@@ -148,6 +148,13 @@ export default function App() {
       } else if (e.key.toLowerCase() === "t") {
         e.preventDefault();
         s.newTab();
+      } else if (e.key.toLowerCase() === "f" && !e.shiftKey) {
+        // ⌘F jumps to the response filter when a response body is on screen
+        const field = document.querySelector<HTMLInputElement>(".rf-input");
+        if (!field) return;
+        e.preventDefault();
+        field.focus();
+        field.select();
       }
     };
     window.addEventListener("keydown", onKey);
