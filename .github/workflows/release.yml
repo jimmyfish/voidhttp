@@ -20,22 +20,52 @@ permissions:
   contents: write
 
 jobs:
-  macos:
-    runs-on: macos-latest
+  # One draft release that both builds upload into.
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.release.outputs.result }}
     steps:
-      - uses: actions/checkout@v4
+      - id: release
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: context.ref.replace("refs/tags/", ""),
+              name: `voidHTTP ${context.ref.replace("refs/tags/", "")}`,
+              body: "See the commits since the previous tag for what changed.",
+              draft: true,
+              prerelease: false,
+            });
+            return data.id;
+
+  # A separate build per architecture instead of one universal app, so each Mac downloads
+  # only its own half: latest.json maps darwin-aarch64 and darwin-x86_64 to their own
+  # .app.tar.gz. The builds run one after the other because each merges its platform into
+  # the release's latest.json, and two at once would overwrite each other's entry.
+  macos:
+    needs: create-release
+    runs-on: macos-latest
+    strategy:
+      max-parallel: 1
+      fail-fast: true
+      matrix:
+        target: [aarch64-apple-darwin, x86_64-apple-darwin]
+    steps:
+      - uses: actions/checkout@v5
 
       - uses: oven-sh/setup-bun@v2
 
-      # One universal binary covers Apple Silicon and Intel, so latest.json gets both
-      # darwin-aarch64 and darwin-x86_64 from a single job.
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-darwin,x86_64-apple-darwin
+          targets: ${{ matrix.target }}
 
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          key: ${{ matrix.target }}
 
       - run: bun install --frozen-lockfile
 
@@ -46,10 +76,6 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tauriScript: bun tauri
-          args: --target universal-apple-darwin
-          tagName: ${{ github.ref_name }}
-          releaseName: voidHTTP ${{ github.ref_name }}
-          releaseBody: See the commits since the previous tag for what changed.
-          releaseDraft: true
-          prerelease: false
+          args: --target ${{ matrix.target }}
+          releaseId: ${{ needs.create-release.outputs.id }}
           includeUpdaterJson: true

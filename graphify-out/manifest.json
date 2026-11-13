@@ -48,9 +48,9 @@
     "semantic_hash": ""
   },
   "src-tauri/tauri.conf.json": {
-    "mtime": 1794566575.3304632,
-    "seen": 1794566575.999181,
-    "ast_hash": "469a8bbeb62350460af9a838cc9981ed",
+    "mtime": 1794567009.8068879,
+    "seen": 1794567420.157506,
+    "ast_hash": "04d8acf7f4f3c73a5edd2d56f512701f",
     "semantic_hash": ""
   },
   "src/App.tsx": {
@@ -546,9 +546,9 @@
     "semantic_hash": ""
   },
   ".github/workflows/release.yml": {
-    "mtime": 1794566378.9922366,
-    "seen": 1794566379.9032068,
-    "ast_hash": "c4daa472a82b1f3e0f3c2e3c9e6566d5",
+    "mtime": 1794567419.2775607,
+    "seen": 1794567420.157494,
+    "ast_hash": "85737e51f0b421c2d1108477e3059277",
     "semantic_hash": ""
   },
   "src/lib/updater.ts": {
