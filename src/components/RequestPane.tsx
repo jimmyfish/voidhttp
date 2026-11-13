@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store";
 import type { Auth, BodyMode, Tab } from "../types";
-import { METHODS, findNode, paramsFromUrl, pathTo, urlWithParams } from "../lib/model";
+import { findNode, paramsFromUrl, pathTo, urlWithParams } from "../lib/model";
 import { DYNAMIC, resolve, unresolved } from "../lib/vars";
 import { isSecretKey } from "../lib/mask";
+import { MethodMenu } from "./MethodMenu";
 import { UrlInput, type VarInfo } from "./UrlInput";
 import { prepare } from "../lib/http";
 import { looksLikeCurl, parseCurl, toCurl } from "../lib/curl";
@@ -156,29 +157,16 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
         }}
       >
         <div className="url-field">
-          {/* the label sizes to the method; the real <select> lies over it */}
-          <label className={`method-pick m-${req.method}`}>
+          <MethodMenu
+            value={req.method}
+            disabled={!!ex}
+            className={`method-pick m-${req.method}`}
+            onPick={(m) =>
+              m === "GRPC" ? set({ method: "GRPC", grpc: req.grpc ?? defaultGrpc(req.url), body: { ...req.body, mode: "json" } }) : set({ method: m })
+            }
+          >
             {req.method}
-            <select
-              aria-label="Method"
-              value={req.method}
-              disabled={!!ex}
-              onChange={(e) =>
-                e.target.value === "GRPC"
-                  ? set({ method: "GRPC", grpc: req.grpc ?? defaultGrpc(req.url), body: { ...req.body, mode: "json" } })
-                  : set({ method: e.target.value })
-              }
-            >
-              <optgroup label="HTTP">
-                {METHODS.map((m) => (
-                  <option key={m}>{m}</option>
-                ))}
-              </optgroup>
-              <optgroup label="Other">
-                <option value="GRPC">gRPC</option>
-              </optgroup>
-            </select>
-          </label>
+          </MethodMenu>
           <UrlInput
             lookup={lookup}
             aria-label="URL"

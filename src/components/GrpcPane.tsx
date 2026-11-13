@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useStore } from "../store";
 import type { GrpcDef, Tab } from "../types";
-import { METHODS } from "../lib/model";
 import {
   STREAM_LABEL,
   clientStreams,
@@ -21,6 +20,7 @@ import {
 } from "../lib/grpc";
 import { formatJsonc, stripJsonComments } from "../lib/jsonc";
 import { looksLikeCurl, parseCurl } from "../lib/curl";
+import { MethodMenu } from "./MethodMenu";
 import { UrlInput, type VarInfo } from "./UrlInput";
 import { KVEditor } from "./KVEditor";
 import { CodeArea } from "./CodeArea";
@@ -150,20 +150,10 @@ export function GrpcRequestPane({ tab, grow, lookup, missing, path, saveControls
         }}
       >
         <div className="url-field grpc-field">
-          <label className="kind-btn" title="Request kind">
+          <MethodMenu value="GRPC" disabled={!!ex} className="kind-btn" title="Request kind" onPick={switchKind}>
             gRPC
             <ChevronDown {...ico} />
-            <select aria-label="Request kind" value="GRPC" disabled={!!ex} onChange={(e) => switchKind(e.target.value)}>
-              <optgroup label="HTTP">
-                {METHODS.map((m) => (
-                  <option key={m}>{m}</option>
-                ))}
-              </optgroup>
-              <optgroup label="Other">
-                <option value="GRPC">gRPC</option>
-              </optgroup>
-            </select>
-          </label>
+          </MethodMenu>
           <button
             type="button"
             className="icon-btn tls-btn"

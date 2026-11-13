@@ -8,6 +8,7 @@ import { Check, CopyPlus, Ellipsis, Plus, Send, Trash2, Type, ico } from "./Icon
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
 import { CodeArea } from "./CodeArea";
 import { formatVars, parseVars, type VarsFormat } from "../lib/varsFormat";
+import { TAG_COLORS, envStyle, tagName, type TagColor } from "../lib/tags";
 import { systemFonts } from "../lib/fonts";
 import { BUILTIN, DEFAULT_SCHEME, FAMILIES, SCHEMES, schemeSwatch, type BuiltinId } from "../lib/themes";
 import { PROJECT_COLORS, PROJECT_ICONS, ProjectTile, tileStyle } from "./ProjectIcon";
@@ -204,7 +205,7 @@ function VariablesModal({ onClose, select, addVar }: { onClose: () => void; sele
   const duplicateEnv = (id: string) => {
     const i = envs.findIndex((e) => e.id === id);
     const src = envs[i];
-    const copy: Environment = { id: uid(), name: `${src.name} copy`, variables: src.variables.map((v) => ({ ...v, id: uid() })) };
+    const copy: Environment = { id: uid(), name: `${src.name} copy`, color: src.color, variables: src.variables.map((v) => ({ ...v, id: uid() })) };
     setEnvs([...envs.slice(0, i + 1), copy, ...envs.slice(i + 1)]);
     setSel(copy.id);
   };
@@ -283,6 +284,7 @@ function VariablesModal({ onClose, select, addVar }: { onClose: () => void; sele
                     value={env.name}
                     onChange={(ev) => setEnvs(envs.map((x) => (x.id === env.id ? { ...x, name: ev.target.value } : x)))}
                   />
+                  <EnvColor value={env.color} onChange={(color) => setEnvs(envs.map((x) => (x.id === env.id ? { ...x, color } : x)))} />
                 </div>
               ) : (
                 <p className="muted">
@@ -324,6 +326,67 @@ function VariablesModal({ onClose, select, addVar }: { onClose: () => void; sele
 }
 
 /** One environment in the Variables list, with its "…" menu (Duplicate, Delete). */
+/** [ name ][ o ]: the colour button beside an environment's name, opening a popover of the tag colours. */
+function EnvColor({ value, onChange }: { value?: TagColor; onChange: (c: TagColor | undefined) => void }) {
+  const [open, setOpen] = useState(false);
+  const wrap = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: MouseEvent) => !wrap.current?.contains(e.target as Node) && setOpen(false);
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation(); // close the popover, not the dialog
+      setOpen(false);
+    };
+    document.addEventListener("mousedown", away);
+    document.addEventListener("keydown", esc, true);
+    return () => {
+      document.removeEventListener("mousedown", away);
+      document.removeEventListener("keydown", esc, true);
+    };
+  }, [open]);
+  const pick = (c: TagColor | undefined) => {
+    onChange(c);
+    setOpen(false);
+  };
+  return (
+    <div className="env-color" ref={wrap}>
+      <button
+        type="button"
+        className="env-color-btn"
+        title="Colour"
+        aria-label={`Environment colour: ${tagName(value) ?? "none"}`}
+        aria-haspopup="true"
+        aria-expanded={open}
+        style={envStyle(value)}
+        onClick={() => setOpen(!open)}
+      >
+        <span className={`env-dot${value ? "" : " env-dot--none"}`} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="env-color-pop" role="radiogroup" aria-label="Environment colour">
+          {TAG_COLORS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className="env-swatch"
+              role="radio"
+              aria-checked={value === t.id}
+              aria-label={t.name}
+              title={t.name}
+              style={envStyle(t.id)}
+              onClick={() => pick(t.id)}
+            />
+          ))}
+          <button type="button" className="link" onClick={() => pick(undefined)}>
+            No colour
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EnvItem({
   env,
   current,
@@ -347,6 +410,7 @@ function EnvItem({
   return (
     <li className={`env-item${menu ? " menu-open" : ""}`} onContextMenu={openAtPointer(setMenu)}>
       <button type="button" aria-current={current} title={env.name} onClick={onSelect}>
+        {env.color && <span className="env-dot" aria-hidden="true" style={envStyle(env.color)} />}
         {env.name}
       </button>
       <button
@@ -442,6 +506,22 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
                   onChange={(v) => setSettings(theme === "dark" ? { darkScheme: v } : { lightScheme: v })}
                 />
               )}
+              <div className="set-item">
+                <div className="set-text">
+                  <label htmlFor="set-compact">Compact mode</label>
+                  <span className="desc">UI elements take up less screen space</span>
+                </div>
+                <div className="set-ctl">
+                  <input
+                    id="set-compact"
+                    className="switch"
+                    type="checkbox"
+                    role="switch"
+                    checked={settings.compact === true}
+                    onChange={(e) => setSettings({ compact: e.target.checked || undefined })}
+                  />
+                </div>
+              </div>
               <FontRow
                 id="set-ui-font"
                 label="Interface font"
@@ -478,7 +558,7 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
             <button
               type="button"
               className="link set-reset"
-              onClick={() => setSettings({ theme: undefined, lightScheme: undefined, darkScheme: undefined, fontUi: undefined, fontMono: undefined, fontSizeUi: undefined, fontSizeCode: undefined })}
+              onClick={() => setSettings({ theme: undefined, lightScheme: undefined, darkScheme: undefined, compact: undefined, fontUi: undefined, fontMono: undefined, fontSizeUi: undefined, fontSizeCode: undefined })}
             >
               Reset to defaults
             </button>

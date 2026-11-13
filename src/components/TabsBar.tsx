@@ -1,5 +1,6 @@
 import { useStore } from "../store";
 import { methodLabel } from "../lib/model";
+import { envStyle } from "../lib/tags";
 import { Bookmark, ChevronDown, Columns2, Menu, PanelLeftClose, PanelLeftOpen, Plus, Rows2, X, ico } from "./Icon";
 
 export function TabsBar() {
@@ -58,8 +59,9 @@ export function TabsBar() {
         {split ? <Rows2 {...ico} /> : <Columns2 {...ico} />}
       </button>
       <div className="joined env-group">
-        <label className="env-picker">
+        <label className="env-picker" style={envStyle(env?.color)}>
           {env && <span className="env-badge">{badge}</span>}
+          {env?.color && <span className="env-dot" aria-hidden="true" />}
           <span className="env-name">{env ? env.name : "No environment"}</span>
           <ChevronDown {...ico} />
           <select aria-label="Environment" value={activeEnvironmentId ?? ""} onChange={(e) => s.setActiveEnvironment(e.target.value || null)}>

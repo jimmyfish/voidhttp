@@ -67,6 +67,12 @@ function useTypeTokens() {
     set("--font-size-ui", s.fontSizeUi ? `${s.fontSizeUi}px` : undefined);
     set("--font-size-code", s.fontSizeCode ? `${s.fontSizeCode}px` : undefined);
   }, [s.fontUi, s.fontMono, s.fontSizeUi, s.fontSizeCode]);
+  // Compact mode: one attribute on <html>; the rules live under [data-density="compact"] in styles.css
+  useEffect(() => {
+    const root = document.documentElement;
+    if (s.compact) root.dataset.density = "compact";
+    else delete root.dataset.density;
+  }, [s.compact]);
 }
 
 /** Title strip: Home and the open projects, beside the native macOS traffic lights. Drag it to move the window. */

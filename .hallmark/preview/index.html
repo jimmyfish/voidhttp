@@ -93,6 +93,14 @@
   <nav class="pv-screens" aria-label="Previews">
     <a class="btn btn--quiet" href="./grpc.html" style="min-height:var(--control)">gRPC base →</a>
   </nav>
+  <div class="pv-theme" role="group" aria-label="Layout" style="margin-left:0">
+    <button type="button" data-layout-set="" aria-pressed="true">Stacked</button>
+    <button type="button" data-layout-set="split" aria-pressed="false">Side by side</button>
+  </div>
+  <div class="pv-theme" role="group" aria-label="Density" style="margin-left:0">
+    <button type="button" data-density-set="" aria-pressed="true">Default</button>
+    <button type="button" data-density-set="compact" aria-pressed="false">Compact</button>
+  </div>
   <div class="pv-fonts">
     <label>UI font <select data-font="--font-ui">
       <option value="">System</option><option value="'Helvetica Neue', Helvetica, Arial, sans-serif">Helvetica</option><option value="Avenir Next, Avenir, sans-serif">Avenir</option><option value="Georgia, serif">Georgia</option>
@@ -180,8 +188,9 @@
         <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
 
         <div class="joined env-group">
-        <button type="button" class="env-picker" aria-label="Environment">
+        <button type="button" class="env-picker" aria-label="Environment" style="--env-c: var(--tag-alizarin); --env-ink: var(--tag-alizarin-ink)">
           <span class="env-badge">Pr</span>
+          <span class="env-dot" aria-hidden="true"></span>
           <span>Production</span>
 
           <svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg>
@@ -193,7 +202,10 @@
       <!-- request line -->
       <div class="request-line">
         <div class="url-field">
-          <select aria-label="Method" class="m-POST"><option>POST</option></select>
+          <div class="method-wrap">
+            <button type="button" class="method-btn m-POST" aria-label="Method: POST" aria-haspopup="menu" aria-expanded="false" data-method-btn>POST</button>
+            <div class="menu method-menu" role="menu" aria-label="Method" hidden><button type="button" role="menuitemradio" class="m-GET" aria-checked="false" data-method="GET">GET</button><button type="button" role="menuitemradio" class="m-POST" aria-checked="true" data-method="POST">POST</button><button type="button" role="menuitemradio" class="m-PUT" aria-checked="false" data-method="PUT">PUT</button><button type="button" role="menuitemradio" class="m-PATCH" aria-checked="false" data-method="PATCH">PATCH</button><button type="button" role="menuitemradio" class="m-DELETE" aria-checked="false" data-method="DELETE">DELETE</button><button type="button" role="menuitemradio" class="m-HEAD" aria-checked="false" data-method="HEAD">HEAD</button><button type="button" role="menuitemradio" class="m-OPTIONS" aria-checked="false" data-method="OPTIONS">OPTIONS</button><hr><button type="button" role="menuitemradio" class="m-GRPC" aria-checked="false" data-method="GRPC">gRPC</button></div>
+          </div>
 
           <input aria-label="URL" value="{{baseUrl}}/v1/customers">
 
@@ -388,6 +400,53 @@
       });
       wrap.addEventListener("mouseleave", () => { over = null; tip.hidden = true; });
     });
+  }
+  // Layout: stacked or side by side; the bar buttons and the tabs-bar toggle both drive it
+  {
+    const app = document.querySelector(".pv-stage .app");
+    const tgl = document.querySelector(".layout-toggle");
+    const setLayout = (v) => {
+      if (v) app.dataset.variant = v; else delete app.dataset.variant;
+      document.querySelectorAll("[data-layout-set]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.layoutSet === (v || ""))));
+      tgl.setAttribute("aria-label", v ? "Stacked" : "Side by side");
+      tgl.title = v ? "Response below the request" : "Response beside the request";
+      tgl.querySelector("use").setAttribute("href", v ? "#i-rows-2" : "#i-columns-2");
+    };
+    document.querySelectorAll("[data-layout-set]").forEach((b) => b.addEventListener("click", () => setLayout(b.dataset.layoutSet)));
+    tgl.addEventListener("click", () => setLayout(app.dataset.variant ? "" : "split"));
+    if (new URLSearchParams(location.search).get("layout") === "split" || /split/.test(location.hash)) setLayout("split");
+  }
+  // Method menu (shipped): our own menu in place of the native select
+  {
+    const btn = document.querySelector("[data-method-btn]");
+    const menu = btn.nextElementSibling;
+    const show = (on) => { menu.hidden = !on; btn.setAttribute("aria-expanded", String(on)); if (on) menu.querySelector('[aria-checked="true"]')?.focus(); };
+    const set = (m) => {
+      btn.textContent = m === "GRPC" ? "gRPC" : m; btn.className = `method-btn m-${m}`; btn.setAttribute("aria-label", `Method: ${m}`);
+      menu.querySelectorAll("[data-method]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.method === m)));
+      show(false);
+    };
+    btn.addEventListener("click", () => show(menu.hidden));
+    menu.querySelectorAll("[data-method]").forEach((b) => b.addEventListener("click", () => set(b.dataset.method)));
+    menu.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { show(false); btn.focus(); }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        const all = [...menu.querySelectorAll("button")]; const i = all.indexOf(document.activeElement);
+        all[(i + (e.key === "ArrowDown" ? 1 : all.length - 1)) % all.length].focus(); e.preventDefault();
+      }
+    });
+    document.addEventListener("mousedown", (e) => { if (!menu.hidden && !e.target.closest(".method-wrap")) show(false); });
+    if (/method/.test(location.hash)) show(true);
+  }
+  // Compact mode (shipped): the bar's Default/Compact sets the same attribute on <html> as Settings does in the app
+  {
+    const root = document.documentElement;
+    const setDensity = (d) => {
+      if (d) root.dataset.density = d; else delete root.dataset.density;
+      document.querySelectorAll("[data-density-set]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.densitySet === (d || ""))));
+    };
+    document.querySelectorAll("[data-density-set]").forEach((b) => b.addEventListener("click", () => setDensity(b.dataset.densitySet)));
+    if (new URLSearchParams(location.search).get("density") === "compact" || /compact/.test(location.hash)) setDensity("compact");
   }
   if (new URLSearchParams(location.search).get("theme") === "dark") document.querySelector('[data-theme-set="dark"]').click();
 </script>

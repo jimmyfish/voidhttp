@@ -1,3 +1,5 @@
+import type { TagColor } from "./lib/tags";
+
 export type KV = { id: string; key: string; value: string; enabled: boolean };
 
 export type MultipartField = KV & { kind: "text" | "file" };
@@ -128,6 +130,8 @@ export interface Environment {
   id: string;
   name: string;
   variables: KV[];
+  /** tag colour (src/lib/tags.ts) so an environment reads at a glance, e.g. Alizarin for Production */
+  color?: TagColor;
 }
 
 export interface HttpResponse {
@@ -199,6 +203,8 @@ export interface Settings {
   lightScheme?: string;
   /** colour scheme id used while the look is dark */
   darkScheme?: string;
+  /** Compact mode: same sizes and spacing, fewer icons (no folder or project icons; methods as coloured dots in the sidebar and tabs). */
+  compact?: boolean;
   /** Store each response with its history entry (default on). */
   keepResponses?: boolean;
   /** Bodies bigger than this many MB keep only status and headers (default 1). */
