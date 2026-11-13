@@ -97,6 +97,7 @@ export function schemeTokens(s: Scheme): Record<string, string> {
     "--color-paper": B,
     "--color-paper-2": mix(B, F, 0.08),
     "--color-paper-3": mix(B, F, 0.04),
+    "--color-thumb": dark ? mix(B, F, 0.16) : B,
     "--color-ink": txt(F),
     "--color-ink-2": txt(mix(F, B, 0.15)),
     "--color-muted": muted,

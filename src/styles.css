@@ -114,6 +114,12 @@ select.field { appearance: none; -webkit-appearance: none; padding-right: 32px; 
 }
 .row-main:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; border-radius: var(--radius-control); }
 .row .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* double-click a row (or "Rename" in its menu) to edit the name in place */
+.row-rename {
+  flex: 1; min-width: 0; height: 22px; padding: 0 var(--space-2xs); margin-left: calc(-1 * var(--space-2xs));
+  font: inherit; color: var(--color-ink); background: var(--color-paper); border: 1px solid var(--color-rule);
+  border-radius: 6px; outline: 2px solid var(--color-focus); outline-offset: -1px;
+}
 .row .count { color: var(--color-muted); font-variant-numeric: tabular-nums; }
 .row .caret { color: var(--color-muted); }
 .row .folder { color: var(--color-ink-2); }
@@ -276,7 +282,15 @@ select.field { appearance: none; -webkit-appearance: none; padding-right: 32px; 
 .request-line .btn { min-height: 32px; padding: 0 var(--space-md); }
 .request-line .joined-tail { padding: 0; }
 .req-title { display: flex; align-items: baseline; gap: var(--space-xs); padding: var(--space-2xs) var(--space-md) var(--space-sm); min-width: 0; }
-.req-title .name { color: var(--color-link); font-weight: 600; white-space: nowrap; }
+.req-title .name { color: var(--color-link); font-weight: 600; white-space: nowrap; border: none; background: none; padding: 0; font-size: inherit; cursor: pointer; }
+.req-title .name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.req-title .name:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: 4px; }
+/* clicking the title's name edits it in place */
+.title-rename {
+  min-width: 120px; width: 28ch; max-width: 50%; height: 24px; padding: 0 var(--space-2xs); margin: -3px 0 -3px calc(-1 * var(--space-2xs));
+  font: inherit; font-weight: 600; color: var(--color-link); background: var(--color-paper); border: 1px solid var(--color-rule);
+  border-radius: 6px; outline: 2px solid var(--color-focus); outline-offset: -1px; align-self: center;
+}
 .req-title .path { color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .req-title .hint { padding: 0; margin-left: auto; }
 .hint { padding: 0 var(--space-md) var(--space-xs); font: var(--text-sm) var(--font-mono); color: var(--color-unresolved); }
@@ -381,7 +395,7 @@ select.field { appearance: none; -webkit-appearance: none; padding-right: 32px; 
 .res-tools { display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs) var(--space-md); }
 .seg { display: inline-flex; padding: var(--space-3xs); border-radius: 6px; background: var(--color-paper-2); }
 .seg button { min-height: 24px; padding: 0 var(--space-xs); border: none; border-radius: 4px; background: none; color: var(--color-muted); font-size: var(--text-sm); line-height: 1; }
-.seg button[aria-pressed="true"] { background: var(--color-paper); color: var(--color-ink); font-weight: 600; box-shadow: 0 1px 2px var(--color-shadow); }
+.seg button[aria-pressed="true"] { background: var(--color-thumb); color: var(--color-ink); font-weight: 600; box-shadow: 0 1px 2px var(--color-shadow); }
 .seg button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
 .response .code { margin: 0 var(--space-md) var(--space-md); }
 /* response body + filter bar (Insomnia-style): $.path filters with JSONPath, any other text searches */

@@ -1,3 +1,4 @@
+import { TitleName } from "./InlineRename";
 import { useEffect, useRef, useState } from "react";
 import { Select } from "./Select";
 import { useStore } from "../store";
@@ -235,7 +236,7 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
       </form>
 
       <div className="req-title">
-        <span className="name">{req.name}</span>
+        <TitleName tab={tab} />
         <span className="path">{titlePath}</span>
         {missing.length > 0 && <span className="hint">Unresolved: {missing.map((m) => `{{${m}}}`).join(", ")}</span>}
       </div>

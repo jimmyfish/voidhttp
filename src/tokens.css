@@ -20,6 +20,7 @@
   --color-paper: #ffffff;       /* the panel */
   --color-paper-2: #f0f4fa;     /* selected row, segmented track */
   --color-paper-3: #f7f8fa;     /* filled fields: the request line, search */
+  --color-thumb: #ffffff;       /* the pressed segment: always lighter than its track, so it reads raised */
   --color-ink: #0e2949;
   --color-ink-2: #283f5d;
   --color-muted: #4e6891;
@@ -77,7 +78,7 @@
 /* Dark is derived, not measured: Apidog's reference screenshots are light only. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-canvas: #0e1218; --color-paper: #161b25; --color-paper-2: #1f2633; --color-paper-3: #1b212c;
+    --color-canvas: #0e1218; --color-paper: #161b25; --color-paper-2: #1f2633; --color-paper-3: #1b212c; --color-thumb: #2c3546;
     --color-ink: #e3e8f2; --color-ink-2: #c3cbd9; --color-muted: #8a9bb8; --color-placeholder: #8a96a8;
     --color-rule: #262e3c; --color-edge-soft: #2e3747; --color-edge-aa: #6b778c; --color-gutter: #7f9ad6; --color-bar: #4f85fc; --proj-1-fg: #8db0ff; --proj-1-bg: #1d2b4a; --proj-2-fg: #3fd18d; --proj-2-bg: #13302a; --proj-3-fg: #ffab70; --proj-3-bg: #3a2618; --proj-4-fg: #c0a6ff; --proj-4-bg: #2a2145; --proj-5-fg: #2bc2d6; --proj-5-bg: #10303a; --proj-6-fg: #ff7aa8; --proj-6-bg: #3d1a2a; --color-guide: #3a4457;
     --color-accent: #2e67e5; --color-accent-ink: #ffffff; --color-accent-soft: #1d2b4a; --color-link: #6f9bff; --color-focus: #6f9bff;
@@ -90,7 +91,7 @@
   }
 }
 :root[data-theme="dark"] {
-  --color-canvas: #0e1218; --color-paper: #161b25; --color-paper-2: #1f2633; --color-paper-3: #1b212c;
+  --color-canvas: #0e1218; --color-paper: #161b25; --color-paper-2: #1f2633; --color-paper-3: #1b212c; --color-thumb: #2c3546;
   --color-ink: #e3e8f2; --color-ink-2: #c3cbd9; --color-muted: #8a9bb8; --color-placeholder: #8a96a8;
   --color-rule: #262e3c; --color-edge-soft: #2e3747; --color-edge-aa: #6b778c; --color-gutter: #7f9ad6; --color-bar: #4f85fc; --proj-1-fg: #8db0ff; --proj-1-bg: #1d2b4a; --proj-2-fg: #3fd18d; --proj-2-bg: #13302a; --proj-3-fg: #ffab70; --proj-3-bg: #3a2618; --proj-4-fg: #c0a6ff; --proj-4-bg: #2a2145; --proj-5-fg: #2bc2d6; --proj-5-bg: #10303a; --proj-6-fg: #ff7aa8; --proj-6-bg: #3d1a2a; --color-guide: #3a4457;
   --color-accent: #2e67e5; --color-accent-ink: #ffffff; --color-accent-soft: #1d2b4a; --color-link: #6f9bff; --color-focus: #6f9bff;

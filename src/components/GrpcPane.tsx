@@ -1,3 +1,4 @@
+import { TitleName } from "./InlineRename";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useStore } from "../store";
@@ -242,7 +243,7 @@ export function GrpcRequestPane({ tab, grow, lookup, missing, path, saveControls
       </form>
 
       <div className="req-title">
-        <span className="name">{req.name}</span>
+        <TitleName tab={tab} />
         <span className="path">{path}</span>
         {missing.length > 0 && <span className="hint">Unresolved: {missing.map((m) => `{{${m}}}`).join(", ")}</span>}
         {def.service && def.method && (

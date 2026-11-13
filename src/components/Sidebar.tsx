@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { RenameField } from "./InlineRename";
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
 import { useStore } from "../store";
 import type { Collection, Example, HistoryEntry, TreeNode } from "../types";
@@ -89,7 +90,7 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
 
   /** Pointer-driven drag (HTML5 drag and drop is unreliable inside the Tauri webview). */
   const startDrag = (e: React.MouseEvent, item: DragItem) => {
-    if (e.button !== 0 || (e.target as HTMLElement).closest(".row-more")) return;
+    if (e.button !== 0 || (e.target as HTMLElement).closest(".row-more, .row-rename")) return;
     const x0 = e.clientX;
     const y0 = e.clientY;
     let active = false;
@@ -343,14 +344,14 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
   const { dragId, drop, start } = useContext(DragCtx);
   const moreRef = useRef<HTMLButtonElement>(null);
   const [menu, setMenu] = useState<MenuState>(false);
+  const [editing, setEditing] = useState(false);
   const container = folder || isCollection;
   // a request with examples: the caret toggles them, the row still opens the request
   const expandable = !container && !!onToggle;
   const parentId = isCollection ? null : nodeId;
   const kind = isCollection ? "collection" : folder ? "folder" : "request";
 
-  const rename = () =>
-    s.openModal({ kind: "prompt", title: "Rename", initial: name, onSubmit: (v) => s.renameNode(collectionId, nodeId, v) });
+  const rename = () => setEditing(true);
   const remove = () =>
     s.openModal({
       kind: "confirm",
@@ -394,11 +395,11 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
       style={{ "--indent": `${depth * 16 + (container || expandable ? 0 : 24)}px` } as React.CSSProperties}
       onMouseDown={(e) => start(e, item)}
     >
-      <button
-        type="button"
-        className="row-main"
+      <RowMain
+        editing={editing}
         aria-expanded={container || expandable ? !!open : undefined}
         onClick={container ? onToggle : onClick}
+        onDoubleClick={rename}
         onKeyDown={(e) => {
           if (expandable && (e.key === "ArrowRight" ? !open : e.key === "ArrowLeft" && open)) {
             e.preventDefault();
@@ -425,11 +426,15 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
           </span>
         )}
         {method && <span className={`m m-${method}`}>{methodLabel(method)}</span>}
-        <span className="name" title={name}>
-          {name}
-        </span>
+        {editing ? (
+          <RenameField initial={name} onDone={(v) => (setEditing(false), v !== null && s.renameNode(collectionId, nodeId, v))} />
+        ) : (
+          <span className="name" title={name}>
+            {name}
+          </span>
+        )}
         {container && <span className="count">({count})</span>}
-      </button>
+      </RowMain>
       <button
         ref={moreRef}
         type="button"
@@ -452,12 +457,13 @@ function ExampleRow({ example, collectionId, nodeId, depth, active }: { example:
   const s = useStore.getState(); // actions only
   const moreRef = useRef<HTMLButtonElement>(null);
   const [menu, setMenu] = useState<MenuState>(false);
+  const [editing, setEditing] = useState(false);
   const ref = { collectionId, nodeId, exampleId: example.id };
   const items: MenuItem[] = [
     {
       label: "Rename",
       icon: <Pencil {...ico} />,
-      run: () => s.openModal({ kind: "prompt", title: "Rename example", initial: example.name, onSubmit: (v) => s.renameExample(ref, v) }),
+      run: () => setEditing(true),
     },
     "sep",
     {
@@ -476,13 +482,17 @@ function ExampleRow({ example, collectionId, nodeId, depth, active }: { example:
       aria-current={active ? "page" : undefined}
       style={{ "--indent": `${depth * 16 + 40}px` } as React.CSSProperties}
     >
-      <button type="button" className="row-main" onClick={() => s.openExample(ref)}>
+      <RowMain editing={editing} onClick={() => s.openExample(ref)} onDoubleClick={() => setEditing(true)}>
         <Bookmark {...ico} className="ico ex-ico" />
-        <span className="name" title={example.name}>
-          {example.name}
-        </span>
+        {editing ? (
+          <RenameField initial={example.name} onDone={(v) => (setEditing(false), v !== null && s.renameExample(ref, v))} />
+        ) : (
+          <span className="name" title={example.name}>
+            {example.name}
+          </span>
+        )}
         <span className={`hstatus ${st < 400 ? "ok" : "fail"}`}>{st}</span>
-      </button>
+      </RowMain>
       <button
         ref={moreRef}
         type="button"
@@ -497,6 +507,16 @@ function ExampleRow({ example, collectionId, nodeId, depth, active }: { example:
       </button>
       {menu && <RowMenu anchor={moreRef} label={`${example.name} actions`} items={items} onClose={() => setMenu(false)} at={menu} />}
     </div>
+  );
+}
+
+/** A row's clickable body; while renaming it becomes a plain div, since a text input cannot live inside a button. */
+function RowMain({ editing, children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { editing: boolean }) {
+  if (editing) return <div className="row-main">{children}</div>;
+  return (
+    <button type="button" className="row-main" {...props}>
+      {children}
+    </button>
   );
 }
 
