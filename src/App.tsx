@@ -9,7 +9,8 @@ import { Modals } from "./components/Modals";
 import { Home } from "./components/Home";
 import { ProjectTile } from "./components/ProjectIcon";
 import { DEFAULT_SCHEME, findScheme, isDark, schemeTokens } from "./lib/themes";
-import { Braces, HistoryIcon, House, Layers, Mark, Settings, X, ico, icoLg } from "./components/Icon";
+import { Braces, CircleCheck, HistoryIcon, House, Layers, Mark, Settings, Undo2, X, ico, icoLg } from "./components/Icon";
+import { DropImport } from "./components/DropImport";
 
 export const SIDEBAR_DEFAULT = 296;
 const SIDEBAR_MIN = 220;
@@ -127,6 +128,7 @@ export default function App() {
   const appView = useStore((s) => s.view);
   const tab = useStore((s) => s.tabs.find((t) => t.id === s.activeTabId));
   const toast = useStore((s) => s.toast);
+  const toastAction = useStore((s) => s.toastAction);
   const openModal = useStore((s) => s.openModal);
   const modalKind = useStore((s) => s.modal?.kind);
   const [view, setView] = useState<SideView>("collections");
@@ -302,11 +304,25 @@ export default function App() {
         </>
       )}
       <Modals />
-      {toast && (
-        <div className="toast" role="status">
-          {toast}
-        </div>
-      )}
+      <DropImport />
+      {toast &&
+        (toastAction ? (
+          <div className="xf-toast" role="status">
+            <CircleCheck {...ico} />
+            <span>{toast}</span>
+            <button type="button" className="btn btn--quiet" onClick={toastAction.run}>
+              <Undo2 {...ico} />
+              {toastAction.label}
+            </button>
+            <button type="button" className="icon-btn" aria-label="Dismiss" onClick={() => useStore.setState({ toast: null, toastAction: null })}>
+              <X {...ico} />
+            </button>
+          </div>
+        ) : (
+          <div className="toast" role="status">
+            {toast}
+          </div>
+        ))}
     </div>
   );
 }

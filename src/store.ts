@@ -34,7 +34,7 @@ import {
 } from "./lib/model";
 import { buildScope, type VarScope } from "./lib/vars";
 import { cancel, prepare, send } from "./lib/http";
-import { importPostman } from "./lib/postman";
+import type { Source } from "./lib/formats/common";
 import {
   clientStreams,
   findMethod,
@@ -62,8 +62,10 @@ export type Modal =
   | { kind: "settings"; section?: "appearance" | "requests" }
   /** create a project (no id) or edit one */
   | { kind: "project"; projectId?: string }
-  /** a file was picked on Home: choose which project it goes into */
-  | { kind: "import"; text: string }
+  /** import a file, URL or pasted text; source is set when a file was dropped or picked before the dialog opened */
+  | { kind: "import"; source?: Source }
+  /** export a collection to a file */
+  | { kind: "export"; collectionId: string }
   /** save a response as an example; target is the request it goes under when known */
   | { kind: "example"; request: RequestDef; response: HttpResponse; target?: SavedRef };
 
@@ -80,6 +82,8 @@ interface State extends ProjectData {
   settings: Settings;
   modal: Modal | null;
   toast: string | null;
+  /** a button on the toast, e.g. Undo after an import */
+  toastAction: { label: string; run: () => void } | null;
 
   projects: ProjectMeta[];
   currentProjectId: string | null;
@@ -88,7 +92,7 @@ interface State extends ProjectData {
   stash: Record<string, ProjectData>;
 
   init(): Promise<void>;
-  notify(msg: string): void;
+  notify(msg: string, action?: { label: string; run: () => void }): void;
   openModal(m: Modal | null): void;
 
   // projects
@@ -99,7 +103,8 @@ interface State extends ProjectData {
   createProject(p: { name: string; icon: string; color: number }): string;
   updateProject(id: string, patch: Partial<Pick<ProjectMeta, "name" | "icon" | "color">>): void;
   deleteProject(id: string): void;
-  importInto(projectId: string, text: string): void;
+  /** Adds imported collections and environments to a project and opens it; the toast offers Undo. */
+  applyImport(projectId: string, collections: Collection[], environments: Environment[], message: string): void;
 
   // requests and tabs (current project)
   newTab(req?: RequestDef, savedRef?: SavedRef): void;
@@ -151,7 +156,6 @@ interface State extends ProjectData {
   setActiveEnvironment(id: string | null): void;
   setSettings(s: Partial<Settings>): void;
   clearHistory(): void;
-  importText(text: string): void;
 }
 
 const DEFAULT_SETTINGS: Settings = { timeoutMs: 30000, followRedirects: true, insecure: false };
@@ -254,6 +258,7 @@ export const useStore = create<State>((set, get) => {
     settings: DEFAULT_SETTINGS,
     modal: null,
     toast: null,
+    toastAction: null,
     projects: [],
     currentProjectId: null,
     openProjectIds: [],
@@ -330,9 +335,10 @@ export const useStore = create<State>((set, get) => {
       set({ loaded: true });
     },
 
-    notify(msg) {
-      set({ toast: msg });
-      setTimeout(() => get().toast === msg && set({ toast: null }), 3500);
+    notify(msg, action) {
+      set({ toast: msg, toastAction: action ?? null });
+      // a toast with a button stays longer, so there is time to reach it
+      setTimeout(() => get().toast === msg && set({ toast: null, toastAction: null }), action ? 8000 : 3500);
     },
 
     openModal(m) {
@@ -415,9 +421,27 @@ export const useStore = create<State>((set, get) => {
       }
     },
 
-    importInto(projectId, text) {
-      get().openProject(projectId);
-      get().importText(text);
+    applyImport(projectId, collections, environments, message) {
+      const s = get();
+      if (s.currentProjectId !== projectId || s.view !== "project") get().openProject(projectId);
+      set((st) => ({ collections: [...st.collections, ...collections], environments: [...st.environments, ...environments] }));
+      const cIds = new Set(collections.map((c) => c.id));
+      const eIds = new Set(environments.map((e) => e.id));
+      const strip = <T extends Pick<ProjectData, "collections" | "environments" | "activeEnvironmentId">>(d: T): T => ({
+        ...d,
+        collections: d.collections.filter((c) => !cIds.has(c.id)),
+        environments: d.environments.filter((e) => !eIds.has(e.id)),
+        activeEnvironmentId: d.activeEnvironmentId && eIds.has(d.activeEnvironmentId) ? null : d.activeEnvironmentId,
+      });
+      get().notify(message, {
+        label: "Undo",
+        run: () => {
+          const st = get();
+          if (st.currentProjectId === projectId) set(strip(liveData(st)));
+          else if (st.stash[projectId]) set({ stash: { ...st.stash, [projectId]: strip(st.stash[projectId]) } });
+          set({ toast: null, toastAction: null });
+        },
+      });
     },
 
     // ---------- tabs and requests (current project) ----------
@@ -920,21 +944,6 @@ export const useStore = create<State>((set, get) => {
 
     clearHistory() {
       set({ history: [] });
-    },
-
-    importText(text) {
-      try {
-        const res = importPostman(text);
-        if (res.kind === "collection") {
-          set((s) => ({ collections: [...s.collections, res.collection] }));
-          get().notify(`Imported collection “${res.collection.name}”`);
-        } else {
-          set((s) => ({ environments: [...s.environments, res.environment] }));
-          get().notify(`Imported environment “${res.environment.name}”`);
-        }
-      } catch (e) {
-        get().notify(`Import failed: ${(e as Error).message}`);
-      }
     },
   };
 });

@@ -1,0 +1,173 @@
+/* Hallmark · import and export (under design, 2026-11-13) · same tokens and controls as app.css; port to src/styles.css once approved
+ * screens: row menu with Export, Import (File / URL / Paste), drop anywhere, review OpenAPI, review HAR, imported, export */
+
+/* preview glue: dialogs cover the app only, so the screen switcher above stays usable */
+.pv-stage .backdrop { position: absolute; }
+[data-screen][hidden] { display: none !important; }
+
+/* ---------- the import / export dialog shell ---------- */
+.dialog.xf { width: 600px; padding: 0; display: flex; flex-direction: column; max-height: calc(100% - 48px); }
+.dialog.xf.wide { width: 880px; }
+.xf-head { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md) var(--space-sm) var(--space-sm) var(--space-lg); }
+.dialog .xf-head h3 { margin: 0; }
+.xf-head .icon-btn { margin-left: auto; }
+.xf-steps { display: flex; gap: var(--space-2xs); margin: 0 0 0 var(--space-xs); padding: 0; list-style: none; color: var(--color-muted); font-size: var(--text-sm); }
+.xf-steps li + li::before { content: "/"; margin-right: var(--space-2xs); color: var(--color-placeholder); }
+.xf-steps li[aria-current="step"] { color: var(--color-ink); font-weight: 600; }
+.xf-body { flex: 1; min-height: 0; overflow: auto; padding: var(--space-2xs) var(--space-lg) var(--space-md); }
+.xf-foot { display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-sm) var(--space-lg); border-top: 1px solid var(--color-rule); }
+.xf-foot .note { margin-right: auto; color: var(--color-muted); font-size: var(--text-sm); }
+.xf-foot .note code { font: var(--text-code) var(--font-mono); color: var(--color-ink-2); }
+.xf-src { margin-bottom: var(--space-md); }
+.xf-label, .dialog .xf-label { display: block; margin: var(--space-md) 0 var(--space-2xs); color: var(--color-muted); font-size: var(--text-sm); }
+
+/* File: one drop target, the format is detected from the file */
+.xf-drop {
+  display: grid; justify-items: center; gap: var(--space-2xs); padding: var(--space-xl) var(--space-md);
+  border: 1.5px dashed var(--color-field-edge); border-radius: var(--radius-card); background: var(--color-paper-3);
+  color: var(--color-muted); text-align: center;
+}
+.xf-drop > .ico { width: 28px; height: 28px; margin-bottom: var(--space-2xs); color: var(--color-link); stroke-width: 1.5; }
+.xf-drop strong { color: var(--color-ink); font-size: var(--text-lg); font-weight: 600; }
+.xf-drop:hover { border-color: var(--color-accent); }
+
+/* what it reads: a bordered row list like Settings */
+.xf-formats { margin: 0; padding: 0; list-style: none; border: 1px solid var(--color-rule); border-radius: 10px; }
+.xf-formats li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3xs) var(--space-md); padding: var(--space-xs) var(--space-md); }
+.xf-formats li + li { border-top: 1px solid var(--color-rule); }
+.xf-formats b { font-weight: 600; }
+.xf-formats span { grid-column: 1; color: var(--color-muted); font-size: var(--text-sm); }
+.xf-formats code { grid-column: 2; grid-row: 1 / span 2; align-self: center; font: var(--text-sm) var(--font-mono); color: var(--color-ink-2); }
+
+/* URL and Paste */
+.xf-url { display: flex; gap: var(--space-xs); }
+.xf-url .field { flex: 1; font-family: var(--font-mono); font-size: var(--text-code); }
+.xf-resolve { display: flex; align-items: center; gap: var(--space-xs); margin-top: var(--space-xs); color: var(--color-muted); font-size: var(--text-sm); }
+.xf-resolve code { font: var(--text-code) var(--font-mono); color: var(--color-ink-2); }
+.xf-resolve .env-dot { flex-shrink: 0; }
+.xf-paste { min-height: 220px; display: flex; }
+.xf-paste .code { flex: 1; margin: 0; white-space: pre-wrap; }
+.xf-paste .c-cmd { color: var(--m-post); }
+.xf-paste .c-flag { color: var(--color-link); }
+.xf-paste .c-str { color: var(--color-ok); }
+.xf-hint { margin-top: var(--space-xs); color: var(--color-muted); font-size: var(--text-sm); }
+
+/* Review: what the file holds, and what it becomes */
+.xf-file { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-control); background: var(--color-paper-3); }
+.xf-file > .ico { width: 20px; height: 20px; color: var(--color-link); }
+.xf-file div { display: grid; min-width: 0; }
+.xf-file strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xf-file span { color: var(--color-muted); font-size: var(--text-sm); }
+.xf-file span b { color: var(--color-ok); font-weight: 600; }
+.xf-file .link { margin-left: auto; font-size: var(--text-sm); }
+.xf-cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--space-lg); align-items: start; }
+
+/* the tree that will be created, ticked by default */
+.xf-pick { display: flex; flex-direction: column; min-height: 0; border: 1px solid var(--color-rule); border-radius: 10px; }
+.xf-pick-head { display: flex; align-items: center; gap: var(--space-xs); min-height: 40px; padding: 0 var(--space-sm) 0 var(--space-md); border-bottom: 1px solid var(--color-rule); font-weight: 600; }
+.xf-pick-head .dim { color: var(--color-muted); font-weight: 400; }
+.xf-pick-head .link { margin-left: auto; font-size: var(--text-sm); font-weight: 400; }
+.xf-tree { max-height: 340px; overflow: auto; padding: var(--space-2xs); }
+.dialog .xf-tree label.row { display: flex; gap: var(--space-xs); margin: 0; padding: 0 var(--space-xs) 0 calc(var(--indent, 0px) + var(--space-xs)); color: var(--color-ink); font-size: var(--text-md); cursor: pointer; }
+.xf-tree .row .count { margin-left: auto; padding-right: var(--space-2xs); }
+.xf-tree .row.off .name, .xf-tree .row.off .m { opacity: 0.5; }
+.xf-check { flex-shrink: 0; } /* look comes from the KV checkbox rule in app.css */
+.xf-tree .from { margin-left: auto; color: var(--color-muted); font: var(--text-xs) var(--font-mono); }
+
+/* options column: Settings rows, stacked where the control is wide */
+.xf-opts .set-item { min-height: 44px; padding: var(--space-xs) var(--space-sm); }
+.xf-opts .set-item.stack { flex-direction: column; align-items: stretch; gap: var(--space-2xs); }
+.xf-opts .set-item.stack .field { width: 100%; }
+.xf-opts .set-text .desc code { font: var(--text-code) var(--font-mono); color: var(--color-ink-2); }
+.dialog .xf-opts label.set-label { display: block; margin: 0; color: var(--color-ink); font-size: var(--text-md); }
+
+/* what changes on the way in: said before import, not discovered after */
+.xf-report { margin-top: var(--space-sm); }
+.xf-report h4 { margin: 0 0 var(--space-2xs); color: var(--color-muted); font-size: var(--text-sm); font-weight: 600; }
+.xf-report ul { display: grid; gap: var(--space-xs); margin: 0; padding: 0; list-style: none; }
+.xf-report li { display: flex; align-items: flex-start; gap: var(--space-xs); color: var(--color-ink-2); font-size: var(--text-sm); }
+.xf-report li .ico { width: 14px; height: 14px; margin-top: 2px; color: var(--color-warn); }
+.xf-report li.info .ico { color: var(--color-muted); }
+.xf-report code { font: var(--text-code) var(--font-mono); color: var(--color-ink); }
+
+/* HAR: hosts to keep, then the captured calls */
+.xf-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); margin-bottom: var(--space-sm); }
+.xf-tools .search { flex: 0 1 240px; }
+.xf-hosts { display: flex; flex-wrap: wrap; gap: var(--space-2xs); margin-bottom: var(--space-sm); }
+.xf-host {
+  display: inline-flex; align-items: center; gap: var(--space-2xs); min-height: 28px; padding: 0 var(--space-sm) 0 var(--space-xs);
+  border: 1px solid var(--color-field-edge); border-radius: var(--radius-pill); background: var(--color-paper);
+  color: var(--color-muted); font: var(--text-sm) var(--font-mono);
+}
+.xf-host .ico { width: 14px; height: 14px; opacity: 0; }
+.xf-host .n { font-family: var(--font-ui); font-variant-numeric: tabular-nums; }
+.xf-host[aria-pressed="true"] { border-color: transparent; background: var(--color-accent-soft); color: var(--color-link); }
+.xf-host[aria-pressed="true"] .ico { opacity: 1; }
+.xf-host:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.xf-scroll { max-height: 300px; overflow: auto; border: 1px solid var(--color-rule); border-radius: 10px; }
+.xf-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); table-layout: fixed; }
+.xf-table th { position: sticky; top: 0; z-index: 1; height: 32px; padding: 0 var(--space-xs); border-bottom: 1px solid var(--color-rule); background: var(--color-paper); color: var(--color-muted); font-weight: 600; text-align: left; }
+.xf-table td { height: 32px; padding: 0 var(--space-xs); border-bottom: 1px solid var(--color-rule); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xf-table tr:last-child td { border-bottom: none; }
+.xf-table .c-check { width: 36px; text-align: center; }
+.xf-table .c-m { width: 64px; }
+.xf-table .c-st { width: 52px; }
+.xf-table .c-num { width: 72px; text-align: right; font-variant-numeric: tabular-nums; color: var(--color-muted); }
+.xf-table .url { font: var(--text-code) var(--font-mono); color: var(--color-ink); }
+.xf-table .url .host { color: var(--color-muted); }
+.xf-table .st { font: 600 var(--text-xs) var(--font-mono); }
+.xf-table .st-2 { color: var(--color-ok); } .xf-table .st-3 { color: var(--color-redir); } .xf-table .st-4 { color: var(--color-error); }
+.xf-table tr.off td { color: var(--color-muted); }
+.xf-table tr.off .m, .xf-table tr.off .st, .xf-table tr.off .url { opacity: 0.55; }
+.xf-table .m { width: auto; }
+.xf-tag { margin-left: var(--space-xs); padding: 1px 6px; border: 1px solid var(--color-rule); border-radius: var(--radius-pill); color: var(--color-muted); font: var(--text-xs) var(--font-ui); }
+.xf-har-opts { display: grid; grid-template-columns: 1fr 1fr; margin-top: var(--space-md); }
+.xf-har-opts .set-item:nth-child(2) { border-top: none; border-left: 1px solid var(--color-rule); }
+.xf-har-opts .set-item:nth-child(3) { border-top: 1px solid var(--color-rule); }
+.xf-har-opts .set-item:nth-child(4) { border-top: 1px solid var(--color-rule); border-left: 1px solid var(--color-rule); }
+
+/* Export: three formats as cards, then the few options that matter */
+.xf-fmts { display: grid; gap: var(--space-xs); }
+.dialog label.xf-fmt {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-3xs) var(--space-sm); align-items: start; margin: 0;
+  padding: var(--space-sm) var(--space-md); border: 1px solid var(--color-field-edge); border-radius: 10px;
+  color: var(--color-ink); font-size: var(--text-md); cursor: pointer;
+}
+.dialog label.xf-fmt:hover { background: var(--color-paper-3); }
+.dialog label.xf-fmt:has(input:checked) { border-color: var(--color-accent); background: var(--color-accent-soft); box-shadow: inset 0 0 0 1px var(--color-accent); }
+.xf-fmt input { grid-row: 1 / span 2; width: 16px; height: 16px; margin: 3px 0 0; accent-color: var(--color-accent); }
+.xf-fmt b { font-weight: 600; }
+.xf-fmt .desc { grid-column: 2; color: var(--color-muted); font-size: var(--text-sm); }
+.xf-fmt code { grid-row: 1; grid-column: 3; font: var(--text-xs) var(--font-mono); color: var(--color-muted); }
+.xf-opts-full { margin-top: var(--space-md); margin-bottom: 0; }
+.xf-warn {
+  display: flex; align-items: flex-start; gap: var(--space-xs); margin-top: var(--space-sm); padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control); background: color-mix(in srgb, var(--color-warn) 10%, var(--color-paper)); color: var(--color-ink); font-size: var(--text-sm);
+}
+.xf-warn .ico { width: 14px; height: 14px; margin-top: 2px; color: var(--color-warn); }
+.xf-warn[hidden] { display: none; }
+
+/* drop a file anywhere on the window */
+.xf-dropover {
+  position: absolute; inset: var(--space-xs); z-index: var(--z-modal); display: grid; place-content: center; justify-items: center; gap: var(--space-xs);
+  border: 2px dashed var(--color-accent); border-radius: var(--radius-card); text-align: center;
+  background: color-mix(in srgb, var(--color-paper) 86%, transparent); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+}
+.xf-dropover > .ico { width: 40px; height: 40px; color: var(--color-link); stroke-width: 1.5; }
+.xf-dropover strong { font-size: var(--text-2xl); font-weight: 600; }
+.xf-dropover span { color: var(--color-muted); }
+
+/* after import: the new collection is selected and a toast offers Undo */
+.row.xf-new { background: var(--color-accent-soft); }
+.row.xf-new .name { font-weight: 600; }
+.xf-toast {
+  position: absolute; left: 50%; bottom: var(--space-lg); z-index: var(--z-toast); transform: translateX(-50%);
+  display: flex; align-items: center; gap: var(--space-sm); min-height: 40px; padding: 0 var(--space-2xs) 0 var(--space-md);
+  border-radius: 10px; background: var(--color-paper); box-shadow: 0 0 0 1px var(--color-rule), 0 8px 24px var(--color-shadow); white-space: nowrap;
+}
+.xf-toast > .ico { color: var(--color-ok); }
+.xf-toast .dim { color: var(--color-muted); }
+
+/* row menu with Export */
+.row .menu.row-menu { top: calc(100% + var(--space-3xs)); right: 0; }
+.menu button kbd { margin-left: auto; }

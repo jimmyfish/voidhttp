@@ -12,6 +12,7 @@ import {
   ChevronRight,
   CopyPlus,
   Ellipsis,
+  FileOutput,
   FilePlus,
   Folder,
   FolderPlus,
@@ -63,7 +64,6 @@ const sameDrop = (a: Drop | null, b: Drop | null) =>
 
 export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart: (e: React.MouseEvent) => void }) {
   const [filter, setFilter] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
   const treeRef = useRef<HTMLDivElement>(null);
   const ghostRef = useRef<HTMLDivElement>(null);
   const ghostPos = useRef({ x: 0, y: 0 });
@@ -73,10 +73,7 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
   const collections = useStore((st) => st.collections);
   const s = useStore.getState(); // actions only
 
-  const onImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    for (const f of Array.from(e.target.files ?? [])) s.importText(await f.text());
-    e.target.value = "";
-  };
+  const openImport = () => s.openModal({ kind: "import" });
   const newCollection = () =>
     s.openModal({ kind: "prompt", title: "New collection", initial: "My collection", onSubmit: (n) => s.createCollection(n) });
   const clearHistory = () =>
@@ -180,16 +177,15 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
         <button
           type="button"
           className="icon-btn icon-btn--outline"
-          title="Import a Postman collection or environment (v2.x JSON)"
-          aria-label="Import from Postman"
-          onClick={() => fileRef.current?.click()}
+          title="Import: Postman, OpenAPI / Swagger, HAR, voidHTTP, cURL"
+          aria-label="Import"
+          onClick={openImport}
         >
           <Import {...ico} />
         </button>
         <button type="button" className="icon-btn icon-btn--filled" title="New collection" aria-label="New collection" onClick={newCollection}>
           <Plus {...ico} />
         </button>
-        <input ref={fileRef} type="file" accept=".json,application/json" multiple hidden onChange={onImport} />
       </div>
       <div className="tree" ref={treeRef}>
         {collections.length === 0 ? (
@@ -200,8 +196,8 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
                 Create one
               </button>
               <span>or</span>
-              <button type="button" className="link link--postman" onClick={() => fileRef.current?.click()}>
-                Import from Postman
+              <button type="button" className="link link--postman" onClick={openImport}>
+                Import a collection
               </button>
             </span>
           </div>
@@ -375,6 +371,7 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
     ...(container ? (["sep"] as MenuItem[]) : []),
     { label: "Rename", icon: <Pencil {...ico} />, run: rename },
     { label: "Duplicate", icon: <CopyPlus {...ico} />, run: () => s.duplicateNode(collectionId, nodeId) },
+    ...(isCollection ? ([{ label: "Export…", icon: <FileOutput {...ico} />, run: () => s.openModal({ kind: "export", collectionId }) }] as MenuItem[]) : []),
     "sep",
     { label: "Delete", icon: <Trash2 {...ico} />, run: remove, danger: true },
   ];

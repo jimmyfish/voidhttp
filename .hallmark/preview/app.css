@@ -301,7 +301,26 @@ select.field {
 .kv .field { width: 100%; font-family: var(--font-mono); font-size: var(--text-code); }
 .kv .check { width: 36px; }
 .kv .del { width: 40px; }
-.kv input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--color-ok); margin: 0; }
+/* checkbox: drawn from tokens so it looks the same in the app's WebKit and in any preview browser; the mark is Lucide check / minus */
+.kv input[type="checkbox"], .xf-check {
+  appearance: none; -webkit-appearance: none; position: relative; display: inline-grid; place-items: center; flex-shrink: 0;
+  width: 16px; height: 16px; margin: 0; cursor: pointer;
+  border: 1px solid var(--color-edge-aa); border-radius: 4px; background: var(--color-paper);
+  transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+}
+.kv input[type="checkbox"]::before, .xf-check::before {
+  content: ""; width: 12px; height: 12px; background: var(--color-accent-ink); opacity: 0;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.kv input[type="checkbox"]:checked, .xf-check:checked, .xf-check:indeterminate { border-color: var(--color-ok); background: var(--color-ok); }
+.kv input[type="checkbox"]:checked::before, .xf-check:checked::before, .xf-check:indeterminate::before { opacity: 1; }
+.xf-check:indeterminate::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+          mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+}
+.kv input[type="checkbox"]:hover:not(:checked), .xf-check:hover:not(:checked):not(:indeterminate) { border-color: var(--color-ok); }
+.kv input[type="checkbox"]:focus-visible, .xf-check:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .kv tr.off .field { color: var(--color-muted); }
 .kv .add td { color: var(--color-placeholder); }
 

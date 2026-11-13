@@ -1,3 +1,4 @@
+mod files;
 mod fonts;
 mod grpc;
 mod http;
@@ -119,6 +120,8 @@ pub fn run() {
             store::load_response,
             store::prune_responses,
             fonts::list_fonts,
+            files::read_text_file,
+            files::write_text_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running voidHTTP");

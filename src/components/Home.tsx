@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useStore } from "../store";
 import type { HistoryEntry } from "../types";
 import { countRequests, entryStatus, methodLabel } from "../lib/model";
@@ -16,7 +15,6 @@ const greeting = (h: number) => (h < 5 ? "Good night" : h < 12 ? "Good morning" 
 
 /** Home: your projects, and what you did with them. Every figure is computed from local history. */
 export function Home() {
-  const fileRef = useRef<HTMLInputElement>(null);
   const projects = useStore((s) => s.projects);
   // re-render when any project's data changes
   useStore((s) => s.stash);
@@ -57,11 +55,6 @@ export function Home() {
 
   const max = Math.max(1, ...week.days.map((d) => d.count));
 
-  const onImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    e.target.value = "";
-    if (f) st.openModal({ kind: "import", text: await f.text() });
-  };
   const remove = (id: string, name: string) =>
     st.openModal({
       kind: "confirm",
@@ -79,7 +72,7 @@ export function Home() {
             <p className="muted">{new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}</p>
           </div>
           <div className="home-actions">
-            <button type="button" className="btn" onClick={() => fileRef.current?.click()}>
+            <button type="button" className="btn" onClick={() => st.openModal({ kind: "import" })}>
               <Import {...ico} />
               Import
             </button>
@@ -87,7 +80,6 @@ export function Home() {
               <Plus {...ico} />
               New project
             </button>
-            <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={onImport} />
           </div>
         </header>
 

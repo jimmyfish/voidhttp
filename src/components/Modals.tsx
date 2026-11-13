@@ -4,6 +4,8 @@ import { useStore } from "../store";
 import type { Environment, KV } from "../types";
 import { kv, listFolders, uid } from "../lib/model";
 import { ExampleModal } from "./ExampleModal";
+import { ImportModal } from "./ImportModal";
+import { ExportModal } from "./ExportModal";
 import { KVEditor } from "./KVEditor";
 import { Ban, Check, CopyPlus, Ellipsis, Plus, Send, Trash2, Type, ico } from "./Icon";
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
@@ -51,7 +53,9 @@ export function Modals() {
     case "project":
       return <ProjectModal projectId={modal.projectId} onClose={close} />;
     case "import":
-      return <ImportModal text={modal.text} onClose={close} />;
+      return <ImportModal source={modal.source} onClose={close} />;
+    case "export":
+      return <ExportModal collectionId={modal.collectionId} onClose={close} />;
     case "example":
       return <ExampleModal request={modal.request} response={modal.response} target={modal.target} onClose={close} />;
   }
@@ -840,46 +844,3 @@ function ProjectModal({ projectId, onClose }: { projectId?: string; onClose: () 
   );
 }
 
-/** A file picked on Home: choose the project it goes into, or make a new one for it. */
-function ImportModal({ text, onClose }: { text: string; onClose: () => void }) {
-  const s = useStore.getState();
-  const byRecent = [...s.projects].sort((a, b) => b.openedAt - a.openedAt);
-  const [target, setTarget] = useState(byRecent[0]?.id ?? "");
-  const [newName, setNewName] = useState("Imported");
-
-  const submit = () => {
-    const id = target || s.createProject({ name: newName.trim() || "Imported", icon: "package", color: 1 });
-    s.importInto(id, text);
-    onClose();
-  };
-
-  return (
-    <Shell title="Import into" onClose={onClose}>
-      <label>
-        Project
-        <Select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
-          {byRecent.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-          <option value="">New project…</option>
-        </Select>
-      </label>
-      {target === "" && (
-        <label>
-          Project name
-          <input className="field" value={newName} onChange={(e) => setNewName(e.target.value)} />
-        </label>
-      )}
-      <footer>
-        <button type="button" className="btn" onClick={onClose}>
-          Cancel
-        </button>
-        <button type="button" className="btn btn--primary" onClick={submit}>
-          Import
-        </button>
-      </footer>
-    </Shell>
-  );
-}
