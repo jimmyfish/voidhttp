@@ -1,0 +1,55 @@
+# Builds voidHTTP for macOS when a version tag (v0.2.0, v0.2.1, ...) is pushed, and
+# uploads it to a draft GitHub release together with latest.json, the manifest the
+# in-app updater reads. Publish the draft by hand: until then /releases/latest/ (and so
+# every installed copy) keeps pointing at the previous release.
+#
+# Required repository secrets (Settings > Secrets and variables > Actions):
+#   TAURI_SIGNING_PRIVATE_KEY           contents of ~/.tauri/voidhttp.key
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD  the password chosen when generating it
+#
+# The app is ad-hoc signed (no Apple Developer ID), so a first install still needs
+# `xattr -cr /Applications/voidHTTP.app`. Updates installed by the app itself do not.
+
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      # One universal binary covers Apple Silicon and Intel, so latest.json gets both
+      # darwin-aarch64 and darwin-x86_64 from a single job.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: bun install --frozen-lockfile
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tauriScript: bun tauri
+          args: --target universal-apple-darwin
+          tagName: ${{ github.ref_name }}
+          releaseName: voidHTTP ${{ github.ref_name }}
+          releaseBody: See the commits since the previous tag for what changed.
+          releaseDraft: true
+          prerelease: false
+          includeUpdaterJson: true
