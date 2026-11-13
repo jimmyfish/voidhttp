@@ -75,6 +75,8 @@ export type View = "home" | "project";
  */
 interface State extends ProjectData {
   loaded: boolean;
+  /** Set when loading failed: saving now would write an empty state over the real files. */
+  saveBlocked: boolean;
   settings: Settings;
   modal: Modal | null;
   toast: string | null;
@@ -247,6 +249,7 @@ export const useStore = create<State>((set, get) => {
 
   return {
     loaded: false,
+    saveBlocked: false,
     ...emptyData(),
     settings: DEFAULT_SETTINGS,
     modal: null,
@@ -321,7 +324,8 @@ export const useStore = create<State>((set, get) => {
         if (target) get().openProject(target);
         if (session.view === "home" || !target) set({ view: "home" });
       } catch (e) {
-        get().notify(`Could not load data: ${e}`);
+        set({ saveBlocked: true });
+        get().notify(`Could not load data: ${e}. Changes won't be saved until restart.`);
       }
       set({ loaded: true });
     },
@@ -941,7 +945,7 @@ function persist<T>(name: string, select: (s: State) => T, toFile: (v: T) => unk
   let timer: ReturnType<typeof setTimeout> | undefined;
   let prev: T | undefined;
   useStore.subscribe((s) => {
-    if (!s.loaded) return;
+    if (!s.loaded || s.saveBlocked) return;
     const next = select(s);
     if (prev !== undefined && shallowEqual(prev, next)) return;
     prev = next;

@@ -45,16 +45,24 @@
   --proj-3-fg: #a34a00; --proj-3-bg: #fcefe5; --proj-4-fg: #6d3fd1; --proj-4-bg: #f1ecfd;
   --proj-5-fg: #0b7285; --proj-5-bg: #e6f6f8; --proj-6-fg: #c2255c; --proj-6-bg: #fdecf2;
   /* tag fills (flatuicolors.com, Flat UI): fixed in every theme and scheme, so a colour means the same thing everywhere */
-  --tag-turquoise: #1abc9c; --tag-emerald: #2ecc71; --tag-river: #3498db; --tag-amethyst: #9b59b6; --tag-asphalt: #34495e;
+  --tag-turquoise: #1abc9c; --tag-emerald: #2ecc71; --tag-cyan: #0097a7; --tag-river: #3498db; --tag-amethyst: #9b59b6; --tag-asphalt: #34495e;
   --tag-sunflower: #f1c40f; --tag-carrot: #e67e22; --tag-alizarin: #e74c3c; --tag-clouds: #ecf0f1; --tag-concrete: #95a5a6;
   /* each tag's text colour on its badge: white on the dark fills, Midnight Blue on the light ones */
-  --tag-turquoise-ink: #2c3e50; --tag-emerald-ink: #2c3e50; --tag-river-ink: #2c3e50; --tag-amethyst-ink: #ffffff; --tag-asphalt-ink: #ffffff;
+  --tag-turquoise-ink: #2c3e50; --tag-emerald-ink: #2c3e50; --tag-cyan-ink: #2c3e50; --tag-river-ink: #2c3e50; --tag-amethyst-ink: #ffffff; --tag-asphalt-ink: #ffffff;
   --tag-sunflower-ink: #2c3e50; --tag-carrot-ink: #2c3e50; --tag-alizarin-ink: #ffffff; --tag-clouds-ink: #2c3e50; --tag-concrete-ink: #2c3e50;
+  /* unresolved {{variables}}: Alizarin in every theme and scheme, by owner request (stronger than --color-warn) */
+  --color-unresolved: var(--tag-alizarin);
+  /* gRPC is a protocol, not a scheme colour: the convention cyan in every theme and scheme, by owner request */
+  --m-grpc: var(--tag-cyan);
+  /* the faint grey ring round every tag dot and swatch: keeps Clouds visible on light and Asphalt on dark */
+  --tag-ring: rgb(128 128 128 / 0.35);
+  /* switch knob: white in every theme, on the grey or accent track */
+  --color-knob: #ffffff; --color-knob-shadow: rgb(0 0 0 / 0.25);
   --color-overlay: rgb(14 41 73 / 0.32);
   --color-on-accent-rule: rgb(255 255 255 / 0.35);
   --color-shadow: rgb(14 41 73 / 0.08);
 
-  --m-get: #01804c; --m-post: #c74200; --m-put: #0b6d9e; --m-patch: #7d53dd; --m-delete: #d00000; --m-head: #8a6a00; --m-options: #c2255c; --m-other: #4e6891; --m-grpc: #0b7285;
+  --m-get: #01804c; --m-post: #c74200; --m-put: #0b6d9e; --m-patch: #7d53dd; --m-delete: #d00000; --m-head: #8a6a00; --m-options: #c2255c; --m-other: #4e6891;
   --j-key: #ba0205; --j-str: #0054b0; --j-num: #b45300; --j-bool: #7c3aed; --j-punct: #4e6891;
 
   --font-display: var(--font-ui);
@@ -76,7 +84,7 @@
     --color-ok: #01bf71; --color-redir: #6cb6ff; --color-error: #ff5c5c; --color-warn: #f5b84b;
     --color-hit: rgb(245 184 75 / 0.22); --color-hit-cur: rgb(245 184 75 / 0.5); --color-hit-edge: #f5b84b;
     --color-overlay: rgb(0 0 0 / 0.55); --color-shadow: rgb(0 0 0 / 0.3);
-    --m-get: #01bf71; --m-post: #ff7a33; --m-put: #38b6f0; --m-patch: #a78bfa; --m-delete: #ff5c5c; --m-head: #e5c07b; --m-options: #ff7aa8; --m-other: #8a9bb8; --m-grpc: #2bc2d6;
+    --m-get: #01bf71; --m-post: #ff7a33; --m-put: #38b6f0; --m-patch: #a78bfa; --m-delete: #ff5c5c; --m-head: #e5c07b; --m-options: #ff7aa8; --m-other: #8a9bb8;
     --j-key: #ff7b72; --j-str: #79b8ff; --j-num: #ffab70; --j-bool: #b392f0; --j-punct: #8a9bb8;
     color-scheme: dark;
   }
@@ -89,7 +97,7 @@
   --color-ok: #01bf71; --color-redir: #6cb6ff; --color-error: #ff5c5c; --color-warn: #f5b84b;
     --color-hit: rgb(245 184 75 / 0.22); --color-hit-cur: rgb(245 184 75 / 0.5); --color-hit-edge: #f5b84b;
   --color-overlay: rgb(0 0 0 / 0.55); --color-shadow: rgb(0 0 0 / 0.3);
-  --m-get: #01bf71; --m-post: #ff7a33; --m-put: #38b6f0; --m-patch: #a78bfa; --m-delete: #ff5c5c; --m-head: #e5c07b; --m-options: #ff7aa8; --m-other: #8a9bb8; --m-grpc: #2bc2d6;
+  --m-get: #01bf71; --m-post: #ff7a33; --m-put: #38b6f0; --m-patch: #a78bfa; --m-delete: #ff5c5c; --m-head: #e5c07b; --m-options: #ff7aa8; --m-other: #8a9bb8;
   --j-key: #ff7b72; --j-str: #79b8ff; --j-num: #ffab70; --j-bool: #b392f0; --j-punct: #8a9bb8;
   color-scheme: dark;
 }

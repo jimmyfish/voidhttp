@@ -1,7 +1,7 @@
 import { useStore } from "../store";
 import { methodLabel } from "../lib/model";
-import { envStyle } from "../lib/tags";
-import { Bookmark, ChevronDown, Columns2, Menu, PanelLeftClose, PanelLeftOpen, Plus, Rows2, X, ico } from "./Icon";
+import { EnvMenu } from "./EnvMenu";
+import { Bookmark, Columns2, Menu, PanelLeftClose, PanelLeftOpen, Plus, Rows2, X, ico } from "./Icon";
 
 export function TabsBar() {
   const tabs = useStore((s) => s.tabs);
@@ -11,9 +11,6 @@ export function TabsBar() {
   const sidebarHidden = useStore((s) => !!s.settings.sidebarHidden);
   const split = useStore((s) => s.settings.layout === "split");
   const s = useStore.getState(); // actions only
-
-  const env = environments.find((e) => e.id === activeEnvironmentId);
-  const badge = env ? env.name.slice(0, 2).replace(/^./, (c) => c.toUpperCase()) : "";
 
   return (
     <div className="tabsbar">
@@ -58,21 +55,7 @@ export function TabsBar() {
       >
         {split ? <Rows2 {...ico} /> : <Columns2 {...ico} />}
       </button>
-      <div className="joined env-group">
-        <label className="env-picker" style={envStyle(env?.color)}>
-          {env && <span className="env-badge">{badge}</span>}
-          {env?.color && <span className="env-dot" aria-hidden="true" />}
-          <span className="env-name">{env ? env.name : "No environment"}</span>
-          <ChevronDown {...ico} />
-          <select aria-label="Environment" value={activeEnvironmentId ?? ""} onChange={(e) => s.setActiveEnvironment(e.target.value || null)}>
-            <option value="">No environment</option>
-            {environments.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name}
-              </option>
-            ))}
-          </select>
-        </label>
+      <EnvMenu environments={environments} activeId={activeEnvironmentId} onPick={(id) => s.setActiveEnvironment(id)}>
         <button
           type="button"
           className="btn joined-tail"
@@ -82,7 +65,7 @@ export function TabsBar() {
         >
           <Menu {...ico} />
         </button>
-      </div>
+      </EnvMenu>
     </div>
   );
 }

@@ -51,13 +51,15 @@ To regenerate icons: `bunx tauri icon app-icon.svg`.
 ```
 src-tauri/src/http.rs    HTTP engine: reqwest, pooled clients, cancellation, multipart
 src-tauri/src/grpc.rs    gRPC engine: tonic, dynamic messages (prost-reflect), reflection, protox, streams
-src-tauri/src/store.rs   atomic JSON persistence in the app data dir
+src-tauri/src/store.rs   atomic JSON persistence in ~/.config/voidhttp and the app data dir
 src/store.ts             app state (zustand) and debounced persistence
 src/lib/                 vars, request preparation, gRPC calls and schemas, Postman import, cURL, JSON highlighter
 src/components/          UI
 ```
 
-Data location: `~/Library/Application Support/dev.voidhttp.app/` on macOS. It holds `workspace.json`, `history.json`, and `session.json`.
+Data location: `~/.config/voidhttp/` (or `$XDG_CONFIG_HOME/voidhttp/`). It holds `workspace.json`, `history.json`, and `responses/`. To move to another device, copy this folder to the same path there.
+
+Per-device state stays in the app data dir (`~/Library/Application Support/dev.voidhttp.app/` on macOS): `session.json` (open tabs, layout). On first launch after the switch, older data found there is copied into `~/.config/voidhttp/` once; the originals are left in place as a backup.
 
 ## Not yet
 

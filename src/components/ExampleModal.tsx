@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Select } from "./Select";
 import { useStore } from "../store";
 import type { Collection, HttpResponse, RequestDef, SavedRef, TreeNode } from "../types";
 import { findNode, uid } from "../lib/model";
@@ -105,13 +106,13 @@ export function ExampleModal({
               </label>
               <label>
                 Save under
-                <select className="field" value={under} onChange={(e) => setUnder(e.target.value)}>
+                <Select className="field" value={under} onChange={(e) => setUnder(e.target.value)}>
                   {requests.map((r) => (
                     <option key={key(r.ref)} value={key(r.ref)}>
                       {r.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             </div>
 

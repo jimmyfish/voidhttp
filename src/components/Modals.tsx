@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Select } from "./Select";
 import { useStore } from "../store";
 import type { Environment, KV } from "../types";
 import { kv, listFolders, uid } from "../lib/model";
 import { ExampleModal } from "./ExampleModal";
 import { KVEditor } from "./KVEditor";
-import { Check, CopyPlus, Ellipsis, Plus, Send, Trash2, Type, ico } from "./Icon";
+import { Ban, Check, CopyPlus, Ellipsis, Plus, Send, Trash2, Type, ico } from "./Icon";
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
 import { CodeArea } from "./CodeArea";
 import { formatVars, parseVars, type VarsFormat } from "../lib/varsFormat";
@@ -117,7 +118,7 @@ function SaveModal({ tabId, onClose }: { tabId: string; onClose: () => void }) {
       </label>
       <label>
         Save to
-        <select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
+        <Select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
           {s.collections.map((c) => [
             <option key={c.id} value={`${c.id}|`}>
               {c.name}
@@ -130,7 +131,7 @@ function SaveModal({ tabId, onClose }: { tabId: string; onClose: () => void }) {
             )),
           ])}
           <option value="">New collection…</option>
-        </select>
+        </Select>
       </label>
       {target === "" && (
         <label>
@@ -361,7 +362,7 @@ function EnvColor({ value, onChange }: { value?: TagColor; onChange: (c: TagColo
         style={envStyle(value)}
         onClick={() => setOpen(!open)}
       >
-        <span className={`env-dot${value ? "" : " env-dot--none"}`} aria-hidden="true" />
+        {value ? <span className="env-dot" aria-hidden="true" /> : <Ban {...ico} className="ico env-none-ico" />}
       </button>
       {open && (
         <div className="env-color-pop" role="radiogroup" aria-label="Environment colour">
@@ -682,7 +683,7 @@ function SchemeRow(p: { id: string; label: string; desc: string; value: string; 
             <i key={i} style={{ background: c }} />
           ))}
         </span>
-        <select id={p.id} className="field set-scheme" value={p.value} onChange={(e) => p.onChange(e.target.value)}>
+        <Select id={p.id} className="field set-scheme" value={p.value} onChange={(e) => p.onChange(e.target.value)}>
           <optgroup label="voidHTTP">
             {(Object.keys(BUILTIN) as BuiltinId[]).map((id) => (
               <option key={id} value={id}>
@@ -699,7 +700,7 @@ function SchemeRow(p: { id: string; label: string; desc: string; value: string; 
               ))}
             </optgroup>
           ))}
-        </select>
+        </Select>
       </div>
     </div>
   );
@@ -738,13 +739,13 @@ function FontRow(p: {
             <option key={f} value={f} />
           ))}
         </datalist>
-        <select className="field set-size" aria-label={`${p.label} size`} value={p.size} onChange={(e) => p.onSize(Number(e.target.value))}>
+        <Select className="field set-size" aria-label={`${p.label} size`} value={p.size} onChange={(e) => p.onSize(Number(e.target.value))}>
           {p.sizes.map((n) => (
             <option key={n} value={n}>
               {n}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
     </div>
   );
@@ -856,14 +857,14 @@ function ImportModal({ text, onClose }: { text: string; onClose: () => void }) {
     <Shell title="Import into" onClose={onClose}>
       <label>
         Project
-        <select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
+        <Select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
           {byRecent.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
           ))}
           <option value="">New project…</option>
-        </select>
+        </Select>
       </label>
       {target === "" && (
         <label>

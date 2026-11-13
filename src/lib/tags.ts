@@ -1,13 +1,14 @@
 import type { CSSProperties } from "react";
 
 /**
- * Tag colours (flatuicolors.com, Flat UI): fixed in every theme and colour scheme, so a colour means the
+ * Tag colours (flatuicolors.com, Flat UI, plus a cyan the owner added): fixed in every theme and colour scheme, so a colour means the
  * same thing everywhere ("red is Production"). Only for things the user tags; never a stand-in for scheme
  * colours such as methods, status or the accent. Fills and inks live in tokens.css as --tag-<id> and --tag-<id>-ink.
  */
 export const TAG_COLORS = [
   { id: "turquoise", name: "Turquoise" },
   { id: "emerald", name: "Emerald" },
+  { id: "cyan", name: "Cyan" },
   { id: "river", name: "Peter River" },
   { id: "amethyst", name: "Amethyst" },
   { id: "asphalt", name: "Wet Asphalt" },

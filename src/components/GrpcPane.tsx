@@ -59,7 +59,7 @@ interface Props {
   missing: string[];
   /** where the request lives, for the title row */
   path: string;
-  /** Save and Delete, shared with HTTP requests */
+  /** Save and its state, shared with HTTP requests */
   saveControls: ReactNode;
   authEditor: ReactNode;
 }

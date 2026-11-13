@@ -1,18 +1,28 @@
-//! Local persistence. Plain JSON files in the app data dir — no account,
-//! no cloud sync, no telemetry. The frontend owns the schema; Rust only
-//! reads/writes the documents atomically.
+//! Local persistence. Plain JSON files — no account, no cloud sync, no telemetry.
+//! The frontend owns the schema; Rust only reads/writes the documents atomically.
+//!
+//! Two folders:
+//! - the vault, `$XDG_CONFIG_HOME/voidhttp` or `~/.config/voidhttp`: workspace, history and
+//!   stored responses. Copy this one folder to move everything to another device.
+//! - the app data dir (`~/Library/Application Support/dev.voidhttp.app` on macOS): per-device
+//!   session state (open tabs, layout) and write-only backups.
 
-use std::path::PathBuf;
+use std::io::ErrorKind;
+use std::path::{Path, PathBuf};
 
 use serde_json::{Map, Value};
 use tauri::{AppHandle, Manager};
 
-/// Only these document names may be read or written.
-const DOCS: &[&str] = &["workspace", "history", "session"];
+/// Portable documents, kept in the vault.
+const VAULT_DOCS: &[&str] = &["workspace", "history"];
+/// Per-device documents, kept in the app data dir.
+const LOCAL_DOCS: &[&str] = &["session"];
 /// Write-only documents (never loaded back): the v1 data kept once before the projects migration.
 const WRITE_ONLY: &[&str] = &["backup-v1"];
+/// Written to the app data dir once the old data was copied into the vault (or found nothing to copy).
+const MIGRATED_MARKER: &str = ".vault-migrated";
 
-fn data_dir(app: &AppHandle) -> Result<PathBuf, String> {
+fn local_dir(app: &AppHandle) -> Result<PathBuf, String> {
     let dir = app
         .path()
         .app_data_dir()
@@ -21,18 +31,89 @@ fn data_dir(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(dir)
 }
 
-fn doc_path(app: &AppHandle, name: &str) -> Result<PathBuf, String> {
-    if !DOCS.contains(&name) && !WRITE_ONLY.contains(&name) {
-        return Err(format!("unknown document: {name}"));
+fn vault_dir(app: &AppHandle) -> Result<PathBuf, String> {
+    let config = match std::env::var_os("XDG_CONFIG_HOME").map(PathBuf::from) {
+        Some(p) if p.is_absolute() => p,
+        _ => app
+            .path()
+            .home_dir()
+            .map_err(|e| format!("cannot resolve home dir: {e}"))?
+            .join(".config"),
+    };
+    let dir = config.join("voidhttp");
+    if !dir.exists() {
+        std::fs::create_dir_all(&dir).map_err(|e| format!("cannot create {dir:?}: {e}"))?;
+        // Requests and variables can hold tokens: keep the folder private to the user.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o700));
+        }
     }
-    Ok(data_dir(app)?.join(format!("{name}.json")))
+    Ok(dir)
+}
+
+fn doc_path(app: &AppHandle, name: &str) -> Result<PathBuf, String> {
+    let dir = if VAULT_DOCS.contains(&name) {
+        vault_dir(app)?
+    } else if LOCAL_DOCS.contains(&name) || WRITE_ONLY.contains(&name) {
+        local_dir(app)?
+    } else {
+        return Err(format!("unknown document: {name}"));
+    };
+    Ok(dir.join(format!("{name}.json")))
+}
+
+/// Copies `from` to `to` through a temp file, so a crash never leaves a half file.
+fn copy_atomic(from: &Path, to: &Path) -> Result<(), String> {
+    let tmp = to.with_extension("json.tmp");
+    std::fs::copy(from, &tmp).map_err(|e| format!("copy {from:?}: {e}"))?;
+    std::fs::rename(&tmp, to).map_err(|e| format!("rename {tmp:?}: {e}"))
+}
+
+/// One time: copies workspace, history and responses from the app data dir into the vault.
+/// The originals stay where they were, as a backup. Only fills what the vault is missing,
+/// and never touches a vault that already has a workspace (brought from another device).
+fn migrate_to_vault(app: &AppHandle) -> Result<(), String> {
+    let local = local_dir(app)?;
+    let marker = local.join(MIGRATED_MARKER);
+    if marker.exists() {
+        return Ok(());
+    }
+    let vault = vault_dir(app)?;
+    if !vault.join("workspace.json").exists() {
+        let old_responses = local.join("responses");
+        if old_responses.is_dir() {
+            let new_responses = vault.join("responses");
+            std::fs::create_dir_all(&new_responses).map_err(|e| format!("cannot create {new_responses:?}: {e}"))?;
+            for entry in std::fs::read_dir(&old_responses).map_err(|e| format!("read {old_responses:?}: {e}"))? {
+                let entry = entry.map_err(|e| e.to_string())?;
+                let name = entry.file_name();
+                let to = new_responses.join(&name);
+                if name.to_string_lossy().ends_with(".json") && !to.exists() {
+                    copy_atomic(&entry.path(), &to)?;
+                }
+            }
+        }
+        // workspace last: its presence is what marks the vault as filled.
+        for name in ["history.json", "workspace.json"] {
+            let (from, to) = (local.join(name), vault.join(name));
+            if from.exists() && !to.exists() {
+                copy_atomic(&from, &to)?;
+            }
+        }
+    }
+    std::fs::write(&marker, vault.to_string_lossy().as_bytes()).map_err(|e| format!("write {marker:?}: {e}"))
 }
 
 /// Returns `{ workspace, history, session }`, each `null` when absent or corrupt.
+/// Fails when a file exists but cannot be read (permissions, a cloud-offloaded file), so the
+/// frontend never mistakes real data for a fresh install and saves an empty state over it.
 #[tauri::command]
 pub async fn load_state(app: AppHandle) -> Result<Value, String> {
+    migrate_to_vault(&app)?;
     let mut out = Map::new();
-    for name in DOCS {
+    for name in VAULT_DOCS.iter().chain(LOCAL_DOCS) {
         let path = doc_path(&app, name)?;
         let value = match tokio::fs::read(&path).await {
             Ok(bytes) => serde_json::from_slice(&bytes).unwrap_or_else(|e| {
@@ -41,7 +122,8 @@ pub async fn load_state(app: AppHandle) -> Result<Value, String> {
                 eprintln!("voidHTTP: {name}.json is corrupt ({e}); moved aside");
                 Value::Null
             }),
-            Err(_) => Value::Null,
+            Err(e) if e.kind() == ErrorKind::NotFound => Value::Null,
+            Err(e) => return Err(format!("cannot read {path:?}: {e}")),
         };
         out.insert((*name).to_string(), value);
     }
@@ -66,7 +148,7 @@ pub async fn save_state(app: AppHandle, name: String, data: Value) -> Result<(),
 // ---------- responses kept with history: one file per history entry ----------
 
 fn responses_dir(app: &AppHandle) -> Result<PathBuf, String> {
-    let dir = data_dir(app)?.join("responses");
+    let dir = vault_dir(app)?.join("responses");
     std::fs::create_dir_all(&dir).map_err(|e| format!("cannot create {dir:?}: {e}"))?;
     Ok(dir)
 }

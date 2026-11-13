@@ -56,7 +56,7 @@
       "--color-ok": txt(green), "--color-redir": txt(cyan), "--color-error": txt(red), "--color-warn": txt(yellow),
       "--color-hit": alpha(yellow, dark ? 0.22 : 0.3), "--color-hit-cur": alpha(yellow, dark ? 0.5 : 0.6), "--color-hit-edge": fit(yellow, B, 3),
       "--color-overlay": dark ? "rgb(0 0 0 / 0.55)" : alpha(F, 0.32), "--color-shadow": dark ? "rgb(0 0 0 / 0.3)" : alpha(F, 0.08),
-      "--m-get": txt(green), "--m-post": txt(orange), "--m-put": txt(blue), "--m-patch": txt(magenta), "--m-delete": txt(red), "--m-head": txt(yellow), "--m-options": txt(mix(magenta, red, 0.5)), "--m-grpc": txt(cyan), "--m-other": muted,
+      "--m-get": txt(green), "--m-post": txt(orange), "--m-put": txt(blue), "--m-patch": txt(magenta), "--m-delete": txt(red), "--m-head": txt(yellow), "--m-options": txt(mix(magenta, red, 0.5)), "--m-other": muted,
       "--j-key": txt(red), "--j-str": txt(green), "--j-num": txt(orange), "--j-bool": txt(magenta), "--j-punct": muted,
       "color-scheme": dark ? "dark" : "light",
     };

@@ -188,14 +188,13 @@
         <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
 
         <div class="joined env-group">
-        <button type="button" class="env-picker" aria-label="Environment" style="--env-c: var(--tag-alizarin); --env-ink: var(--tag-alizarin-ink)">
-          <span class="env-badge">Pr</span>
+        <button type="button" class="env-picker" data-env-btn aria-label="Environment: Production" aria-haspopup="menu" aria-expanded="false" style="--env-c: var(--tag-alizarin)">
           <span class="env-dot" aria-hidden="true"></span>
-          <span>Production</span>
-
+          <span class="env-name">Production</span>
           <svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg>
         </button>
         <button type="button" class="btn joined-tail" aria-label="Environment menu" title="Manage environments"><svg aria-hidden="true" class="ico"><use href="#i-menu"/></svg></button>
+        <div class="menu env-menu" role="menu" aria-label="Environment" hidden><button type="button" role="menuitemradio" aria-checked="false" data-env="" data-color=""><span class="env-dot-slot"></span><span class="env-name env-none">No environment</span><svg aria-hidden="true" class="ico env-check"><use href="#i-check"/></svg></button><hr><button type="button" role="menuitemradio" aria-checked="false" data-env="dev" data-color="emerald"><span class="env-dot" style="--env-c: var(--tag-emerald)"></span><span class="env-name">Development</span><svg aria-hidden="true" class="ico env-check"><use href="#i-check"/></svg></button><button type="button" role="menuitemradio" aria-checked="false" data-env="stg" data-color="sunflower"><span class="env-dot" style="--env-c: var(--tag-sunflower)"></span><span class="env-name">Staging</span><svg aria-hidden="true" class="ico env-check"><use href="#i-check"/></svg></button><button type="button" role="menuitemradio" aria-checked="true" data-env="prod" data-color="alizarin"><span class="env-dot" style="--env-c: var(--tag-alizarin)"></span><span class="env-name">Production</span><svg aria-hidden="true" class="ico env-check"><use href="#i-check"/></svg></button><button type="button" role="menuitemradio" aria-checked="false" data-env="local" data-color=""><span class="env-dot-slot"></span><span class="env-name">Local mock</span><svg aria-hidden="true" class="ico env-check"><use href="#i-check"/></svg></button></div>
         </div>
       </div>
 
@@ -221,7 +220,6 @@
           <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
 
         </div>
-        <button type="button" class="btn">Delete</button>
       </div>
       <div class="req-title">
         <span class="name">Create customer</span>
@@ -437,6 +435,31 @@
     });
     document.addEventListener("mousedown", (e) => { if (!menu.hidden && !e.target.closest(".method-wrap")) show(false); });
     if (/method/.test(location.hash)) show(true);
+  }
+  // Environment menu (new): dot + name in both densities; our own menu with each environment's colour
+  {
+    const btn = document.querySelector("[data-env-btn]");
+    const menu = document.querySelector(".env-menu");
+    const show = (on) => { menu.hidden = !on; btn.setAttribute("aria-expanded", String(on)); if (on) menu.querySelector('[aria-checked="true"]')?.focus(); };
+    const set = (b) => {
+      const c = b.dataset.color, name = b.dataset.env ? b.querySelector(".env-name").textContent : "No environment";
+      if (c) btn.style.setProperty("--env-c", `var(--tag-${c})`); else btn.style.removeProperty("--env-c");
+      btn.querySelector(".env-dot").hidden = !c;
+      btn.querySelector(".env-name").textContent = name; btn.setAttribute("aria-label", `Environment: ${name}`);
+      menu.querySelectorAll("[data-env]").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+      show(false); btn.focus();
+    };
+    btn.addEventListener("click", () => show(menu.hidden));
+    menu.querySelectorAll("[data-env]").forEach((b) => b.addEventListener("click", () => set(b)));
+    menu.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { show(false); btn.focus(); }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        const all = [...menu.querySelectorAll("button")]; const i = all.indexOf(document.activeElement);
+        all[(i + (e.key === "ArrowDown" ? 1 : all.length - 1)) % all.length].focus(); e.preventDefault();
+      }
+    });
+    document.addEventListener("mousedown", (e) => { if (!menu.hidden && !e.target.closest(".env-group")) show(false); });
+    if (/env/.test(location.hash)) show(true);
   }
   // Compact mode (shipped): the bar's Default/Compact sets the same attribute on <html> as Settings does in the app
   {

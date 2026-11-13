@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { Select } from "./Select";
 import type { KV, MultipartField } from "../types";
 import { kv } from "../lib/model";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -97,7 +98,7 @@ export function KVEditor<T extends Row>({ rows, onChange, nameLabel = "Name", va
               </td>
               {files && (
                 <td>
-                  <select
+                  <Select
                     className="field"
                     aria-label="Field type"
                     value={(r as MultipartField).kind}
@@ -105,7 +106,7 @@ export function KVEditor<T extends Row>({ rows, onChange, nameLabel = "Name", va
                   >
                     <option value="text">Text</option>
                     <option value="file">File</option>
-                  </select>
+                  </Select>
                 </td>
               )}
               <td className="del">

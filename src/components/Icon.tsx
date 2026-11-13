@@ -2,6 +2,7 @@
 export {
   ArrowDown,
   ArrowUp,
+  Ban,
   Bookmark,
   BookmarkPlus,
   Braces,

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Select } from "./Select";
 import { useStore } from "../store";
 import type { Auth, BodyMode, Tab } from "../types";
 import { findNode, paramsFromUrl, pathTo, urlWithParams } from "../lib/model";
@@ -92,15 +93,8 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
       message: "This cannot be undone.",
       onConfirm: () => st.deleteExample(ex),
     });
-  const remove = () =>
-    st.openModal({
-      kind: "confirm",
-      title: `Delete “${req.name}”?`,
-      message: "It is removed from its collection. This tab stays open as an unsaved request.",
-      onConfirm: () => st.deleteSaved(tab.id),
-    });
-
-  // Save, its state, and Delete: the same for HTTP and gRPC requests
+  // Save and its state: the same for HTTP and gRPC requests. No Delete here (too easy to hit next to
+  // Save); a saved request is deleted from its "…" menu in the sidebar.
   const saveControls = !ex && (
     <>
       <div className="joined">
@@ -121,11 +115,6 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
           </span>
         )}
       </div>
-      {saved && (
-        <button type="button" className="btn" onClick={remove}>
-          Delete
-        </button>
-      )}
     </>
   );
   const titlePath = ex ? `${exPath} · example` : saved ? [col!.name, ...folders].join(" / ") : "Not saved";
@@ -372,12 +361,12 @@ function AuthEditor({ auth, onChange }: { auth: Auth; onChange: (a: Auth) => voi
     <div>
       <label className="form-row">
         <span>Type</span>
-        <select className="field" value={auth.type} onChange={(e) => switchType(e.target.value as Auth["type"])}>
+        <Select className="field" value={auth.type} onChange={(e) => switchType(e.target.value as Auth["type"])}>
           <option value="none">No auth</option>
           <option value="bearer">Bearer token</option>
           <option value="basic">Basic auth</option>
           <option value="apikey">API key</option>
-        </select>
+        </Select>
       </label>
       {auth.type === "bearer" && (
         <label className="form-row">
@@ -409,10 +398,10 @@ function AuthEditor({ auth, onChange }: { auth: Auth; onChange: (a: Auth) => voi
           </label>
           <label className="form-row">
             <span>Add to</span>
-            <select className="field" value={auth.in} onChange={(e) => onChange({ ...auth, in: e.target.value as "header" | "query" })}>
+            <Select className="field" value={auth.in} onChange={(e) => onChange({ ...auth, in: e.target.value as "header" | "query" })}>
               <option value="header">Header</option>
               <option value="query">Query params</option>
-            </select>
+            </Select>
           </label>
         </>
       )}
