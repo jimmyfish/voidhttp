@@ -5,6 +5,8 @@ import type {
   Environment,
   Example,
   ExampleRef,
+  GrpcEnd,
+  GrpcResult,
   HistoryEntry,
   HttpResponse,
   ProjectData,
@@ -33,8 +35,22 @@ import {
 import { buildScope, type VarScope } from "./lib/vars";
 import { cancel, prepare, send } from "./lib/http";
 import { importPostman } from "./lib/postman";
+import {
+  clientStreams,
+  findMethod,
+  grpcCancel,
+  grpcEndSending,
+  grpcSend,
+  invokeGrpc,
+  isGrpc,
+  loadSchema,
+  prepareGrpc,
+  type GrpcEvent,
+} from "./lib/grpc";
 
 const HISTORY_LIMIT = 200;
+/** A gRPC stream keeps this many messages on screen; older ones are counted, not kept. */
+const GRPC_MESSAGE_LIMIT = 2000;
 
 export type Modal =
   | { kind: "prompt"; title: string; initial: string; onSubmit: (v: string) => void }
@@ -90,10 +106,19 @@ interface State extends ProjectData {
   updateRequest(tabId: string, patch: Partial<RequestDef>): void;
   sendTab(tabId: string): Promise<void>;
   cancelTab(tabId: string): void;
+  /** gRPC: start the call, or on an open client stream send the next message */
+  callGrpc(tabId: string): Promise<void>;
+  /** gRPC: send the editor's message on the open client or bidi stream */
+  sendGrpcMessage(tabId: string): Promise<void>;
+  /** gRPC: no more messages from the client; replies keep coming */
+  endGrpcSending(tabId: string): void;
+  clearGrpcMessages(tabId: string): void;
   scopeFor(tabId: string): VarScope;
 
   /** Open a history entry in a new tab, with its stored response when there is one. */
   openHistory(entryId: string): Promise<void>;
+  /** Show the stored response of a history entry in an existing tab (a run of the tab's request). */
+  showRun(tabId: string, entryId: string): Promise<void>;
   /** The stored response of a history entry, or null. */
   historyResponse(entryId: string): Promise<HttpResponse | null>;
   deleteHistory(entryId: string): void;
@@ -149,6 +174,8 @@ const liveData = (s: ProjectData): ProjectData => ({
 });
 
 let initStarted = false;
+/** gRPC tabs looking up how their method streams before the first call; a second Invoke waits it out. */
+const resolvingGrpc = new Set<string>();
 
 const patchTab = (tabs: Tab[], id: string, fn: (t: Tab) => Tab) => tabs.map((t) => (t.id === id ? fn(t) : t));
 
@@ -180,6 +207,24 @@ function keepResponse(id: string, response: HttpResponse, settings: Settings): H
   const data = over ? { ...response, body: "" } : response;
   invoke("save_response", { id, data }).catch((e) => useStore.getState().notify(`Could not keep the response: ${e}`));
   return over ? "meta" : "full";
+}
+
+/** Stores a gRPC call with its history entry, like keepResponse; a call over the size limit keeps status and metadata only. */
+function keepGrpc(id: string, result: GrpcResult, settings: Settings): HistoryEntry["kept"] {
+  if (settings.keepResponses === false) return undefined;
+  const size = result.messages.reduce((n, m) => n + m.json.length, 0);
+  const over = size > (settings.keepResponseMaxMb ?? 1) * 1024 * 1024;
+  const data: GrpcResult = { ...result, callId: undefined, sendOpen: false, ...(over && { messages: [], dropped: (result.dropped ?? 0) + result.messages.length }) };
+  invoke("save_response", { id, data }).catch((e) => useStore.getState().notify(`Could not keep the response: ${e}`));
+  return over ? "meta" : "full";
+}
+
+/** The history entry each tab is loading with showRun, so an older pick that lands late is dropped. */
+const loadingRun = new Map<string, string>();
+
+/** Stops whatever a tab has in flight: an HTTP request or a gRPC call. */
+function stopInflight(t: Tab) {
+  if (t.inflightId) (isGrpc(t.request) ? grpcCancel : cancel)(t.inflightId).catch(() => undefined);
 }
 
 /** Session tabs come back without responses; example tabs get theirs from the collection, or close when it is gone. */
@@ -349,7 +394,7 @@ export const useStore = create<State>((set, get) => {
 
     deleteProject(id) {
       const s = get();
-      if (s.currentProjectId === id) for (const t of s.tabs) if (t.inflightId) cancel(t.inflightId);
+      if (s.currentProjectId === id) for (const t of s.tabs) stopInflight(t);
       const stash = { ...s.stash };
       delete stash[id];
       const openProjectIds = s.openProjectIds.filter((p) => p !== id);
@@ -380,7 +425,7 @@ export const useStore = create<State>((set, get) => {
 
     closeTab(id) {
       const tab = get().tabs.find((t) => t.id === id);
-      if (tab?.inflightId) cancel(tab.inflightId);
+      if (tab) stopInflight(tab);
       set((s) => {
         const idx = s.tabs.findIndex((t) => t.id === id);
         const tabs = s.tabs.filter((t) => t.id !== id);
@@ -408,12 +453,15 @@ export const useStore = create<State>((set, get) => {
 
     async sendTab(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
+      if (tab && isGrpc(tab.request)) return get().callGrpc(tabId);
       if (!tab || tab.inflightId || tab.example) return;
       // the response lands in this project even if another one is open by the time it arrives
       const pid = get().currentProjectId;
       const inflightId = uid();
+      loadingRun.delete(tabId);
       set((s) => ({ tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, inflightId, error: undefined })) }));
       const request = structuredClone(tab.request);
+      const ref = tab.savedRef?.nodeId;
       try {
         const prepared = prepare(request, get().scopeFor(tabId));
         const response = await send(prepared, get().settings, inflightId);
@@ -422,7 +470,7 @@ export const useStore = create<State>((set, get) => {
         applyToProject(pid, (d) => ({
           tabs: patchTab(d.tabs, tabId, (t) => ({ ...t, inflightId: undefined, response, error: undefined, fromHistory: undefined })),
           history: [
-            { id: entryId, at: Date.now(), request, status: response.status, elapsedMs: response.elapsedMs, kept },
+            { id: entryId, at: Date.now(), request, ref, status: response.status, elapsedMs: response.elapsedMs, size: response.size, kept },
             ...d.history,
           ].slice(0, HISTORY_LIMIT),
         }));
@@ -433,14 +481,156 @@ export const useStore = create<State>((set, get) => {
           history:
             error === "Request cancelled"
               ? d.history
-              : [{ id: uid(), at: Date.now(), request }, ...d.history].slice(0, HISTORY_LIMIT),
+              : [{ id: uid(), at: Date.now(), request, ref }, ...d.history].slice(0, HISTORY_LIMIT),
         }));
       }
     },
 
     cancelTab(tabId) {
-      const id = get().tabs.find((t) => t.id === tabId)?.inflightId;
-      if (id) cancel(id);
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (tab) stopInflight(tab);
+    },
+
+    async callGrpc(tabId) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab || tab.example) return;
+      if (tab.inflightId) {
+        // ⌘Enter on an open client or bidi stream sends the next message
+        if (tab.grpc?.sendOpen) await get().sendGrpcMessage(tabId);
+        return;
+      }
+      let def = tab.request.grpc;
+      if (!def?.service || !def.method) return get().notify("Pick a method first");
+      const pid = get().currentProjectId;
+      const callId = uid();
+      const settings = get().settings;
+      // a pasted grpcurl command names the method but not how it streams: ask the schema once
+      let source = tab.request;
+      if (!def.stream) {
+        if (resolvingGrpc.has(tabId)) return;
+        resolvingGrpc.add(tabId);
+        try {
+          const sc = await loadSchema(prepareGrpc(tab.request, get().scopeFor(tabId), settings));
+          const m = findMethod(sc.info, def.service, def.method);
+          if (m) get().updateRequest(tabId, { grpc: { ...def, stream: m.stream, inputType: m.inputType } });
+        } finally {
+          resolvingGrpc.delete(tabId);
+        }
+        // read the tab again: it may have been edited, closed or sent meanwhile
+        const now = get().tabs.find((t) => t.id === tabId);
+        if (!now || now.inflightId || !now.request.grpc) return;
+        source = now.request;
+        def = now.request.grpc;
+      }
+      const request = structuredClone(source);
+      const call = prepareGrpc(request, get().scopeFor(tabId), settings);
+      const stream = def.stream ?? "unary";
+      const tls = /^https:\/\//i.test(call.target.address) || (!/^http:\/\//i.test(call.target.address) && call.target.tls);
+      loadingRun.delete(tabId);
+      const fresh: GrpcResult = { callId, startedAt: Date.now(), stream, tls, headers: [], messages: [], sendOpen: clientStreams(stream) };
+      set((s) => ({
+        tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, inflightId: callId, error: undefined, response: undefined, fromHistory: undefined, grpc: fresh })),
+      }));
+
+      // events land in batches: one state update per frame, however fast the server streams
+      let queue: GrpcEvent[] = [];
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let latest = fresh;
+      let finished = false;
+      const ref = tab.savedRef?.nodeId;
+      const record = (entry: Omit<HistoryEntry, "id" | "at" | "request">, kept?: (id: string) => HistoryEntry["kept"]) => {
+        const id = uid();
+        applyToProject(pid, (d) => ({ history: [{ id, at: Date.now(), request, ref, ...entry, kept: kept?.(id) }, ...d.history].slice(0, HISTORY_LIMIT) }));
+      };
+      const finish = (end: GrpcEnd) => {
+        if (finished) return;
+        finished = true;
+        const size = latest.messages.reduce((n, m) => n + (m.dir === "in" ? m.size : 0), 0);
+        record({ status: end.code, elapsedMs: end.elapsedMs, size }, (id) => keepGrpc(id, latest, get().settings));
+      };
+      const flush = () => {
+        timer = undefined;
+        const batch = queue;
+        queue = [];
+        if (!batch.length) return;
+        let end: GrpcEnd | undefined;
+        applyToProject(pid, (d) => ({
+          tabs: patchTab(d.tabs, tabId, (t) => {
+            if (t.grpc?.callId !== callId) return t;
+            const g: GrpcResult = { ...t.grpc };
+            const incoming = [];
+            for (const e of batch) {
+              if (e.type === "headers") g.headers = e.metadata;
+              else if (e.type === "message") incoming.push({ dir: e.dir, json: e.json, size: e.size, atMs: e.atMs });
+              else {
+                end = { code: e.code, status: e.status, message: e.message, details: e.details, trailers: e.trailers, elapsedMs: e.elapsedMs };
+                g.end = end;
+                g.sendOpen = false;
+              }
+            }
+            if (incoming.length) {
+              const all = [...g.messages, ...incoming];
+              const over = Math.max(0, all.length - GRPC_MESSAGE_LIMIT);
+              g.messages = over ? all.slice(over) : all;
+              if (over) g.dropped = (g.dropped ?? 0) + over;
+            }
+            latest = g;
+            return end ? { ...t, grpc: g, inflightId: undefined } : { ...t, grpc: g };
+          }),
+        }));
+        if (end) finish(end);
+      };
+      const onEvent = (e: GrpcEvent) => {
+        queue.push(e);
+        if (e.type === "end") {
+          clearTimeout(timer);
+          flush();
+        } else if (!timer) timer = setTimeout(flush, 16);
+      };
+
+      try {
+        await invokeGrpc(callId, call, settings.timeoutMs, onEvent);
+        // the end event comes first; should it ever not, close the call rather than spin forever
+        setTimeout(() => {
+          flush();
+          if (!finished)
+            onEvent({ type: "end", code: 2, status: "UNKNOWN", message: "The call ended without a status", trailers: [], elapsedMs: Date.now() - fresh.startedAt });
+        }, 1500);
+      } catch (e) {
+        clearTimeout(timer);
+        flush();
+        if (finished) return;
+        finished = true;
+        const error = String(e);
+        applyToProject(pid, (d) => ({
+          tabs: patchTab(d.tabs, tabId, (t) => (t.grpc?.callId === callId ? { ...t, inflightId: undefined, grpc: undefined, error } : t)),
+        }));
+        record({});
+      }
+    },
+
+    async sendGrpcMessage(tabId) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab?.inflightId || !tab.grpc?.sendOpen) return;
+      try {
+        const { message } = prepareGrpc(tab.request, get().scopeFor(tabId), get().settings);
+        await grpcSend(tab.inflightId, message);
+      } catch (e) {
+        get().notify(String(e));
+      }
+    },
+
+    endGrpcSending(tabId) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab?.inflightId || !tab.grpc) return;
+      grpcEndSending(tab.inflightId).catch((e) => get().notify(String(e)));
+      set((s) => ({ tabs: patchTab(s.tabs, tabId, (t) => (t.grpc ? { ...t, grpc: { ...t.grpc, sendOpen: false } } : t)) }));
+    },
+
+    clearGrpcMessages(tabId) {
+      set((s) => ({
+        tabs: patchTab(s.tabs, tabId, (t) => (t.grpc ? { ...t, grpc: { ...t.grpc, messages: [], dropped: 0 } } : t)),
+      }));
     },
 
     async historyResponse(entryId) {
@@ -462,10 +652,35 @@ export const useStore = create<State>((set, get) => {
       const pid = get().currentProjectId;
       const response = await get().historyResponse(entryId);
       if (!response) return get().notify("The saved response is missing");
+      const fromHistory = { at: entry.at, bodyDropped: entry.kept === "meta", entryId };
+      // a gRPC entry keeps its call (messages, status, metadata) in the same file
+      const grpc = isGrpc(entry.request) ? (response as unknown as GrpcResult) : undefined;
       // the tab may have been sent (or closed) while the file was read
       applyToProject(pid, (d) => ({
         tabs: patchTab(d.tabs, tabId, (t) =>
-          t.response || t.inflightId || t.error ? t : { ...t, response, fromHistory: { at: entry.at, bodyDropped: entry.kept === "meta" } },
+          t.response || t.grpc || t.inflightId || t.error ? t : grpc ? { ...t, grpc, fromHistory } : { ...t, response, fromHistory },
+        ),
+      }));
+    },
+
+    async showRun(tabId, entryId) {
+      const entry = get().history.find((h) => h.id === entryId);
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!entry?.kept || !tab || tab.inflightId) return;
+      const pid = get().currentProjectId;
+      loadingRun.set(tabId, entryId);
+      const response = await get().historyResponse(entryId);
+      // a later pick (or a send) in the same tab wins
+      if (loadingRun.get(tabId) !== entryId) return;
+      loadingRun.delete(tabId);
+      if (!response) return get().notify("The saved response is missing");
+      const fromHistory = { at: entry.at, bodyDropped: entry.kept === "meta", entryId };
+      const grpc = isGrpc(entry.request) ? (response as unknown as GrpcResult) : undefined;
+      applyToProject(pid, (d) => ({
+        tabs: patchTab(d.tabs, tabId, (t) =>
+          t.inflightId
+            ? t
+            : { ...t, error: undefined, fromHistory, ...(grpc ? { grpc, response: undefined } : { response, grpc: undefined }) },
         ),
       }));
     },

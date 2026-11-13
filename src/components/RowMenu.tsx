@@ -2,14 +2,26 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export type MenuItem = { label: string; icon: React.ReactNode; run: () => void; danger?: boolean } | "sep";
 
+/** A row menu is closed (false), open from its "…" button (true), or open at the pointer after a right-click. */
+export type MenuState = boolean | { x: number; y: number };
+
+/** onContextMenu for a row: opens its "…" menu where the pointer is, in place of the webview's own menu. */
+export const openAtPointer = (setMenu: (m: MenuState) => void) => (e: React.MouseEvent) => {
+  e.preventDefault();
+  setMenu({ x: e.clientX, y: e.clientY });
+};
+
 /** The "…" menu of a tree or list row: fixed to the viewport so the tree's scroll box never clips it. */
 export function RowMenu({
   anchor,
   label,
   items,
   onClose,
+  at,
 }: {
   anchor: React.RefObject<HTMLButtonElement>;
+  /** where a right-click opened it; without one the menu hangs off the anchor */
+  at?: MenuState;
   label: string;
   items: MenuItem[];
   onClose: () => void;
@@ -20,13 +32,20 @@ export function RowMenu({
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
 
+  const point = typeof at === "object" ? at : null;
   useLayoutEffect(() => {
-    const a = anchor.current!.getBoundingClientRect();
     const m = ref.current!.getBoundingClientRect();
+    if (point) {
+      // at the pointer, flipped up or left when it would run off the window
+      const top = point.y + m.height > window.innerHeight - 8 ? Math.max(8, point.y - m.height) : point.y;
+      const left = point.x + m.width > window.innerWidth - 8 ? Math.max(8, point.x - m.width) : point.x;
+      return setPos({ top, left });
+    }
+    const a = anchor.current!.getBoundingClientRect();
     const below = a.bottom + 2;
     const top = below + m.height > window.innerHeight - 8 ? Math.max(8, a.top - m.height - 2) : below;
     setPos({ top, left: Math.max(8, a.right - m.width) });
-  }, [anchor]);
+  }, [anchor, point?.x, point?.y]);
 
   useEffect(() => {
     ref.current?.querySelector<HTMLButtonElement>("button")?.focus();

@@ -127,6 +127,7 @@ export function schemeTokens(s: Scheme): Record<string, string> {
     "--m-patch": txt(magenta),
     "--m-delete": txt(red),
     "--m-other": muted,
+    "--m-grpc": txt(cyan),
     "--j-key": txt(red),
     "--j-str": txt(green),
     "--j-num": txt(orange),

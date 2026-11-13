@@ -20,12 +20,69 @@ export interface RequestBody {
 export interface RequestDef {
   id: string;
   name: string;
+  /** An HTTP method, or "GRPC" for a gRPC call (see `grpc`). */
   method: string;
+  /** The URL; for gRPC the server address, host:port. */
   url: string;
   params: KV[];
+  /** HTTP headers; for gRPC the request metadata. */
   headers: KV[];
+  /** For gRPC, `raw` holds the request message as JSON. */
   body: RequestBody;
   auth: Auth;
+  grpc?: GrpcDef;
+}
+
+/** How a gRPC method streams: one message each way, or a stream from the server, the client, or both. */
+export type GrpcStream = "unary" | "server" | "client" | "bidi";
+
+export interface GrpcDef {
+  /** full service name, e.g. customer.v1.CustomerService; empty until a method is picked */
+  service: string;
+  method: string;
+  /** remembered with the method, so the request knows its shape before the schema loads */
+  stream?: GrpcStream;
+  inputType?: string;
+  tls: boolean;
+  /** where the method list comes from */
+  source: "reflection" | "protos";
+  /** absolute paths of .proto files, and folders their imports are looked up in */
+  protoFiles: string[];
+  importPaths: string[];
+}
+
+export interface GrpcMessage {
+  dir: "in" | "out";
+  json: string;
+  size: number;
+  /** ms since the call started */
+  atMs: number;
+}
+
+export interface GrpcEnd {
+  code: number;
+  status: string;
+  message: string;
+  /** google.rpc.Status details as a JSON array, when the server sent any */
+  details?: string | null;
+  trailers: { key: string; value: string }[];
+  elapsedMs: number;
+}
+
+/** One gRPC call as the response pane shows it: grows while the call runs. */
+export interface GrpcResult {
+  /** the call this belongs to; events of an older call are ignored */
+  callId?: string;
+  startedAt: number;
+  stream: GrpcStream;
+  tls: boolean;
+  headers: { key: string; value: string }[];
+  messages: GrpcMessage[];
+  /** older messages left out to keep a long stream light */
+  dropped?: number;
+  /** the client can still send (client and bidi streams, until End sending) */
+  sendOpen?: boolean;
+  end?: GrpcEnd;
 }
 
 export interface RequestNode extends RequestDef {
@@ -100,19 +157,26 @@ export interface Tab {
   // runtime only (not persisted)
   inflightId?: string;
   response?: HttpResponse;
+  /** the last gRPC call of a gRPC tab, live while it runs */
+  grpc?: GrpcResult;
   error?: string;
   /** The response came from history, not from a send in this tab. Cleared by the next send. */
-  fromHistory?: { at: number; bodyDropped: boolean };
+  fromHistory?: { at: number; bodyDropped: boolean; entryId?: string };
 }
 
 export interface HistoryEntry {
   id: string;
   at: number;
   request: RequestDef;
+  /** HTTP status, or the gRPC status code for a gRPC call (0 is OK) */
   status?: number;
   elapsedMs?: number;
   /** The response is stored in responses/<id>.json: "full", or "meta" when the body was over the size limit and left out. */
   kept?: "full" | "meta";
+  /** the saved request (node id) whose tab sent it; entries without one match on method and address */
+  ref?: string;
+  /** response body bytes (gRPC: received messages) */
+  size?: number;
 }
 
 export interface Settings {

@@ -1,4 +1,4 @@
-import type { Collection, FolderNode, KV, RequestDef, TreeNode } from "../types";
+import type { Collection, FolderNode, HistoryEntry, KV, RequestDef, Tab, TreeNode } from "../types";
 
 export const uid = (): string =>
   crypto.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -27,8 +27,8 @@ export function cloneRequest(r: RequestDef): RequestDef {
 
 /** Strips tree-only fields so a node can be edited as a plain request. */
 export function toRequestDef(node: RequestDef): RequestDef {
-  const { id, name, method, url, params, headers, body, auth } = node;
-  return cloneRequest({ id, name, method, url, params, headers, body, auth });
+  const { id, name, method, url, params, headers, body, auth, grpc } = node;
+  return cloneRequest({ id, name, method, url, params, headers, body, auth, ...(grpc && { grpc }) });
 }
 
 // ---------- tree helpers (immutable) ----------
@@ -181,5 +181,26 @@ export function countRequests(nodes: TreeNode[]): number {
 /** Short method label for tight places: tree, tabs, history. */
 export function methodLabel(m: string): string {
   const u = m.toUpperCase();
-  return u === "DELETE" ? "DEL" : u === "OPTIONS" ? "OPT" : u;
+  return u === "DELETE" ? "DEL" : u === "OPTIONS" ? "OPT" : u === "GRPC" ? "gRPC" : u;
+}
+
+/** A history entry's status as shown: HTTP below 400 is good; for gRPC only code 0 (OK) is. */
+export function entryStatus(h: { request: { method: string }; status?: number }): { text: string; ok: boolean } {
+  if (h.status === undefined) return { text: "ERR", ok: false };
+  if (h.request.method === "GRPC") return { text: h.status === 0 ? "OK" : String(h.status), ok: h.status === 0 };
+  return { text: String(h.status), ok: h.status < 400 };
+}
+
+/** What makes two history entries the same request when neither names its saved request. */
+const runKey = (r: RequestDef) => (r.method === "GRPC" ? `GRPC ${r.url} ${r.grpc?.service}/${r.grpc?.method}` : `${r.method} ${r.url}`);
+
+/**
+ * The earlier runs of a tab's request that can be shown again (a response was kept), newest first.
+ * An entry made from a saved request matches that request only; older entries and unsaved tabs match on method and address.
+ */
+export function runsOf(history: HistoryEntry[], tab: Tab): HistoryEntry[] {
+  if (tab.example) return [];
+  const node = tab.savedRef?.nodeId;
+  const key = runKey(tab.request);
+  return history.filter((h) => h.kept && (node && h.ref ? h.ref === node : runKey(h.request) === key));
 }

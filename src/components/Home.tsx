@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useStore } from "../store";
 import type { HistoryEntry } from "../types";
-import { countRequests, methodLabel } from "../lib/model";
+import { countRequests, entryStatus, methodLabel } from "../lib/model";
 import { ago, startOfDay } from "../lib/time";
 import { ProjectTile } from "./ProjectIcon";
 import { Import, Pencil, Plus, X, ico, icoLg } from "./Icon";
@@ -41,7 +41,7 @@ export function Home() {
       return { label, count: inWeek.filter((h) => h.at >= start && h.at < start + DAY).length };
     });
     const answered = inWeek.filter((h) => h.status !== undefined);
-    const ok = answered.filter((h) => (h.status ?? 0) < 400).length;
+    const ok = answered.filter((h) => entryStatus(h).ok).length;
     const times = inWeek.map((h) => h.elapsedMs).filter((t): t is number => t !== undefined).sort((a, b) => a - b);
     const median = times.length ? times[Math.floor(times.length / 2)] : null;
     const tally = new Map<string, { method: string; path: string; n: number }>();
@@ -230,7 +230,7 @@ export function Home() {
                         </span>
                       </td>
                       <td>
-                        <span className={`hstatus ${h.status && h.status < 400 ? "ok" : "fail"}`}>{h.status ?? "ERR"}</span>
+                        <span className={`hstatus ${entryStatus(h).ok ? "ok" : "fail"}`}>{entryStatus(h).text}</span>
                       </td>
                       <td className="muted when">{ago(h.at)}</td>
                     </tr>

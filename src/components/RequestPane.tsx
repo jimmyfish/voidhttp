@@ -11,6 +11,8 @@ import { KVEditor } from "./KVEditor";
 import { CodeArea } from "./CodeArea";
 import { formatJsonc, stripJsonComments } from "../lib/jsonc";
 import { ChevronDown, CircleCheck, CircleDashed, CircleDot, CodeXml, SlidersHorizontal, WandSparkles, WrapText, ico } from "./Icon";
+import { defaultGrpc, isGrpc, looksLikeGrpcurl, parseGrpcurl } from "../lib/grpc";
+import { GrpcRequestPane } from "./GrpcPane";
 
 type Section = "params" | "headers" | "body" | "auth";
 
@@ -97,6 +99,49 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
       onConfirm: () => st.deleteSaved(tab.id),
     });
 
+  // Save, its state, and Delete: the same for HTTP and gRPC requests
+  const saveControls = !ex && (
+    <>
+      <div className="joined">
+        <button type="button" className="btn" onClick={() => st.saveTab(tab.id)}>
+          Save
+        </button>
+        {!saved ? (
+          <span className="btn joined-tail save-state" role="img" aria-label="Not saved yet" title="Not saved yet">
+            <CircleDashed {...ico} />
+          </span>
+        ) : tab.dirty ? (
+          <span className="btn joined-tail save-state dirty-state" role="img" aria-label="Unsaved changes" title="Unsaved changes">
+            <CircleDot {...ico} />
+          </span>
+        ) : (
+          <span className="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved">
+            <CircleCheck {...ico} />
+          </span>
+        )}
+      </div>
+      {saved && (
+        <button type="button" className="btn" onClick={remove}>
+          Delete
+        </button>
+      )}
+    </>
+  );
+  const titlePath = ex ? `${exPath} · example` : saved ? [col!.name, ...folders].join(" / ") : "Not saved";
+
+  if (isGrpc(req))
+    return (
+      <GrpcRequestPane
+        tab={tab}
+        grow={grow}
+        lookup={lookup}
+        missing={missing}
+        path={titlePath}
+        saveControls={saveControls}
+        authEditor={<AuthEditor auth={req.auth} onChange={(auth) => set({ auth })} />}
+      />
+    );
+
   const n = (count: number) => (count ? <span className="n">{count}</span> : null);
   const enabledParams = req.params.filter((p) => p.enabled && p.key).length;
   const enabledHeaders = req.headers.filter((h) => h.enabled && h.key).length;
@@ -114,10 +159,24 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
           {/* the label sizes to the method; the real <select> lies over it */}
           <label className={`method-pick m-${req.method}`}>
             {req.method}
-            <select aria-label="Method" value={req.method} disabled={!!ex} onChange={(e) => set({ method: e.target.value })}>
-              {METHODS.map((m) => (
-                <option key={m}>{m}</option>
-              ))}
+            <select
+              aria-label="Method"
+              value={req.method}
+              disabled={!!ex}
+              onChange={(e) =>
+                e.target.value === "GRPC"
+                  ? set({ method: "GRPC", grpc: req.grpc ?? defaultGrpc(req.url), body: { ...req.body, mode: "json" } })
+                  : set({ method: e.target.value })
+              }
+            >
+              <optgroup label="HTTP">
+                {METHODS.map((m) => (
+                  <option key={m}>{m}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Other">
+                <option value="GRPC">gRPC</option>
+              </optgroup>
             </select>
           </label>
           <UrlInput
@@ -131,6 +190,14 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
             onChange={(e) => set({ url: e.target.value, params: paramsFromUrl(e.target.value, req.params) })}
             onPaste={(e) => {
               const text = e.clipboardData.getData("text");
+              if (!ex && looksLikeGrpcurl(text)) {
+                // a grpcurl command turns this tab into a gRPC request
+                e.preventDefault();
+                const parsed = parseGrpcurl(text);
+                if (!parsed) return st.notify("Couldn’t find a server address in that grpcurl command");
+                set({ ...parsed.request, params: [] });
+                return st.notify(["Imported from grpcurl", ...parsed.notes].join(" · "));
+              }
               if (ex || !looksLikeCurl(text)) return;
               e.preventDefault();
               const parsed = parseCurl(text);
@@ -187,36 +254,12 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
           </div>
         )}
 
-        {!ex && (
-          <div className="joined">
-            <button type="button" className="btn" onClick={() => st.saveTab(tab.id)}>
-              Save
-            </button>
-            {!saved ? (
-              <span className="btn joined-tail save-state" role="img" aria-label="Not saved yet" title="Not saved yet">
-                <CircleDashed {...ico} />
-              </span>
-            ) : tab.dirty ? (
-              <span className="btn joined-tail save-state dirty-state" role="img" aria-label="Unsaved changes" title="Unsaved changes">
-                <CircleDot {...ico} />
-              </span>
-            ) : (
-              <span className="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved">
-                <CircleCheck {...ico} />
-              </span>
-            )}
-          </div>
-        )}
-        {saved && !ex && (
-          <button type="button" className="btn" onClick={remove}>
-            Delete
-          </button>
-        )}
+        {saveControls}
       </form>
 
       <div className="req-title">
         <span className="name">{req.name}</span>
-        <span className="path">{ex ? `${exPath} · example` : saved ? [col!.name, ...folders].join(" / ") : "Not saved"}</span>
+        <span className="path">{titlePath}</span>
         {missing.length > 0 && <span className="hint">Unresolved: {missing.map((m) => `{{${m}}}`).join(", ")}</span>}
       </div>
 

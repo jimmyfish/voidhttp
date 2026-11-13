@@ -5,7 +5,7 @@ import { kv, listFolders, uid } from "../lib/model";
 import { ExampleModal } from "./ExampleModal";
 import { KVEditor } from "./KVEditor";
 import { Check, CopyPlus, Ellipsis, Plus, Send, Trash2, Type, ico } from "./Icon";
-import { RowMenu, type MenuItem } from "./RowMenu";
+import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
 import { CodeArea } from "./CodeArea";
 import { formatVars, parseVars, type VarsFormat } from "../lib/varsFormat";
 import { systemFonts } from "../lib/fonts";
@@ -338,14 +338,14 @@ function EnvItem({
   onDelete: () => void;
 }) {
   const moreRef = useRef<HTMLButtonElement>(null);
-  const [menu, setMenu] = useState(false);
+  const [menu, setMenu] = useState<MenuState>(false);
   const items: MenuItem[] = [
     { label: "Duplicate", icon: <CopyPlus {...ico} />, run: onDuplicate },
     "sep",
     { label: "Delete", icon: <Trash2 {...ico} />, run: onDelete, danger: true },
   ];
   return (
-    <li className={`env-item${menu ? " menu-open" : ""}`}>
+    <li className={`env-item${menu ? " menu-open" : ""}`} onContextMenu={openAtPointer(setMenu)}>
       <button type="button" aria-current={current} title={env.name} onClick={onSelect}>
         {env.name}
       </button>
@@ -356,12 +356,12 @@ function EnvItem({
         title="More actions"
         aria-label={`More actions for ${env.name}`}
         aria-haspopup="menu"
-        aria-expanded={menu}
+        aria-expanded={!!menu}
         onClick={() => setMenu(!menu)}
       >
         <Ellipsis {...ico} />
       </button>
-      {menu && <RowMenu anchor={moreRef} label={`${env.name} actions`} items={items} onClose={() => setMenu(false)} />}
+      {menu && <RowMenu anchor={moreRef} label={`${env.name} actions`} items={items} onClose={() => setMenu(false)} at={menu} />}
     </li>
   );
 }

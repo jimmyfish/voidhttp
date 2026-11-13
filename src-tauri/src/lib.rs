@@ -1,4 +1,5 @@
 mod fonts;
+mod grpc;
 mod http;
 mod store;
 
@@ -103,9 +104,15 @@ pub fn run() {
     builder
         .plugin(tauri_plugin_dialog::init())
         .manage(http::HttpState::default())
+        .manage(grpc::GrpcState::default())
         .invoke_handler(tauri::generate_handler![
             http::send_request,
             http::cancel_request,
+            grpc::grpc_describe,
+            grpc::grpc_invoke,
+            grpc::grpc_send,
+            grpc::grpc_end,
+            grpc::grpc_cancel,
             store::load_state,
             store::save_state,
             store::save_response,

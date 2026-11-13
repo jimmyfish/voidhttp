@@ -89,39 +89,9 @@
 </svg>
 
 <header class="pv-bar">
-  <strong>voidHTTP restyle preview</strong>
-  <nav class="pv-screens" aria-label="Screens">
-    <button type="button" data-go="home" aria-pressed="false">Home</button>
-    <button type="button" data-go="newproj" aria-pressed="false">New project</button>
-    <button type="button" data-go="post" aria-pressed="true">Body + response</button>
-    <button type="button" data-go="params" aria-pressed="false">Params</button>
-    <button type="button" data-go="urlvars" aria-pressed="false">URL variables</button>
-    <button type="button" data-go="history" aria-pressed="false">History, empty</button>
-    <button type="button" data-go="loading" aria-pressed="false">Sending</button>
-    <button type="button" data-go="error" aria-pressed="false">Error</button>
-    <button type="button" data-go="menu" aria-pressed="false">Send menu</button>
-    <button type="button" data-go="save" aria-pressed="false">Save dialog</button>
-    <button type="button" data-go="vars" aria-pressed="false">Variables</button>
-    <button type="button" data-go="varsjson" aria-pressed="false">Variables · JSON</button>
-    <button type="button" data-go="varsenv" aria-pressed="false">Variables · .env</button>
-    <button type="button" data-go="varsmenu" aria-pressed="false">Variables · env menu</button>
-    <button type="button" data-go="settings" aria-pressed="false">Settings</button>
-    <button type="button" data-go="settingsreq" aria-pressed="false">Settings · Requests</button>
-    <button type="button" data-go="rowmenu" aria-pressed="false">Row menu</button>
-    <button type="button" data-go="dragin" aria-pressed="false">Drag into folder</button>
-    <button type="button" data-go="reorder" aria-pressed="false">Drag to reorder</button>
-    <button type="button" data-go="hidden" aria-pressed="false">Sidebar hidden</button>
-    <button type="button" data-go="split" aria-pressed="false">Side by side</button>
-    <button type="button" data-go="empty" aria-pressed="false">No collections</button>
-    <button type="button" data-go="filter" aria-pressed="false">Filter · JSONPath</button>
-    <button type="button" data-go="fsearch" aria-pressed="false">Filter · search</button>
-    <button type="button" data-go="ferror" aria-pressed="false">Filter · error</button>
-    <button type="button" data-go="fhelp" aria-pressed="false">Filter · help</button>
-    <button type="button" data-go="hresp" aria-pressed="false">History · response</button>
-    <button type="button" data-go="hmenu" aria-pressed="false">History · row menu</button>
-    <button type="button" data-go="hbig" aria-pressed="false">History · large body</button>
-    <button type="button" data-go="example" aria-pressed="false">Save as example</button>
-    <button type="button" data-go="exview" aria-pressed="false">Example</button>
+  <strong>voidHTTP preview · base</strong>
+  <nav class="pv-screens" aria-label="Previews">
+    <a class="btn btn--quiet" href="./grpc.html" style="min-height:var(--control)">gRPC base →</a>
   </nav>
   <div class="pv-fonts">
     <label>UI font <select data-font="--font-ui">
@@ -145,9 +115,9 @@
   <!-- title strip: the native macOS traffic lights sit in the empty 76px on the left (not drawn here) -->
   <div class="app-strip" data-tauri-drag-region>
     <nav class="ptabs" aria-label="Projects">
-      <button type="button" class="ptab" data-cur="home newproj"><svg aria-hidden="true" class="ico"><use href="#i-house"/></svg>Home</button>
+      <button type="button" class="ptab"><svg aria-hidden="true" class="ico"><use href="#i-house"/></svg>Home</button>
       <span class="ptab-sep" aria-hidden="true"></span>
-      <div class="ptab ptab--project" data-cur="post params history loading error menu save vars hresp exview" aria-current="page">
+      <div class="ptab ptab--project" aria-current="page">
         <button type="button" class="ptab-main"><span class="proj-tile proj-tile--sm" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>Amarbank</button>
         <button type="button" class="icon-btn ptab-close" aria-label="Close Amarbank"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
       </div>
@@ -156,23 +126,22 @@
         <button type="button" class="icon-btn ptab-close" aria-label="Close Personal"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
       </div>
     </nav>
-    <button type="button" class="icon-btn strip-settings" title="Settings  ⌘," aria-label="Settings" data-add="settings settingsreq:on"><svg aria-hidden="true" class="ico"><use href="#i-settings"/></svg></button>
+    <button type="button" class="icon-btn strip-settings" title="Settings  ⌘," aria-label="Settings"><svg aria-hidden="true" class="ico"><use href="#i-settings"/></svg></button>
   </div>
-  <nav class="rail" aria-label="Sections" data-on="post params history loading error menu save vars hresp exview">
+  <nav class="rail" aria-label="Sections">
     <div class="rail-mark" aria-hidden="true">
       <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke-width="2" style="stroke: var(--color-accent)"/><circle cx="8" cy="8" r="2.25" fill="none" stroke-width="1.5" style="stroke: var(--color-ok)"/></svg>
     </div>
-    <button type="button" class="rail-item" data-rail="collections" aria-label="Collections" title="Collections" aria-current="page"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-layers"/></svg></button>
-    <button type="button" class="rail-item" data-rail="history" aria-label="History" title="History"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-history"/></svg></button>
-    <button type="button" class="rail-item" data-rail="vars" aria-label="Variables" title="Variables"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-braces"/></svg></button>
+    <button type="button" class="rail-item" aria-label="Collections" title="Collections" aria-current="page"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-layers"/></svg></button>
+    <button type="button" class="rail-item" aria-label="History" title="History"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-history"/></svg></button>
+    <button type="button" class="rail-item" aria-label="Variables" title="Variables"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-braces"/></svg></button>
   </nav>
 
-  <div class="panel" data-on="post params history loading error menu save vars hresp exview">
+  <div class="panel">
     <!-- ===== sidebar: collections ===== -->
-    <aside class="sidebar" data-on="post params loading error save vars menu exview" data-not="empty">
+    <aside class="sidebar">
       <div class="side-resize" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize, drag past the edge to hide"></div>
-      <div class="drag-ghost" data-only="dragin" hidden style="top:338px;left:120px"><span class="m m-GET">GET</span>Get a customer</div>
-      <div class="drag-ghost" data-only="reorder" hidden style="top:200px;left:110px"><span class="m m-DELETE">DEL</span>Delete customer</div>
+
       <div class="side-head"><h2>Collections</h2></div>
       <div class="side-tools">
         <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search collections"></div>
@@ -181,74 +150,40 @@
       </div>
       <div class="tree">
         <div class="row collection"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><span class="name">trx-service</span><span class="count">(6)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for trx-service" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="row" style="--indent:16px" data-add="rowmenu:menu-open"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg><span class="name">Customers</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button><div class="menu row-menu" role="menu" aria-label="Customers actions" data-only="rowmenu" hidden><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-file-plus"/></svg>Add request</button><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-folder-plus"/></svg>Add folder</button><hr><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-pencil"/></svg>Rename</button><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-copy-plus"/></svg>Duplicate</button><hr><button type="button" role="menuitem" class="danger"><svg aria-hidden="true" class="ico"><use href="#i-trash-2"/></svg>Delete</button></div></div>
-        <div class="row" style="--indent:40px" data-cur="params"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">List customers</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for List customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="row" style="--indent:16px" data-cur="post loading save vars menu" aria-current="page" data-add="reorder:drop-before"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" data-not="exview" class="ico caret"><use href="#i-chevron-right"/></svg><svg aria-hidden="true" data-only="exview" hidden class="ico caret"><use href="#i-chevron-down"/></svg><span class="m m-POST">POST</span><span class="name">Create customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Create customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="row example" style="--indent:48px" data-only="exview" hidden aria-current="page"><button type="button" class="row-main"><svg aria-hidden="true" class="ico ex-ico"><use href="#i-bookmark"/></svg><span class="name">201 Created</span><span class="hstatus ok">201</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for 201 Created" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="row example" style="--indent:48px" data-only="exview" hidden><button type="button" class="row-main"><svg aria-hidden="true" class="ico ex-ico"><use href="#i-bookmark"/></svg><span class="name">Missing email</span><span class="hstatus fail">422</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Missing email" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="row" style="--indent:40px" data-add="dragin:dragging"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">Get a customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Get a customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg><span class="name">Customers</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">List customers</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for List customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px" aria-current="page"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="m m-POST">POST</span><span class="name">Create customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Create customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+
+        <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">Get a customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Get a customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
         <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-PATCH">PATCH</span><span class="name">Update customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Update customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="row" style="--indent:40px" data-cur="error" data-add="reorder:dragging"><button type="button" class="row-main"><span class="m m-DELETE">DEL</span><span class="name">Delete customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Delete customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="row" style="--indent:16px" data-add="dragin:drop-inside"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg><span class="name">Invoices</span><span class="count">(3)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Invoices" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-DELETE">DEL</span><span class="name">Delete customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Delete customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg><span class="name">Invoices</span><span class="count">(3)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Invoices" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
         <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">Centralized Login</span><span class="count">(4)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Centralized Login" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
         <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">notification-service</span><span class="count">(3)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for notification-service" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
       </div>
     </aside>
 
     <!-- ===== sidebar: history ===== -->
-    <aside class="sidebar" data-on="history hresp" data-not="empty" hidden>
-      <div class="side-head"><h2>History</h2><button type="button" class="btn" style="min-height:28px;font-size:var(--text-sm)">Clear</button></div>
-      <div class="side-tools"><div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search history"></div></div>
-      <div class="tree">
-        <div class="day">Today</div>
-        <div class="row" data-cur="hresp" data-cur-not="hbig" data-add="hmenu:menu-open"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">api.example.com/v1/customers</span><span class="htime">14:02</span><span class="hstatus ok">201</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for POST api.example.com/v1/customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button><div class="menu row-menu" role="menu" aria-label="History entry actions" data-only="hmenu" hidden><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-file-plus"/></svg>Open in new tab</button><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-bookmark-plus"/></svg>Save response as example…</button><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-copy-plus"/></svg>Save request to collection…</button><hr><button type="button" role="menuitem" class="danger"><svg aria-hidden="true" class="ico"><use href="#i-trash-2"/></svg>Delete from history</button></div></div>
-        <div class="row" data-cur="hbig"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/transactions/export?month=2026-10</span><span class="htime">13:41</span><span class="hstatus ok">200</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for GET transactions export" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="row"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/customers?limit=20</span><span class="htime">11:15</span><span class="hstatus ok">200</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for GET customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="row"><button type="button" class="row-main"><span class="m m-DELETE">DEL</span><span class="name">localhost:4000/v1/customers/cus_8f2</span><span class="htime">10:48</span><span class="hstatus fail">ERR</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for history entry" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="day">Yesterday</div>
-        <div class="row"><button type="button" class="row-main"><span class="m m-PATCH">PATCH</span><span class="name">api.example.com/v1/customers/cus_1a9</span><span class="htime">17:30</span><span class="hstatus ok">200</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for history entry" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-        <div class="row"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/invoices</span><span class="htime">16:05</span><span class="hstatus fail">401</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for history entry" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
-      </div>
-    </aside>
-
-    <aside class="sidebar" data-only="empty" hidden>
-      <div class="side-resize" role="separator" aria-orientation="vertical" aria-label="Resize sidebar"></div>
-      <div class="side-head"><h2>Collections</h2></div>
-      <div class="side-tools">
-        <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search collections"></div>
-        <button type="button" class="icon-btn icon-btn--outline" title="Import from Postman" aria-label="Import from Postman"><svg aria-hidden="true" class="ico"><use href="#i-import"/></svg></button>
-        <button type="button" class="icon-btn icon-btn--filled" title="New collection" aria-label="New collection"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
-      </div>
-      <div class="tree">
-        <div class="empty">
-          <strong>No collections yet</strong>
-          <span class="empty-actions"><button type="button" class="link">Create one</button><span>or</span><button type="button" class="link link--postman">Import from Postman</button></span>
-        </div>
-      </div>
-    </aside>
 
     <!-- ===== work area ===== -->
     <main class="work">
       <div class="tabsbar">
-        <button type="button" class="icon-btn side-toggle" aria-label="Hide sidebar" title="Hide sidebar  ⌘\" data-not="hidden"><svg aria-hidden="true" class="ico"><use href="#i-panel-left-close"/></svg></button>
-        <button type="button" class="icon-btn side-toggle" aria-label="Show sidebar" title="Show sidebar  ⌘\" data-only="hidden" hidden><svg aria-hidden="true" class="ico"><use href="#i-panel-left-open"/></svg></button>
+        <button type="button" class="icon-btn side-toggle" aria-label="Hide sidebar" title="Hide sidebar  ⌘\"><svg aria-hidden="true" class="ico"><use href="#i-panel-left-close"/></svg></button>
+
         <div class="tabs">
-          <div class="tab" data-cur="post loading save vars menu" aria-current="page"><button type="button" class="tab-main"><span class="m m-POST">POST</span><span class="name">Create customer</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
-          <div class="tab" data-cur="params"><button type="button" class="tab-main"><span class="m m-GET">GET</span><span class="name">List customers</span><span class="dirty" role="img" aria-label="Unsaved changes"></span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
-          <div class="tab" data-cur="error"><button type="button" class="tab-main"><span class="m m-DELETE">DEL</span><span class="name">Delete customer</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
-          <div class="tab" data-cur="history" data-on="history" hidden><button type="button" class="tab-main"><span class="m m-GET">GET</span><span class="name">Untitled request</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
-          <div class="tab" data-cur="hresp" data-on="hresp" data-not="hbig" hidden><button type="button" class="tab-main"><span class="m m-POST">POST</span><span class="name">api.example.com/v1/customers</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
-          <div class="tab" data-cur="hbig" data-only="hbig" hidden><button type="button" class="tab-main"><span class="m m-GET">GET</span><span class="name">api.example.com/v1/transactions/export</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
-          <div class="tab" data-cur="exview" data-on="exview" hidden><button type="button" class="tab-main"><svg aria-hidden="true" class="ico ex-ico"><use href="#i-bookmark"/></svg><span class="name">201 Created</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab" aria-current="page"><button type="button" class="tab-main"><span class="m m-POST">POST</span><span class="name">Create customer</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-GET">GET</span><span class="name">List customers</span><span class="dirty" role="img" aria-label="Unsaved changes"></span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-DELETE">DEL</span><span class="name">Delete customer</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+
           <button type="button" class="icon-btn tab-add" aria-label="New tab"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
         </div>
-        <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request" data-not="split"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
-        <button type="button" class="icon-btn layout-toggle" aria-label="Stacked" title="Response below the request" data-only="split" hidden><svg aria-hidden="true" class="ico"><use href="#i-rows-2"/></svg></button>
+        <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
+
         <div class="joined env-group">
         <button type="button" class="env-picker" aria-label="Environment">
-          <span class="env-badge" data-on="post params loading error save vars menu hresp exview">Pr</span>
-          <span data-on="post params loading error save vars menu hresp exview">Production</span>
-          <span data-on="history" hidden>No environment</span>
+          <span class="env-badge">Pr</span>
+          <span>Production</span>
+
           <svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg>
         </button>
         <button type="button" class="btn joined-tail" aria-label="Environment menu" title="Manage environments"><svg aria-hidden="true" class="ico"><use href="#i-menu"/></svg></button>
@@ -258,61 +193,41 @@
       <!-- request line -->
       <div class="request-line">
         <div class="url-field">
-          <select aria-label="Method" class="m-POST" data-on="post loading save vars menu hresp exview" data-not="hbig"><option>POST</option></select>
-          <select aria-label="Method" class="m-GET" data-on="params history" hidden><option>GET</option></select>
-          <select aria-label="Method" class="m-GET" data-only="hbig" hidden><option>GET</option></select>
-          <select aria-label="Method" class="m-DELETE" data-on="error" hidden><option>DELETE</option></select>
-          <input aria-label="URL" value="{{baseUrl}}/v1/customers" data-on="post loading save vars menu hresp exview" data-not="hbig">
-          <input aria-label="URL" value="{{baseUrl}}/v1/transactions/export?month=2026-10" data-only="hbig" hidden>
-          <input aria-label="URL" value="{{baseUrl}}/v1/customers?limit=20&amp;email=ada@example.com" data-on="params" data-not="urlvars" hidden>
-          <input aria-label="URL" value="{{baseUrl}}/v1/customers/:customerId/accounts/{{accountId}}?limit={{pageSize}}&amp;expand=owner" data-only="urlvars" hidden>
-          <input aria-label="URL" value="{{baseUrl}}/v1/health" data-on="history" hidden>
-          <input aria-label="URL" value="localhost:4000/v1/customers/cus_8f2" data-on="error" hidden>
+          <select aria-label="Method" class="m-POST"><option>POST</option></select>
+
+          <input aria-label="URL" value="{{baseUrl}}/v1/customers">
+
         </div>
-        <div class="joined send-group" data-on="post params history error save vars menu hresp">
+        <div class="joined send-group">
           <button type="button" class="btn btn--primary">Send</button>
-          <button type="button" class="btn btn--primary joined-tail" aria-label="More send options" aria-haspopup="menu" data-on="post params history error save vars hresp" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
-          <button type="button" class="btn btn--primary joined-tail" aria-label="More send options" aria-haspopup="menu" data-on="menu" hidden aria-expanded="true"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
-          <div class="menu" role="menu" aria-label="Send options" data-on="menu" hidden>
-            <button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg>Copy as cURL</button>
-            <button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-sliders-horizontal"/></svg>Request settings</button>
-          </div>
+          <button type="button" class="btn btn--primary joined-tail" aria-label="More send options" aria-haspopup="menu" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+
         </div>
-        <button type="button" class="btn btn--danger" data-on="loading" hidden aria-busy="true">Cancel</button>
+
         <div class="joined">
           <button type="button" class="btn">Save</button>
-          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved" data-on="post error save vars menu loading exview"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
-          <span class="btn joined-tail save-state dirty-state" role="img" aria-label="Unsaved changes" title="Unsaved changes" data-on="params" hidden><svg aria-hidden="true" class="ico"><use href="#i-circle-dot"/></svg></span>
-          <span class="btn joined-tail save-state" role="img" aria-label="Not saved yet" title="Not saved yet" data-on="history hresp" hidden><svg aria-hidden="true" class="ico"><use href="#i-circle-dashed"/></svg></span>
+          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
+
         </div>
-        <button type="button" class="btn" data-on="post params error save vars menu loading exview">Delete</button>
+        <button type="button" class="btn">Delete</button>
       </div>
       <div class="req-title">
-        <span class="name" data-on="post loading save vars menu">Create customer</span>
-        <span class="name" data-on="params" data-not="urlvars" hidden>List customers</span>
-        <span class="name" data-only="urlvars" hidden>Get account</span>
-        <span class="name" data-on="error" hidden>Delete customer</span>
-        <span class="name" data-on="history" hidden>Untitled request</span>
-        <span class="name" data-on="hresp" data-not="hbig" hidden>api.example.com/v1/customers</span>
-        <span class="name" data-only="hbig" hidden>api.example.com/v1/transactions/export</span>
-        <span class="name" data-on="exview" hidden>201 Created</span>
-        <span class="path" data-on="post loading save vars params error menu">trx-service / Customers</span>
-        <span class="path" data-on="history hresp" hidden>Not saved</span>
-        <span class="path" data-on="exview" hidden>trx-service / Customers / Create customer · example</span>
-        <span class="hint" data-on="history" hidden>Unresolved: {{baseUrl}}</span>
-        <span class="hint" data-only="urlvars" hidden>Unresolved: {{accountId}}</span>
+        <span class="name">Create customer</span>
+
+        <span class="path">trx-service / Customers</span>
+
       </div>
 
       <nav class="subtabs" aria-label="Request">
-        <button type="button" class="subtab" data-sub="params">Params <span class="n" data-on="params" hidden>2</span></button>
-        <button type="button" class="subtab" data-sub="body">Body <span class="n" data-on="post loading save vars menu hresp exview" data-not="hbig">1</span></button>
+        <button type="button" class="subtab" aria-pressed="false">Params </button>
+        <button type="button" class="subtab" aria-pressed="true">Body <span class="n">1</span></button>
         <button type="button" class="subtab">Headers <span class="n">2</span></button>
         <button type="button" class="subtab">Auth</button>
         <button type="button" class="icon-btn push" title="Copy as cURL" aria-label="Copy as cURL"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg></button>
       </nav>
 
       <!-- body editor -->
-      <div class="section" data-on="post loading save vars menu hresp" data-not="hbig" style="flex:1">
+      <div class="section" style="flex:1">
         <div class="modes" role="group" aria-label="Body type">
           <button type="button" class="mode">none</button>
           <button type="button" class="mode" aria-pressed="true">json</button>
@@ -327,427 +242,53 @@
         </div>
       </div>
 
-      <div class="section" data-on="exview" hidden style="flex:1">
-        <div class="modes" role="group" aria-label="Body type"><button type="button" class="mode">none</button><button type="button" class="mode" aria-pressed="true">json</button><button type="button" class="mode">text</button><button type="button" class="mode">xml</button><button type="button" class="mode">x-www-form-urlencoded</button><button type="button" class="mode">form-data</button></div>
-        <div class="editor"><pre class="code" aria-label="Example request body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str masked" title="Masked">"a••@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str masked" title="Masked">"A•• L•••••••"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"metadata"</span><span class="j-p">: {</span> <span class="j-key">"source"</span><span class="j-p">:</span> <span class="j-str">"{{$guid}}"</span> <span class="j-p">}</span></span><span class="l"><span class="j-p">}</span></span></pre></div>
-      </div>
-      <div class="section" data-only="hbig" hidden style="flex:1">
-        <div class="modes" role="group" aria-label="Body type"><button type="button" class="mode" aria-pressed="true">none</button><button type="button" class="mode">json</button><button type="button" class="mode">text</button><button type="button" class="mode">xml</button><button type="button" class="mode">x-www-form-urlencoded</button><button type="button" class="mode">form-data</button></div>
-        <p class="pv-muted">This request has no body.</p>
-      </div>
-
       <!-- params editor -->
-      <div class="section" data-on="params" hidden style="flex:1">
-        <table class="kv">
-          <thead><tr><th class="check"><span class="visually-hidden">Enabled</span></th><th>Name</th><th>Value</th><th class="del"><span class="visually-hidden">Remove</span></th></tr></thead>
-          <tbody>
-            <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="limit" aria-label="Name"></td><td><input class="field" value="20" aria-label="Value"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
-            <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="email" aria-label="Name"></td><td><input class="field" value="ada@example.com" aria-label="Value"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
-            <tr class="off"><td class="check"><input type="checkbox" aria-label="Enabled"></td><td><input class="field" value="starting_after" aria-label="Name"></td><td><input class="field" value="cus_1a9" aria-label="Value"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
-            <tr class="add"><td class="check"></td><td><input class="field" placeholder="Add a param" aria-label="Name"></td><td><input class="field" placeholder="Value" aria-label="Value"></td><td class="del"></td></tr>
-          </tbody>
-        </table>
-      </div>
 
       <!-- empty body section for history/error screens -->
-      <div class="section" data-on="history error" hidden style="flex:1">
-        <div class="modes" role="group" aria-label="Body type"><button type="button" class="mode" aria-pressed="true">none</button><button type="button" class="mode">json</button><button type="button" class="mode">text</button><button type="button" class="mode">xml</button><button type="button" class="mode">x-www-form-urlencoded</button><button type="button" class="mode">form-data</button></div>
-        <p class="pv-muted">This request has no body.</p>
-      </div>
 
       <div class="divider" role="separator" aria-orientation="horizontal" aria-label="Resize panes"></div>
 
       <!-- response -->
       <section class="response" aria-label="Response">
-        <div class="res-banner" data-on="hresp" hidden><svg aria-hidden="true" class="ico"><use href="#i-clock"/></svg><span>From history</span><span class="dim" data-not="hbig">Today, 14:02</span><span class="dim" data-only="hbig" hidden>Today, 13:41</span><span class="push dim">Send to get a fresh response</span></div>
-        <div class="res-banner res-banner--example" data-on="exview" hidden><svg aria-hidden="true" class="ico"><use href="#i-bookmark"/></svg><span>Example</span><span class="dim">Saved 12 Nov, 14:20</span><span class="push masked-note" title="Authorization, $.email, $.name in request and response"><svg aria-hidden="true" class="ico"><use href="#i-eye-off"/></svg>4 values masked</span></div>
-        <nav class="subtabs" aria-label="Response" data-on="post params save vars menu hresp exview">
+
+        <nav class="subtabs" aria-label="Response">
           <button type="button" class="subtab" aria-pressed="true">Body</button>
           <button type="button" class="subtab">Headers <span class="n">9</span></button>
-          <span class="push meta" data-on="post save vars menu hresp exview" data-not="hbig"><span class="ok">201 Created</span><span class="dim">142 ms</span><span class="dim">412&nbsp;B</span><span class="dim">HTTP/2</span></span>
-          <span class="push meta" data-only="hbig" hidden><span class="ok">200 OK</span><span class="dim">1.84 s</span><span class="dim">3.4&nbsp;MB</span><span class="dim">HTTP/2</span></span>
-          <span class="push meta" data-on="params" hidden><span class="ok">200 OK</span><span class="dim">88 ms</span><span class="dim">1.8&nbsp;KB</span><span class="dim">HTTP/2</span></span>
+          <span class="push meta"><span class="ok">201 Created</span><span class="dim">142 ms</span><span class="dim">412&nbsp;B</span><span class="dim">HTTP/2</span></span>
+
         </nav>
-        <div class="res-tools" data-on="post params save vars menu hresp exview" data-not="hbig">
+        <div class="res-tools">
           <div class="seg" role="group" aria-label="View"><button type="button" aria-pressed="true">Pretty</button><button type="button" aria-pressed="false">Raw</button></div>
           <span class="push"></span>
-          <button type="button" class="icon-btn" style="margin-left:auto" title="Save as example" aria-label="Save as example" data-not="exview" data-add="example:on"><svg aria-hidden="true" class="ico"><use href="#i-bookmark-plus"/></svg></button>
+          <button type="button" class="icon-btn" style="margin-left:auto" title="Save as example" aria-label="Save as example"><svg aria-hidden="true" class="ico"><use href="#i-bookmark-plus"/></svg></button>
           <button type="button" class="icon-btn" title="Copy response" aria-label="Copy response"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
         </div>
-        <div class="res-body" data-on="post params save vars menu hresp exview" data-not="hbig">
-          <pre class="code" data-on="post save vars menu hresp" aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"customer"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"delinquent"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"deleted_at"</span><span class="j-p">:</span> <span class="j-null">null</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"created"</span><span class="j-p">:</span> <span class="j-num">1794470400</span></span><span class="l"><span class="j-p">}</span></span></pre>
-          <pre class="code" data-on="exview" hidden aria-label="Example response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"customer"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str masked" title="Masked">"a••@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str masked" title="Masked">"A•• L•••••••"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"delinquent"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"deleted_at"</span><span class="j-p">:</span> <span class="j-null">null</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"created"</span><span class="j-p">:</span> <span class="j-num">1794470400</span></span><span class="l"><span class="j-p">}</span></span></pre>
-          <pre class="code" data-on="params" data-not="filter fsearch ferror fhelp" hidden aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"list"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"has_more"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"data"</span><span class="j-p">: [</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span> <span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span> <span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span> <span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span> <span class="j-p">}</span></span><span class="l"><span class="ind">  </span><span class="j-p">]</span></span><span class="l"><span class="j-p">}</span></span></pre>
-          <pre class="code" data-only="filter" hidden aria-label="Filtered response body"><span class="l"><span class="j-p">[</span></span><span class="l"><span class="ind">  </span><span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-str">"Grace Hopper"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-str">"Alan Turing"</span></span><span class="l"><span class="j-p">]</span></span></pre>
-          <pre class="code" data-only="ferror fhelp" hidden aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"list"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"has_more"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"data"</span><span class="j-p">:</span> <span class="j-p">[</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span></span><span class="l"><span class="ind">      </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span></span><span class="l"><span class="ind">    </span><span class="j-p">}</span><span class="j-p">,</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span></span><span class="l"><span class="ind">      </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_3b91d7"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Grace Hopper"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"grace@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">1250</span></span><span class="l"><span class="ind">    </span><span class="j-p">}</span><span class="j-p">,</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span></span><span class="l"><span class="ind">      </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_c04e5a"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Alan Turing"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"alan@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">300</span></span><span class="l"><span class="ind">    </span><span class="j-p">}</span></span><span class="l"><span class="ind">  </span><span class="j-p">]</span></span><span class="l"><span class="j-p">}</span></span></pre>
-          <pre class="code" data-only="fsearch" hidden aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"list"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"has_more"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"data"</span><span class="j-p">:</span> <span class="j-p">[</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span></span><span class="l"><span class="ind">      </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@<mark class="hit">example.com</mark>"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span></span><span class="l"><span class="ind">    </span><span class="j-p">}</span><span class="j-p">,</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span></span><span class="l"><span class="ind">      </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_3b91d7"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Grace Hopper"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"grace@<mark class="hit cur">example.com</mark>"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">1250</span></span><span class="l"><span class="ind">    </span><span class="j-p">}</span><span class="j-p">,</span></span><span class="l"><span class="ind">    </span><span class="j-p">{</span></span><span class="l"><span class="ind">      </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_c04e5a"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Alan Turing"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"alan@<mark class="hit">example.com</mark>"</span><span class="j-p">,</span></span><span class="l"><span class="ind">      </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">300</span></span><span class="l"><span class="ind">    </span><span class="j-p">}</span></span><span class="l"><span class="ind">  </span><span class="j-p">]</span></span><span class="l"><span class="j-p">}</span></span></pre>
+        <div class="res-body">
+          <pre class="code" aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"customer"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"delinquent"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"deleted_at"</span><span class="j-p">:</span> <span class="j-null">null</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"created"</span><span class="j-p">:</span> <span class="j-num">1794470400</span></span><span class="l"><span class="j-p">}</span></span></pre>
+
           <div class="res-filter">
-            <span class="rf-icon" data-not="filter ferror"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg></span>
-            <span class="rf-icon" data-only="filter ferror" hidden><svg aria-hidden="true" class="ico"><use href="#i-filter"/></svg></span>
+            <span class="rf-icon"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg></span>
+
             <input type="text" class="rf-input" aria-label="Filter response" placeholder="Search, or filter with $.path" spellcheck="false" data-filter>
-            <kbd data-not="filter fsearch ferror">⌘F</kbd>
-            <span class="rf-status" data-only="filter" hidden>3 results</span>
-            <span class="rf-status" data-only="fsearch" hidden>2 of 3</span>
-            <span class="rf-status err" data-only="ferror" hidden role="status">Expected a value after &gt;</span>
-            <button type="button" class="icon-btn" data-only="fsearch" hidden title="Previous match (⇧Enter)" aria-label="Previous match"><svg aria-hidden="true" class="ico"><use href="#i-chevron-up"/></svg></button>
-            <button type="button" class="icon-btn" data-only="fsearch" hidden title="Next match (Enter)" aria-label="Next match"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
-            <button type="button" class="icon-btn" data-only="filter fsearch ferror" hidden title="Clear (Esc)" aria-label="Clear filter"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
-            <button type="button" class="icon-btn" data-add="fhelp:open" title="Filter syntax" aria-label="Filter syntax" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-circle-help"/></svg></button>
-            <div class="menu rf-help" data-only="fhelp" hidden role="menu" aria-label="Filter examples">
-              <p class="rf-help-head">Start with <code>$</code> to filter with JSONPath. Anything else searches the text.</p>
-              <button type="button" role="menuitem"><code>$.data[*].name</code><span>name of every item</span></button>
-              <button type="button" role="menuitem"><code>$.data[0]</code><span>first item</span></button>
-              <button type="button" role="menuitem"><code>$.data[(@.length-1)]</code><span>last item</span></button>
-              <button type="button" role="menuitem"><code>$..id</code><span>every id, at any depth</span></button>
-              <button type="button" role="menuitem"><code>$.data[?(@.balance &gt; 0)]</code><span>items that match a condition</span></button>
-              <button type="button" role="menuitem"><code>$.data[0:2]</code><span>first two items</span></button>
-            </div>
+            <kbd>⌘F</kbd>
+
+            <button type="button" class="icon-btn" title="Filter syntax" aria-label="Filter syntax" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-circle-help"/></svg></button>
+
           </div>
         </div>
-        <div class="empty" data-on="history" hidden><strong>No response yet</strong><span>Press <kbd>⌘</kbd> <kbd>Enter</kbd> to send</span></div>
-        <div class="empty" data-only="hbig" hidden><strong>Body not kept</strong><span>3.4 MB is over the 1 MB history limit. Status and headers were kept.</span></div>
-        <div class="empty" data-on="loading" hidden role="status"><div class="spinner"></div><span>Sending…</span></div>
-        <div class="error-box" data-on="error" hidden role="alert"><strong>Could not get a response</strong><span class="msg">Connection failed: error sending request for url (http://localhost:4000/v1/customers/cus_8f2): tcp connect error: Connection refused (os error 61)</span></div>
+
       </section>
     </main>
   </div>
   <!-- ===== Home: projects and what you did with them; every figure comes from local history ===== -->
-  <main class="home" data-on="home newproj" hidden>
-    <div class="home-inner">
-      <header class="home-head">
-        <div>
-          <h1>Good afternoon</h1>
-          <p class="muted">Thursday, 12 November</p>
-        </div>
-        <div class="home-actions">
-          <button type="button" class="btn"><svg aria-hidden="true" class="ico"><use href="#i-import"/></svg>Import</button>
-          <button type="button" class="btn btn--primary"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg>New project</button>
-        </div>
-      </header>
 
-      <section aria-labelledby="h-projects">
-        <h2 id="h-projects">Projects</h2>
-        <div class="projects">
-          <button type="button" class="project-card">
-            <span class="proj-tile" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>
-            <span class="proj-name">Amarbank</span>
-            <span class="proj-cols">trx-service, Centralized Login, notification-service</span>
-            <dl class="proj-facts">
-              <div><dt>Collections</dt><dd>3</dd></div>
-              <div><dt>Requests</dt><dd>13</dd></div>
-              <div><dt>Environments</dt><dd>3</dd></div>
-            </dl>
-            <span class="proj-when">Opened 2 minutes ago</span>
-          </button>
-          <button type="button" class="project-card">
-            <span class="proj-tile" style="--fg: var(--proj-2-fg); --bg: var(--proj-2-bg)"><svg aria-hidden="true" class="ico"><use href="#i-user-round"/></svg></span>
-            <span class="proj-name">Personal</span>
-            <span class="proj-cols">GitHub API, Weather</span>
-            <dl class="proj-facts">
-              <div><dt>Collections</dt><dd>2</dd></div>
-              <div><dt>Requests</dt><dd>7</dd></div>
-              <div><dt>Environments</dt><dd>1</dd></div>
-            </dl>
-            <span class="proj-when">Opened yesterday</span>
-          </button>
-          <button type="button" class="project-card">
-            <span class="proj-tile" style="--fg: var(--proj-3-fg); --bg: var(--proj-3-bg)"><svg aria-hidden="true" class="ico"><use href="#i-flask-conical"/></svg></span>
-            <span class="proj-name">Sandbox</span>
-            <span class="proj-cols">Scratch</span>
-            <dl class="proj-facts">
-              <div><dt>Collections</dt><dd>1</dd></div>
-              <div><dt>Requests</dt><dd>2</dd></div>
-              <div><dt>Environments</dt><dd>0</dd></div>
-            </dl>
-            <span class="proj-when">Opened 9 days ago</span>
-          </button>
-          <button type="button" class="project-card project-card--new">
-            <svg aria-hidden="true" class="ico ico-lg"><use href="#i-plus"/></svg>
-            <span>New project</span>
-          </button>
-        </div>
-      </section>
-
-      <div class="home-grid">
-        <section class="panel-box" aria-labelledby="h-week">
-          <h2 id="h-week">Last 7 days</h2>
-          <dl class="stats">
-            <div><dt>Requests sent</dt><dd>1,029</dd></div>
-            <div><dt>Success rate</dt><dd>96.4%</dd></div>
-            <div><dt>Median response</dt><dd>118 ms</dd></div>
-            <div><dt>Most called</dt><dd class="stat-text"><span class="m m-POST">POST</span> /v1/transfers</dd></div>
-          </dl>
-          <figure class="bars" aria-labelledby="h-week-chart">
-            <figcaption id="h-week-chart" class="muted">Requests sent per day</figcaption>
-            <div class="bars-plot" aria-hidden="true">
-          <div class="bar-col"><span class="bar" style="--h: 59.2%" data-tip="142 requests"></span><span class="bar-day">Fri</span></div>
-          <div class="bar-col"><span class="bar" style="--h: 15.8%" data-tip="38 requests"></span><span class="bar-day">Sat</span></div>
-          <div class="bar-col"><span class="bar" style="--h: 10.0%" data-tip="24 requests"></span><span class="bar-day">Sun</span></div>
-          <div class="bar-col"><span class="bar" style="--h: 87.9%" data-tip="211 requests"></span><span class="bar-day">Mon</span></div>
-          <div class="bar-col"><span class="bar" style="--h: 100.0%" data-tip="240 requests"></span><span class="bar-day">Tue</span></div>
-          <div class="bar-col"><span class="bar" style="--h: 82.5%" data-tip="198 requests"></span><span class="bar-day">Wed</span></div>
-          <div class="bar-col"><span class="bar bar--today" style="--h: 73.3%" data-tip="176 requests"></span><span class="bar-day">Today</span></div>
-            </div>
-            <table class="visually-hidden"><caption>Requests sent per day</caption><tbody><tr><th>Fri</th><td>142</td></tr><tr><th>Sat</th><td>38</td></tr><tr><th>Sun</th><td>24</td></tr><tr><th>Mon</th><td>211</td></tr><tr><th>Tue</th><td>240</td></tr><tr><th>Wed</th><td>198</td></tr><tr><th>Thu</th><td>176</td></tr></tbody></table>
-          </figure>
-        </section>
-
-        <section class="panel-box" aria-labelledby="h-recent">
-          <h2 id="h-recent">Recent requests</h2>
-          <table class="recent">
-            <thead><tr><th><span class="visually-hidden">Method</span></th><th>Path</th><th>Collection</th><th>Status</th><th><span class="visually-hidden">When</span></th></tr></thead>
-            <tbody>
-              <tr><td><span class="m m-POST">POST</span></td><td class="url">/v1/transfers</td><td class="muted">trx-service</td><td><span class="hstatus ok">201</span></td><td class="muted when">2 min ago</td></tr>
-              <tr><td><span class="m m-GET">GET</span></td><td class="url">/v1/transfers?status=pending</td><td class="muted">trx-service</td><td><span class="hstatus ok">200</span></td><td class="muted when">4 min ago</td></tr>
-              <tr><td><span class="m m-POST">POST</span></td><td class="url">/oauth/token</td><td class="muted">Centralized Login</td><td><span class="hstatus fail">401</span></td><td class="muted when">11 min ago</td></tr>
-              <tr><td><span class="m m-GET">GET</span></td><td class="url">/v1/templates</td><td class="muted">notification-service</td><td><span class="hstatus ok">200</span></td><td class="muted when">38 min ago</td></tr>
-              <tr><td><span class="m m-DELETE">DEL</span></td><td class="url">/v1/beneficiaries/bnf_77a</td><td class="muted">trx-service</td><td><span class="hstatus fail">ERR</span></td><td class="muted when">1 h ago</td></tr>
-            </tbody>
-          </table>
-        </section>
-      </div>
-    </div>
-  </main>
 </div>
-
-
 
 <!-- ===== dialogs ===== -->
-<div class="backdrop" data-on="newproj" hidden>
-  <div class="dialog" role="dialog" aria-modal="true" aria-label="New project">
-    <h3>New project</h3>
-    <div class="proj-preview">
-      <span class="proj-tile" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>
-      <div><strong>Amarbank</strong><span class="muted">Collections, environments and history of their own</span></div>
-    </div>
-    <label>Name<input class="field" value="Amarbank"></label>
-    <div class="pick">
-      <span class="pick-label" id="lbl-icon">Icon</span>
-      <div class="icon-grid" role="radiogroup" aria-labelledby="lbl-icon">
-          <button type="button" role="radio" aria-checked="true" aria-label="landmark" title="landmark"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="building 2" title="building 2"><svg aria-hidden="true" class="ico"><use href="#i-building-2"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="wallet" title="wallet"><svg aria-hidden="true" class="ico"><use href="#i-wallet"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="credit card" title="credit card"><svg aria-hidden="true" class="ico"><use href="#i-credit-card"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="shopping cart" title="shopping cart"><svg aria-hidden="true" class="ico"><use href="#i-shopping-cart"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="store" title="store"><svg aria-hidden="true" class="ico"><use href="#i-store"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="truck" title="truck"><svg aria-hidden="true" class="ico"><use href="#i-truck"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="package" title="package"><svg aria-hidden="true" class="ico"><use href="#i-package"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="user round" title="user round"><svg aria-hidden="true" class="ico"><use href="#i-user-round"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="users" title="users"><svg aria-hidden="true" class="ico"><use href="#i-users"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="briefcase" title="briefcase"><svg aria-hidden="true" class="ico"><use href="#i-briefcase"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="rocket" title="rocket"><svg aria-hidden="true" class="ico"><use href="#i-rocket"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="flask conical" title="flask conical"><svg aria-hidden="true" class="ico"><use href="#i-flask-conical"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="bug" title="bug"><svg aria-hidden="true" class="ico"><use href="#i-bug"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="code xml" title="code xml"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="server" title="server"><svg aria-hidden="true" class="ico"><use href="#i-server"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="database" title="database"><svg aria-hidden="true" class="ico"><use href="#i-database"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="cloud" title="cloud"><svg aria-hidden="true" class="ico"><use href="#i-cloud"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="shield check" title="shield check"><svg aria-hidden="true" class="ico"><use href="#i-shield-check"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="lock" title="lock"><svg aria-hidden="true" class="ico"><use href="#i-lock"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="key round" title="key round"><svg aria-hidden="true" class="ico"><use href="#i-key-round"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="bell" title="bell"><svg aria-hidden="true" class="ico"><use href="#i-bell"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="mail" title="mail"><svg aria-hidden="true" class="ico"><use href="#i-mail"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="message circle" title="message circle"><svg aria-hidden="true" class="ico"><use href="#i-message-circle"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="globe" title="globe"><svg aria-hidden="true" class="ico"><use href="#i-globe"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="map pin" title="map pin"><svg aria-hidden="true" class="ico"><use href="#i-map-pin"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="heart pulse" title="heart pulse"><svg aria-hidden="true" class="ico"><use href="#i-heart-pulse"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="graduation cap" title="graduation cap"><svg aria-hidden="true" class="ico"><use href="#i-graduation-cap"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="gamepad 2" title="gamepad 2"><svg aria-hidden="true" class="ico"><use href="#i-gamepad-2"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="music" title="music"><svg aria-hidden="true" class="ico"><use href="#i-music"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="camera" title="camera"><svg aria-hidden="true" class="ico"><use href="#i-camera"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="zap" title="zap"><svg aria-hidden="true" class="ico"><use href="#i-zap"/></svg></button>
-      </div>
-    </div>
-    <div class="pick">
-      <span class="pick-label" id="lbl-colour">Colour</span>
-      <div class="swatches" role="radiogroup" aria-labelledby="lbl-colour">
-          <button type="button" role="radio" aria-checked="true" aria-label="Blue" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="Green" style="--fg: var(--proj-2-fg); --bg: var(--proj-2-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="Orange" style="--fg: var(--proj-3-fg); --bg: var(--proj-3-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="Purple" style="--fg: var(--proj-4-fg); --bg: var(--proj-4-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="Teal" style="--fg: var(--proj-5-fg); --bg: var(--proj-5-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
-          <button type="button" role="radio" aria-checked="false" aria-label="Pink" style="--fg: var(--proj-6-fg); --bg: var(--proj-6-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
-      </div>
-    </div>
-    <footer><button type="button" class="btn">Cancel</button><button type="button" class="btn btn--primary">Create project</button></footer>
-  </div>
-</div>
-<div class="backdrop" data-on="save" hidden>
-  <div class="dialog" role="dialog" aria-modal="true" aria-label="Save request">
-    <h3>Save request</h3>
-    <label>Name<input class="field" value="Create customer"></label>
-    <label>Save to<select class="field"><option>trx-service</option><option>&nbsp;&nbsp;Customers</option><option>&nbsp;&nbsp;Invoices</option><option>Centralized Login</option><option>New collection…</option></select></label>
-    <footer><button type="button" class="btn">Cancel</button><button type="button" class="btn btn--primary">Save</button></footer>
-  </div>
-</div>
-<div class="backdrop" data-only="example" hidden>
-  <div class="dialog dialog--example" role="dialog" aria-modal="true" aria-label="Save as example">
-    <h3>Save as example</h3>
-    <div class="ex-grid">
-      <label>Name<input class="field" value="201 Created"></label>
-      <label>Save under<select class="field"><option>trx-service / Customers / Create customer</option><option>trx-service / Customers / Get a customer</option><option>Centralized Login / Login</option></select></label>
-    </div>
-    <div class="mask-head">
-      <div class="set-text"><span class="set-label">Mask before saving</span><span class="desc">Found by name. History keeps the original values.</span></div>
-      <div class="seg" role="group" aria-label="Mask style"><button type="button" aria-pressed="true">Partial</button><button type="button" aria-pressed="false">Full</button></div>
-    </div>
-    <div class="mask-list">
-      <label class="mask-row"><input type="checkbox" checked><span class="mask-where">Request header</span><code class="mask-path">Authorization</code><code class="mask-val">Bearer ••••••••</code></label>
-      <label class="mask-row"><input type="checkbox" checked><span class="mask-where">Request body</span><code class="mask-path">$.email</code><code class="mask-val">a••@example.com</code></label>
-      <label class="mask-row"><input type="checkbox" checked><span class="mask-where">Request body</span><code class="mask-path">$.name</code><code class="mask-val">A•• L•••••••</code></label>
-      <label class="mask-row"><input type="checkbox" checked><span class="mask-where">Response body</span><code class="mask-path">$.email</code><code class="mask-val">a••@example.com</code></label>
-      <label class="mask-row"><input type="checkbox" checked><span class="mask-where">Response body</span><code class="mask-path">$.name</code><code class="mask-val">A•• L•••••••</code></label>
-      <label class="mask-row"><input type="checkbox"><span class="mask-where">Response header</span><code class="mask-path">Set-Cookie</code><code class="mask-val">session=8f2c41a9e0…</code></label>
-      <div class="mask-add"><input class="field" placeholder="Mask another field: $.data[*].phone or X-Api-Key" aria-label="Field to mask"></div>
-    </div>
-    <footer><span class="mask-count">5 of 6 masked</span><button type="button" class="btn">Cancel</button><button type="button" class="btn btn--primary">Save example</button></footer>
-  </div>
-</div>
-<div class="backdrop" data-on="vars" data-only="vars varsjson varsenv varsmenu" hidden>
-  <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Variables">
-    <h3>Variables</h3>
-    <div class="vars">
-      <ul>
-        <li class="group">Environments<button type="button" class="icon-btn" title="Add environment" aria-label="Add environment"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button></li>
-        <li class="env-item" data-add="varsmenu:menu-open"><button type="button" aria-current="true">Production</button><button type="button" class="icon-btn row-more" title="More actions" aria-label="More actions for Production" aria-haspopup="menu"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button><div class="menu row-menu" role="menu" aria-label="Production actions" data-only="varsmenu" hidden><button type="button" role="menuitem"><svg aria-hidden="true" class="ico"><use href="#i-copy-plus"/></svg>Duplicate</button><hr><button type="button" role="menuitem" class="danger"><svg aria-hidden="true" class="ico"><use href="#i-trash-2"/></svg>Delete</button></div></li>
-        <li class="env-item"><button type="button">Local</button><button type="button" class="icon-btn row-more" title="More actions" aria-label="More actions for Local" aria-haspopup="menu"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></li>
-        <li class="group">Collection variables</li>
-        <li><button type="button">trx-service</button></li>
-        <li><button type="button">Centralized Login</button></li>
-      </ul>
-      <div>
-        <div class="env-head">
-          <input class="field" value="Production" aria-label="Environment name">
-        </div>
-        <div class="vars-tools">
-          <div class="seg" role="group" aria-label="Format">
-            <button type="button" data-fmt="vars" aria-pressed="true">Table</button><button type="button" data-fmt="varsjson" aria-pressed="false">JSON</button><button type="button" data-fmt="varsenv" aria-pressed="false">.env</button>
-          </div>
-          <span class="vars-hint" data-only="varsjson" hidden>Disabled variables are kept, not shown</span>
-          <span class="vars-hint" data-only="varsenv" hidden>Lines starting with # are disabled</span>
-        </div>
-        <div data-only="vars varsmenu" hidden>
-        <table class="kv">
-          <thead><tr><th class="check"><span class="visually-hidden">Enabled</span></th><th>Variable</th><th>Value</th><th class="del"><span class="visually-hidden">Remove</span></th></tr></thead>
-          <tbody>
-            <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="baseUrl" aria-label="Variable"></td><td><input class="field" value="https://api.example.com" aria-label="Value"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
-            <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="token" aria-label="Variable"></td><td><input class="field" value="sk_live_••••••••" aria-label="Value"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
-            <tr class="off"><td class="check"><input type="checkbox" aria-label="Enabled"></td><td><input class="field" value="debug" aria-label="Variable"></td><td><input class="field" value="true" aria-label="Value"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
-            <tr class="add"><td class="check"></td><td><input class="field" placeholder="Add a variable" aria-label="Variable"></td><td><input class="field" placeholder="Value" aria-label="Value"></td><td class="del"></td></tr>
-          </tbody>
-        </table>
-        </div>
-        <div class="editor vars-code" data-only="varsjson" hidden><pre class="code" aria-label="Variables as JSON"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"baseUrl"</span><span class="j-p">:</span> <span class="j-str">"https://api.example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"token"</span><span class="j-p">:</span> <span class="j-str">"sk_live_123"</span></span><span class="l"><span class="j-p">}</span></span></pre></div>
-        <div class="editor vars-code" data-only="varsenv" hidden><pre class="code" aria-label="Variables as .env"><span class="l"><span class="j-key">baseUrl</span><span class="j-p">=</span><span class="j-str">https://api.example.com</span></span><span class="l"><span class="j-key">token</span><span class="j-p">=</span><span class="j-str">sk_live_123</span></span><span class="l"><span class="j-punct env-off"># debug=true</span></span></pre></div>
-      </div>
-    </div>
-    <footer><button type="button" class="btn">Cancel</button><button type="button" class="btn btn--primary">Save</button></footer>
-  </div>
-</div>
-<div class="backdrop" data-only="settings settingsreq" hidden>
-  <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Settings">
-    <h3>Settings</h3>
-    <div class="vars settings">
-      <ul>
-        <li><button type="button" data-cur="settings"><svg aria-hidden="true" class="ico"><use href="#i-type"/></svg>Appearance</button></li>
-        <li><button type="button" data-cur="settingsreq"><svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Requests</button></li>
-      </ul>
-      <div class="set-pane" data-only="settings" hidden>
-        <h4>Appearance</h4>
-        <div class="set-list">
-          <div class="set-item">
-            <div class="set-text"><span class="set-label" id="pv-theme-l">Theme</span><span class="desc">Auto follows your Mac's appearance</span></div>
-            <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="pv-theme-l"><button type="button" aria-pressed="true" data-set-theme="">Auto</button><button type="button" aria-pressed="false" data-set-theme="light">Light</button><button type="button" aria-pressed="false" data-set-theme="dark">Dark</button></div></div>
-          </div>
-          <div class="set-item" data-scheme-row="light">
-            <div class="set-text"><label for="pv-scheme-light" data-scheme-label>Light theme</label><span class="desc" data-scheme-desc>Used while your Mac is light</span></div>
-            <div class="set-ctl"><span class="scheme-dots" aria-hidden="true"></span><select id="pv-scheme-light" class="field set-scheme" data-scheme="light"></select></div>
-          </div>
-          <div class="set-item" data-scheme-row="dark">
-            <div class="set-text"><label for="pv-scheme-dark" data-scheme-label>Dark theme</label><span class="desc" data-scheme-desc>Used while your Mac is dark</span></div>
-            <div class="set-ctl"><span class="scheme-dots" aria-hidden="true"></span><select id="pv-scheme-dark" class="field set-scheme" data-scheme="dark"></select></div>
-          </div>
-          <div class="set-item">
-            <div class="set-text"><label for="pv-ui-font">Interface font</label><span class="desc">Menus, tabs and dialogs</span></div>
-            <div class="set-ctl"><input id="pv-ui-font" class="field set-font" list="pv-fonts-ui" placeholder="System default"><select class="field set-size" aria-label="Interface font size"><option>12</option><option>13</option><option selected>14</option><option>15</option><option>16</option></select></div>
-          </div>
-          <div class="set-item">
-            <div class="set-text"><label for="pv-code-font">Code font</label><span class="desc">URLs, bodies and responses</span></div>
-            <div class="set-ctl"><input id="pv-code-font" class="field set-font" list="pv-fonts-mono" placeholder="System monospace"><select class="field set-size" aria-label="Code font size"><option>12</option><option selected>13</option><option>14</option><option>15</option></select></div>
-          </div>
-          <div class="set-sample" aria-label="Sample">
-            <span class="set-sample-ui">Create customer <span class="muted">trx-service / Customers</span></span>
-            <code><span class="m m-POST">POST</span> {{baseUrl}}/v1/customers</code>
-          </div>
-        </div>
-        <datalist id="pv-fonts-ui"><option>Inter</option><option>Helvetica Neue</option><option>Avenir Next</option><option>Georgia</option></datalist>
-        <datalist id="pv-fonts-mono"><option>JetBrains Mono</option><option>Menlo</option><option>Monaco</option><option>SF Mono</option></datalist>
-        <button type="button" class="link set-reset">Reset to defaults</button>
-      </div>
-      <div class="set-pane" data-only="settingsreq" hidden>
-        <h4>Requests</h4>
-        <div class="set-list">
-          <div class="set-item">
-            <div class="set-text"><label for="pv-timeout">Timeout</label><span class="desc">How long to wait for a response before giving up</span></div>
-            <div class="set-ctl"><span class="unit-field"><input id="pv-timeout" class="field" type="number" value="30000"><span class="unit">ms</span></span></div>
-          </div>
-          <div class="set-item">
-            <div class="set-text"><label for="pv-redir">Follow redirects</label><span class="desc">Follow 3xx responses to their Location</span></div>
-            <div class="set-ctl"><input id="pv-redir" class="switch" type="checkbox" role="switch" checked></div>
-          </div>
-          <div class="set-item">
-            <div class="set-text"><label for="pv-tls">Skip TLS verification</label><span class="desc">Accept self-signed or invalid certificates. Use only for local servers.</span></div>
-            <div class="set-ctl"><input id="pv-tls" class="switch switch--warn" type="checkbox" role="switch"></div>
-          </div>
-          <div class="set-item">
-            <div class="set-text"><label for="pv-keep">Keep responses in history</label><span class="desc">Status, headers and body of each send, stored on this Mac as received</span></div>
-            <div class="set-ctl"><input id="pv-keep" class="switch" type="checkbox" role="switch" checked></div>
-          </div>
-          <div class="set-item">
-            <div class="set-text"><label for="pv-keep-max">Largest body kept</label><span class="desc">Bigger responses keep only status and headers</span></div>
-            <div class="set-ctl"><span class="unit-field"><input id="pv-keep-max" class="field" type="number" value="1"><span class="unit">MB</span></span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <footer><button type="button" class="btn btn--primary">Done</button></footer>
-  </div>
-</div>
+
 </div>
 
 <script>
-  const BASE = { urlvars: "params", hmenu: "hresp", hbig: "hresp", example: "post", filter: "params", fsearch: "params", ferror: "params", fhelp: "params", varsmenu: "vars", varsjson: "vars", varsenv: "vars", settings: "post", settingsreq: "post", rowmenu: "post", dragin: "post", reorder: "post", hidden: "post", split: "post", empty: "history" };
-  const go = (screen) => {
-    const base = BASE[screen] || screen;
-    document.querySelector(".app").dataset.variant = screen;
-  document.querySelectorAll("[data-fmt]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.fmt === screen || (x.dataset.fmt === "vars" && !["varsjson", "varsenv"].includes(screen)))));
-    document.querySelectorAll("[data-on]").forEach((el) => { el.hidden = !el.dataset.on.split(" ").includes(base); });
-    document.querySelectorAll("[data-only]").forEach((el) => { el.hidden = !el.dataset.only.split(" ").includes(screen); });
-    document.querySelectorAll("[data-not]").forEach((el) => { if (el.dataset.not.split(" ").includes(screen)) el.hidden = true; else if (!el.dataset.on) el.hidden = false; });
-    document.querySelectorAll("[data-add]").forEach((el) => {
-      const [scr, cls] = el.dataset.add.split(":");
-      el.classList.toggle(cls, scr.split(" ").includes(screen));
-    });
-    document.querySelectorAll("[data-cur]").forEach((el) => {
-      const list = el.dataset.cur.split(" ");
-      const on = (list.includes(el.closest(".settings") ? screen : base) || list.includes(screen)) && !(el.dataset.curNot || "").split(" ").includes(screen);
-      if (on) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
-    });
-    document.querySelectorAll("[data-go]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.go === screen)));
-    const rail = (base === "history" && screen !== "empty") || base === "hresp" ? "history" : screen === "vars" ? "vars" : "collections";
-    document.querySelectorAll("[data-rail]").forEach((b) => b.dataset.rail === rail ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
-    const sub = base === "params" ? "params" : "body";
-    document.querySelectorAll("[data-sub]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.sub === sub)));
-    const FILTER = { filter: "$.data[*].name", fsearch: "example.com", ferror: "$.data[?(@.balance >" };
-    document.querySelectorAll("[data-filter]").forEach((i) => { i.value = FILTER[screen] || ""; i.classList.toggle("is-path", (FILTER[screen] || "").startsWith("$")); });
-    try { location.hash = screen; } catch {}
-    document.dispatchEvent(new Event("pv-screen"));
-  };
-  document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
-  document.querySelectorAll("[data-fmt]").forEach((b) => b.addEventListener("click", () => {
-    go(b.dataset.fmt);
-    document.querySelectorAll("[data-fmt]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-  }));
   // Theme: Auto/Light/Dark plus a colour scheme per appearance. The bar's Light/Dark stands in for the Mac's appearance.
   {
     const { SCHEMES, tokens, isDark, swatch } = window.VoidThemes;
@@ -794,31 +335,12 @@
     if (sel.value) document.documentElement.style.setProperty(prop, sel.value); else document.documentElement.style.removeProperty(prop);
     if (sel.dataset.size) document.documentElement.style.setProperty("--font-size-code", sel.value ? `calc(${sel.value} - 1px)` : "");
   }));
-  // New project dialog: icon, colour and name drive the live tile
-  {
-    const dlg = document.querySelector('[aria-label="New project"]');
-    const tile = dlg.querySelector(".proj-preview .proj-tile");
-    const pick = (group, btn) => group.querySelectorAll("[role=radio]").forEach((b) => b.setAttribute("aria-checked", String(b === btn)));
-    dlg.querySelector(".icon-grid").addEventListener("click", (e) => {
-      const b = e.target.closest("[role=radio]"); if (!b) return;
-      pick(e.currentTarget, b);
-      tile.querySelector("use").setAttribute("href", b.querySelector("use").getAttribute("href"));
-    });
-    dlg.querySelector(".swatches").addEventListener("click", (e) => {
-      const b = e.target.closest("[role=radio]"); if (!b) return;
-      pick(e.currentTarget, b);
-      tile.style.cssText = b.style.cssText.replace(/border.*$/, "");
-      dlg.querySelector(".icon-grid").style.cssText = b.style.cssText;
-    });
-    dlg.querySelector("input.field").addEventListener("input", (e) => { dlg.querySelector(".proj-preview strong").textContent = e.target.value || "Untitled project"; });
-  }
-
   // Address bar: {{var}} and :param tokens painted on a layer behind a transparent-text input
   {
     const SCOPE = { baseUrl: ["https://api.amarbank.dev", "Staging"], pageSize: ["20", "Collection · trx-service"] };
     const TOKEN = /(\{\{\s*[^{}]+?\s*\}\})|((?<=\/):[A-Za-z_][\w-]*)|([?&=])/g;
     const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-    const scope = () => (document.querySelector(".app").dataset.variant === "history" ? {} : SCOPE);
+    const scope = () => (SCOPE);
     const paint = (v) => {
       let out = "", last = 0, inQuery = false;
       for (const m of v.matchAll(TOKEN)) {
@@ -842,7 +364,6 @@
       const sync = () => { hl.innerHTML = `<span class="url-hl-in">${paint(input.value)} </span>`; hl.firstChild.style.transform = `translateX(${-input.scrollLeft}px)`; wrap.hidden = input.hidden; };
       ["input", "scroll", "keyup", "select", "focus"].forEach((ev) => input.addEventListener(ev, sync));
       new MutationObserver(sync).observe(input, { attributes: true, attributeFilter: ["hidden"] });
-      document.addEventListener("pv-screen", sync);
       sync();
       const show = (span) => {
         const s = scope();
@@ -851,7 +372,7 @@
           tip.innerHTML = hit
             ? `<span class="tip-k">${esc(n)}</span><code>${esc(hit[0])}</code><span class="tip-src">${esc(hit[1])}</span>`
             : n.startsWith("$") ? `<span class="tip-k">${esc(n)}</span><span class="tip-src">Dynamic · new value on every send</span>`
-            : `<span class="tip-k is-missing">${esc(n)}</span><span class="tip-src">Not defined in ${document.querySelector(".app").dataset.variant === "history" ? "any environment" : "Staging or the collection"}</span><button type="button" class="tip-link">Add to Staging</button>`;
+            : `<span class="tip-k is-missing">${esc(n)}</span><span class="tip-src">Not defined in Staging or the collection</span><button type="button" class="tip-link">Add to Staging</button>`;
         } else {
           tip.innerHTML = `<span class="tip-k is-path">:${esc(span.dataset.path)}</span><span class="tip-src">Path variable · set it in Params</span>`;
         }
@@ -866,15 +387,8 @@
         if (span) show(span); else if (!tip.matches(":hover")) tip.hidden = true;
       });
       wrap.addEventListener("mouseleave", () => { over = null; tip.hidden = true; });
-      // the urlvars screen pins the tip open on the first variable, for the screenshot
-      document.addEventListener("pv-screen", () => {
-        if (document.querySelector(".app").dataset.variant === "urlvars" && !input.hidden) requestAnimationFrame(() => show(hl.querySelector(".tok-var.is-missing")));
-        else tip.hidden = true;
-      });
     });
   }
-  const fromHash = location.hash.slice(1);
-  go(document.querySelector(`[data-go="${fromHash}"]`) ? fromHash : "post");
   if (new URLSearchParams(location.search).get("theme") === "dark") document.querySelector('[data-theme-set="dark"]').click();
 </script>
 </body>

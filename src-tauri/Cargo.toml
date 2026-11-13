@@ -32,6 +32,22 @@ tokio-util = "0.7"
 base64 = "0.22"
 mime_guess = "2"
 fontdb = { version = "0.23", default-features = false, features = ["fs", "memmap"] }
+# gRPC: tonic for the HTTP/2 call, prost-reflect for messages built at runtime from a schema,
+# protox to compile .proto files without protoc, tonic-reflection for the reflection client.
+tonic = { version = "0.14", default-features = false, features = ["channel", "codegen"] }
+tonic-prost = "0.14"
+tonic-reflection = { version = "0.14", default-features = false }
+prost = "0.14"
+prost-types = "0.14"
+prost-reflect = { version = "0.16", features = ["serde"] }
+protox = "0.10"
+tokio-stream = "0.1"
+hyper-util = { version = "0.1", features = ["client-legacy", "http2", "tokio"] }
+hyper-rustls = { version = "0.27", default-features = false, features = ["http2", "ring", "tls12", "webpki-roots"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+webpki-roots = "1"
+http = "1"
+tower = "0.5"
 
 [profile.release]
 codegen-units = 1

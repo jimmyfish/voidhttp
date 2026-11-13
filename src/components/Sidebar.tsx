@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { RowMenu, type MenuItem } from "./RowMenu";
+import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
 import { useStore } from "../store";
 import type { Collection, Example, HistoryEntry, TreeNode } from "../types";
-import { countRequests, findNode, methodLabel, type DropWhere } from "../lib/model";
+import { countRequests, entryStatus, findNode, methodLabel, type DropWhere } from "../lib/model";
 import {
   Bookmark,
   BookmarkPlus,
@@ -342,7 +342,7 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
   const s = useStore.getState(); // actions only; no subscription
   const { dragId, drop, start } = useContext(DragCtx);
   const moreRef = useRef<HTMLButtonElement>(null);
-  const [menu, setMenu] = useState(false);
+  const [menu, setMenu] = useState<MenuState>(false);
   const container = folder || isCollection;
   // a request with examples: the caret toggles them, the row still opens the request
   const expandable = !container && !!onToggle;
@@ -386,6 +386,7 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
   return (
     <div
       className={`row${isCollection ? " collection" : ""}${dragId === nodeId ? " dragging" : ""}${menu ? " menu-open" : ""}${dropHere}`}
+      onContextMenu={openAtPointer(setMenu)}
       aria-current={active ? "page" : undefined}
       data-id={nodeId}
       data-col={collectionId}
@@ -436,12 +437,12 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
         title="More actions"
         aria-label={`More actions for ${name}`}
         aria-haspopup="menu"
-        aria-expanded={menu}
+        aria-expanded={!!menu}
         onClick={() => setMenu(!menu)}
       >
         <Ellipsis {...ico} />
       </button>
-      {menu && <RowMenu anchor={moreRef} label={`${name} actions`} items={items} onClose={() => setMenu(false)} />}
+      {menu && <RowMenu anchor={moreRef} label={`${name} actions`} items={items} onClose={() => setMenu(false)} at={menu} />}
     </div>
   );
 }
@@ -450,7 +451,7 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
 function ExampleRow({ example, collectionId, nodeId, depth, active }: { example: Example; collectionId: string; nodeId: string; depth: number; active: boolean }) {
   const s = useStore.getState(); // actions only
   const moreRef = useRef<HTMLButtonElement>(null);
-  const [menu, setMenu] = useState(false);
+  const [menu, setMenu] = useState<MenuState>(false);
   const ref = { collectionId, nodeId, exampleId: example.id };
   const items: MenuItem[] = [
     {
@@ -471,6 +472,7 @@ function ExampleRow({ example, collectionId, nodeId, depth, active }: { example:
   return (
     <div
       className={`row example${menu ? " menu-open" : ""}`}
+      onContextMenu={openAtPointer(setMenu)}
       aria-current={active ? "page" : undefined}
       style={{ "--indent": `${depth * 16 + 40}px` } as React.CSSProperties}
     >
@@ -488,12 +490,12 @@ function ExampleRow({ example, collectionId, nodeId, depth, active }: { example:
         title="More actions"
         aria-label={`More actions for ${example.name}`}
         aria-haspopup="menu"
-        aria-expanded={menu}
+        aria-expanded={!!menu}
         onClick={() => setMenu(!menu)}
       >
         <Ellipsis {...ico} />
       </button>
-      {menu && <RowMenu anchor={moreRef} label={`${example.name} actions`} items={items} onClose={() => setMenu(false)} />}
+      {menu && <RowMenu anchor={moreRef} label={`${example.name} actions`} items={items} onClose={() => setMenu(false)} at={menu} />}
     </div>
   );
 }
@@ -501,7 +503,7 @@ function ExampleRow({ example, collectionId, nodeId, depth, active }: { example:
 function HistoryRow({ entry: h }: { entry: HistoryEntry }) {
   const s = useStore.getState(); // actions only
   const moreRef = useRef<HTMLButtonElement>(null);
-  const [menu, setMenu] = useState(false);
+  const [menu, setMenu] = useState<MenuState>(false);
   const label = `${h.request.method} ${h.request.url}`;
   const asExample = async () => {
     const response = await s.historyResponse(h.id);
@@ -515,20 +517,26 @@ function HistoryRow({ entry: h }: { entry: HistoryEntry }) {
   };
   const items: MenuItem[] = [
     { label: "Open in new tab", icon: <FilePlus {...ico} />, run: () => s.openHistory(h.id) },
-    ...(h.kept === "full" ? ([{ label: "Save response as example…", icon: <BookmarkPlus {...ico} />, run: asExample }] as MenuItem[]) : []),
+    ...(h.kept === "full" && h.request.method !== "GRPC" ? ([{ label: "Save response as example…", icon: <BookmarkPlus {...ico} />, run: asExample }] as MenuItem[]) : []),
     { label: "Save request to collection…", icon: <CopyPlus {...ico} />, run: toCollection },
     "sep",
     { label: "Delete from history", icon: <Trash2 {...ico} />, run: () => s.deleteHistory(h.id), danger: true },
   ];
   return (
-    <div className={`row${menu ? " menu-open" : ""}`}>
+    <div className={`row${menu ? " menu-open" : ""}`} onContextMenu={openAtPointer(setMenu)}>
       <button type="button" className="row-main" onClick={() => s.openHistory(h.id)}>
         <span className={`m m-${h.request.method}`}>{methodLabel(h.request.method)}</span>
-        <span className="name" title={h.request.url}>
-          {h.request.url.replace(/^(https?:\/\/|\{\{[^}]+\}\})/, "") || "(empty)"}
-        </span>
+        {h.request.grpc?.method ? (
+          <span className="name" title={`${h.request.url} ${h.request.grpc.service}/${h.request.grpc.method}`}>
+            {h.request.grpc.service.slice(h.request.grpc.service.lastIndexOf(".") + 1)}/{h.request.grpc.method}
+          </span>
+        ) : (
+          <span className="name" title={h.request.url}>
+            {h.request.url.replace(/^(https?:\/\/|\{\{[^}]+\}\})/, "") || "(empty)"}
+          </span>
+        )}
         <span className="htime">{new Date(h.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-        <span className={`hstatus ${h.status && h.status < 400 ? "ok" : "fail"}`}>{h.status ?? "ERR"}</span>
+        <span className={`hstatus ${entryStatus(h).ok ? "ok" : "fail"}`}>{entryStatus(h).text}</span>
       </button>
       <button
         ref={moreRef}
@@ -537,12 +545,12 @@ function HistoryRow({ entry: h }: { entry: HistoryEntry }) {
         title="More actions"
         aria-label={`More actions for ${label}`}
         aria-haspopup="menu"
-        aria-expanded={menu}
+        aria-expanded={!!menu}
         onClick={() => setMenu(!menu)}
       >
         <Ellipsis {...ico} />
       </button>
-      {menu && <RowMenu anchor={moreRef} label="History entry actions" items={items} onClose={() => setMenu(false)} />}
+      {menu && <RowMenu anchor={moreRef} label="History entry actions" items={items} onClose={() => setMenu(false)} at={menu} />}
     </div>
   );
 }

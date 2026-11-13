@@ -317,7 +317,7 @@ fn describe_error(e: reqwest::Error) -> String {
     root_cause(&e)
 }
 
-fn root_cause(e: &(dyn std::error::Error + 'static)) -> String {
+pub(crate) fn root_cause(e: &(dyn std::error::Error + 'static)) -> String {
     let mut msg = e.to_string();
     let mut src = e.source();
     while let Some(s) = src {
