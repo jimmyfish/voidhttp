@@ -12,6 +12,14 @@
     "updater:default",
     "process:allow-restart",
     "core:window:allow-start-dragging",
-    "core:window:allow-toggle-maximize"
+    "core:window:allow-toggle-maximize",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "https://github.com/jimmyfish/voidhttp/*"
+        }
+      ]
+    }
   ]
 }

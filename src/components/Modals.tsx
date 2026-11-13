@@ -7,7 +7,11 @@ import { ExampleModal } from "./ExampleModal";
 import { ImportModal } from "./ImportModal";
 import { ExportModal } from "./ExportModal";
 import { KVEditor } from "./KVEditor";
-import { Ban, Check, CopyPlus, Ellipsis, Plus, Send, Trash2, Type, ico } from "./Icon";
+import { Ban, Check, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, Plus, Send, Trash2, TriangleAlert, Type, ico } from "./Icon";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { useUpdates } from "../updates";
+import { RELEASES_URL } from "../lib/updater";
+import { ago } from "../lib/time";
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
 import { CodeArea } from "./CodeArea";
 import { formatVars, parseVars, type VarsFormat } from "../lib/varsFormat";
@@ -442,7 +446,7 @@ const UI_SIZES = [12, 13, 14, 15, 16, 17, 18];
 const CODE_SIZES = [11, 12, 13, 14, 15, 16];
 
 /** The one app-wide settings dialog: appearance (theme, fonts) and request defaults. */
-function SettingsModal({ onClose, section: initial }: { onClose: () => void; section?: "appearance" | "requests" }) {
+function SettingsModal({ onClose, section: initial }: { onClose: () => void; section?: "appearance" | "requests" | "updates" }) {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
   const [section, setSection] = useState(initial ?? "appearance");
@@ -472,6 +476,12 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
             <button type="button" aria-current={section === "requests"} onClick={() => setSection("requests")}>
               <Send {...ico} />
               Requests
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current={section === "updates"} onClick={() => setSection("updates")}>
+              <CircleArrowDown {...ico} />
+              Updates
             </button>
           </li>
         </ul>
@@ -568,6 +578,8 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
               Reset to defaults
             </button>
           </div>
+        ) : section === "updates" ? (
+          <UpdatesPane />
         ) : (
           <div className="set-pane">
             <h4>Requests</h4>
@@ -669,6 +681,114 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
         </button>
       </footer>
     </Shell>
+  );
+}
+
+/** Settings > Updates: the running version and what the updater knows, plus the launch check switch. */
+function UpdatesPane() {
+  const auto = useStore((s) => s.settings.autoUpdateCheck !== false);
+  const setSettings = useStore((s) => s.setSettings);
+  const u = useUpdates();
+  const st = u.state;
+  const pct = st.kind === "downloading" && st.total ? Math.floor((st.received / st.total) * 100) : undefined;
+
+  let status: ReactNode;
+  let action: ReactNode = (
+    <button type="button" className="btn" disabled={st.kind === "checking"} onClick={() => void u.check()}>
+      {st.kind === "checking" ? "Checking…" : "Check for updates"}
+    </button>
+  );
+  if (st.kind === "checking") status = "Checking…";
+  else if (st.kind === "current")
+    status = (
+      <span className="set-status ok">
+        <CircleCheck {...ico} />
+        Up to date{u.checkedAt ? ` · checked ${ago(u.checkedAt)}` : ""}
+      </span>
+    );
+  else if (st.kind === "available") {
+    status = (
+      <span className="set-status new">
+        <CircleArrowDown {...ico} />
+        {st.version} is available
+      </span>
+    );
+    action = (
+      <button type="button" className="btn btn--primary" onClick={() => void u.install()}>
+        Install update
+      </button>
+    );
+  } else if (st.kind === "downloading" || st.kind === "installing") {
+    status = st.kind === "installing" ? `Installing ${st.version}…` : `Downloading ${st.version}${pct !== undefined ? ` · ${pct}%` : "…"}`;
+    action = null;
+  } else if (st.kind === "ready") {
+    status = (
+      <span className="set-status ok">
+        <CircleCheck {...ico} />
+        {st.version} is installed · restart to finish
+      </span>
+    );
+    action = (
+      <button type="button" className="btn btn--primary" onClick={() => void u.restart()}>
+        Restart now
+      </button>
+    );
+  } else if (st.kind === "error") {
+    status = (
+      <span className="set-status bad" title={st.message}>
+        <TriangleAlert {...ico} />
+        {u.failed === "install" ? `Couldn't install ${u.target ?? "the update"}` : "Couldn't check for updates"}
+      </span>
+    );
+    if (u.failed === "install")
+      action = (
+        <button type="button" className="btn" onClick={() => void u.install()}>
+          Try again
+        </button>
+      );
+  } else status = "Not checked yet";
+
+  return (
+    <div className="set-pane">
+      <h4>Updates</h4>
+      <div className="set-list">
+        <div className="set-item">
+          <div className="set-text">
+            <span className="set-label">voidHTTP {u.version}</span>
+            <span className="desc">{status}</span>
+          </div>
+          <div className="set-ctl">{action}</div>
+        </div>
+        <div className="set-item">
+          <div className="set-text">
+            <label htmlFor="set-auto-update">Check automatically</label>
+            <span className="desc">Look for a new version when voidHTTP opens</span>
+          </div>
+          <div className="set-ctl">
+            <input
+              id="set-auto-update"
+              className="switch"
+              type="checkbox"
+              role="switch"
+              checked={auto}
+              onChange={(e) => setSettings({ autoUpdateCheck: e.target.checked ? undefined : false })}
+            />
+          </div>
+        </div>
+        <div className="set-item">
+          <div className="set-text">
+            <span className="set-label">Release notes</span>
+            <span className="desc">What changed in each version</span>
+          </div>
+          <div className="set-ctl">
+            <button type="button" className="upd-link" onClick={() => void openUrl(RELEASES_URL)}>
+              Open on GitHub
+              <ExternalLink {...ico} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

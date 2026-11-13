@@ -214,6 +214,8 @@ export interface Settings {
   /** Soft-wrap long lines in the request body editor (default off) and the response body (default on). */
   wrapRequestBody?: boolean;
   wrapResponseBody?: boolean;
+  /** Look for a new version when the app opens (default on). */
+  autoUpdateCheck?: boolean;
 }
 
 /** A project: the unit shown as a tab in the title strip and as a card on Home. */

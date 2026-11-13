@@ -1,14 +1,14 @@
 {
   "package.json": {
-    "mtime": 1794566358.0225348,
-    "seen": 1794566373.404835,
-    "ast_hash": "3041c4a43e50e9ca31487f4116a22d84",
+    "mtime": 1794569228.8905678,
+    "seen": 1794569286.5176709,
+    "ast_hash": "f8772aa473af3df5691d0ccaad82062c",
     "semantic_hash": ""
   },
   "src-tauri/Cargo.toml": {
-    "mtime": 1794566364.232837,
-    "seen": 1794566373.404835,
-    "ast_hash": "2bd7d5577399eeec8d4acc3b046e731c",
+    "mtime": 1794569229.023506,
+    "seen": 1794569286.5176718,
+    "ast_hash": "aca93215f29e6777102ea7b196c7ae31",
     "semantic_hash": ""
   },
   "src-tauri/build.rs": {
@@ -18,9 +18,9 @@
     "semantic_hash": "1be34a5c61c2c35365de3dab14298f0b"
   },
   "src-tauri/capabilities/default.json": {
-    "mtime": 1794566370.6314335,
-    "seen": 1794566373.4048371,
-    "ast_hash": "2e83d9162d0eab70df2c7330f9fdcfcd",
+    "mtime": 1794569238.3753824,
+    "seen": 1794569286.517673,
+    "ast_hash": "89743defbf6432b3de8f97cd66fe9e51",
     "semantic_hash": ""
   },
   "src-tauri/src/http.rs": {
@@ -30,9 +30,9 @@
     "semantic_hash": ""
   },
   "src-tauri/src/lib.rs": {
-    "mtime": 1794566370.5785263,
-    "seen": 1794566373.40484,
-    "ast_hash": "f1154b5176a57c44c37ad462e7fbe611",
+    "mtime": 1794569244.202699,
+    "seen": 1794569286.517678,
+    "ast_hash": "8f4854e6c184633dfa938e05de4d1f9e",
     "semantic_hash": ""
   },
   "src-tauri/src/main.rs": {
@@ -48,15 +48,15 @@
     "semantic_hash": ""
   },
   "src-tauri/tauri.conf.json": {
-    "mtime": 1794567009.8068879,
-    "seen": 1794567420.157506,
-    "ast_hash": "04d8acf7f4f3c73a5edd2d56f512701f",
+    "mtime": 1794567892.0328026,
+    "seen": 1794569215.173363,
+    "ast_hash": "7916ade49e5c597cbc93859af82dff82",
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1794566263.5448308,
-    "seen": 1794566373.404842,
-    "ast_hash": "b73e1f89b7da0de04dbd61c0a0aaf1f3",
+    "mtime": 1794569323.1468647,
+    "seen": 1794569366.629335,
+    "ast_hash": "d41fd741d8d74d47a2bc424b28af9dee",
     "semantic_hash": ""
   },
   "src/components/CodeArea.tsx": {
@@ -72,9 +72,9 @@
     "semantic_hash": ""
   },
   "src/components/Modals.tsx": {
-    "mtime": 1794566263.546195,
-    "seen": 1794566373.404851,
-    "ast_hash": "308f1037b4ca5324484d7a4d267e2774",
+    "mtime": 1794569340.7897954,
+    "seen": 1794569366.629345,
+    "ast_hash": "7b92969bac419775124a859a1a8d4b97",
     "semantic_hash": ""
   },
   "src/components/RequestPane.tsx": {
@@ -138,15 +138,15 @@
     "semantic_hash": ""
   },
   "src/store.ts": {
-    "mtime": 1794566263.5481005,
-    "seen": 1794566373.4048698,
-    "ast_hash": "b53c68c692657446e657d9990a1548d6",
+    "mtime": 1794569264.4848342,
+    "seen": 1794569286.5177128,
+    "ast_hash": "cfb610bccbcb36edd2217dc095d6bcf2",
     "semantic_hash": ""
   },
   "src/types.ts": {
-    "mtime": 1794566263.3886466,
-    "seen": 1794566373.4048698,
-    "ast_hash": "2192bfb1ebe3953f647a4eff6837b114",
+    "mtime": 1794569264.4845161,
+    "seen": 1794569286.517714,
+    "ast_hash": "e1d47da6fbeb4612b644763e8e19e9ea",
     "semantic_hash": ""
   },
   "tsconfig.json": {
@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "src/components/Icon.tsx": {
-    "mtime": 1794566263.5456767,
-    "seen": 1794566373.404848,
-    "ast_hash": "6600257c1268096b64ffe984de0a41b5",
+    "mtime": 1794569289.8506029,
+    "seen": 1794569309.40348,
+    "ast_hash": "0ce6aa6ee05f42f2c9bb8489b4b3f82d",
     "semantic_hash": ""
   },
   "src/components/ProjectIcon.tsx": {
@@ -546,21 +546,39 @@
     "semantic_hash": ""
   },
   ".github/workflows/release.yml": {
-    "mtime": 1794567419.2775607,
-    "seen": 1794567420.157494,
-    "ast_hash": "85737e51f0b421c2d1108477e3059277",
+    "mtime": 1794569316.5233843,
+    "seen": 1794569317.2661362,
+    "ast_hash": "910ce15f48e398483c46b79f69dedfa7",
     "semantic_hash": ""
   },
   "src/lib/updater.ts": {
-    "mtime": 1794566393.7751257,
-    "seen": 1794566394.5470111,
-    "ast_hash": "53980948daa5a147090af6297368dba5",
+    "mtime": 1794569284.5553033,
+    "seen": 1794569286.5177112,
+    "ast_hash": "017c4e5db6e92c7e9ea9190fd45dbbe8",
     "semantic_hash": ""
   },
   ".hallmark/preview/updates.html": {
     "mtime": 1794566523.4233642,
     "seen": 1794566575.999218,
     "ast_hash": "3f843b5c70661645eeeabddfc178267b",
+    "semantic_hash": ""
+  },
+  ".github/workflows/cache.yml": {
+    "mtime": 1794569218.9128394,
+    "seen": 1794569219.6253068,
+    "ast_hash": "cc065a4167bab2083e3fbb6c981dd7a4",
+    "semantic_hash": ""
+  },
+  "src/updates.ts": {
+    "mtime": 1794569284.577393,
+    "seen": 1794569286.517714,
+    "ast_hash": "86b4999e386259aea4c11f325dfbf0ac",
+    "semantic_hash": ""
+  },
+  "src/components/UpdateChip.tsx": {
+    "mtime": 1794569308.515239,
+    "seen": 1794569309.403489,
+    "ast_hash": "649faa42cbf44041b29c5ad55475db2a",
     "semantic_hash": ""
   }
 }

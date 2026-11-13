@@ -35,7 +35,10 @@ jobs:
               repo: context.repo.repo,
               tag_name: context.ref.replace("refs/tags/", ""),
               name: `voidHTTP ${context.ref.replace("refs/tags/", "")}`,
-              body: "See the commits since the previous tag for what changed.",
+              // Left empty: write the notes on the draft before publishing. latest.json is
+              // written during the build, so the app's update popover links to this
+              // release page for the notes instead of showing a placeholder.
+              body: "",
               draft: true,
               prerelease: false,
             });
@@ -62,10 +65,14 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      # Restores the dependency cache that cache.yml builds on master: a tag run can only
+      # read caches from its own tag or the default branch. It never saves, so each
+      # release doesn't leave a ~550 MB cache that no later tag could read.
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
-          key: ${{ matrix.target }}
+          shared-key: macos-${{ matrix.target }}
+          save-if: false
 
       - run: bun install --frozen-lockfile
 

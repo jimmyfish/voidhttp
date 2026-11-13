@@ -4,6 +4,8 @@
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 
+export const RELEASES_URL = "https://github.com/jimmyfish/voidhttp/releases";
+
 export type UpdateState =
   | { kind: "idle" }
   | { kind: "checking" }
@@ -37,6 +39,9 @@ export async function checkForUpdate(): Promise<UpdateState> {
   }
 }
 
+/** Whether checkForUpdate() left an update that installUpdate() can retry. */
+export const hasPendingUpdate = () => pending !== null;
+
 /**
  * Downloads and installs the update found by the last checkForUpdate(), reporting
  * progress through `onState`. Resolves with "ready": call restartToUpdate() then.
@@ -69,3 +74,21 @@ export async function installUpdate(onState: (s: UpdateState) => void): Promise<
 export function restartToUpdate(): Promise<void> {
   return relaunch();
 }
+
+/** "2026-11-20 11:05:04.0 +00:00:00" (the manifest's pub_date as the plugin passes it) → "20 Nov 2026". */
+export function releaseDate(date?: string): string | undefined {
+  const m = date?.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return undefined;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+}
+
+/** Release notes as list lines: markdown bullets and headings lose their markers, blank lines go. */
+export function noteLines(notes?: string): string[] {
+  return (notes ?? "")
+    .split("\n")
+    .map((l) => l.replace(/^\s*(?:[-*+]|\d+\.|#{1,6})\s+/, "").replace(/\*\*|__|`/g, "").trim())
+    .filter(Boolean);
+}
+
+export const mb = (bytes: number) => (bytes / (1024 * 1024)).toFixed(1);

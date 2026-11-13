@@ -11,6 +11,8 @@ import { ProjectTile } from "./components/ProjectIcon";
 import { DEFAULT_SCHEME, findScheme, isDark, schemeTokens } from "./lib/themes";
 import { Braces, CircleCheck, HistoryIcon, House, Layers, Mark, Settings, Undo2, X, ico, icoLg } from "./components/Icon";
 import { DropImport } from "./components/DropImport";
+import { UpdateChip } from "./components/UpdateChip";
+import { useUpdates } from "./updates";
 
 export const SIDEBAR_DEFAULT = 296;
 const SIDEBAR_MIN = 220;
@@ -109,6 +111,7 @@ function AppStrip() {
           );
         })}
       </nav>
+      <UpdateChip />
       <button
         type="button"
         className="icon-btn strip-settings"
@@ -189,6 +192,25 @@ export default function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Updates: one quiet check once the workspace has loaded (Settings > Updates can turn it off),
+  // and "Check for Updates…" in the app menu, which opens the chip's popover or Settings > Updates
+  useEffect(() => {
+    if (!loaded || useStore.getState().settings.autoUpdateCheck === false) return;
+    void useUpdates.getState().check({ quiet: true });
+  }, [loaded]);
+  useEffect(() => {
+    const unlisten = listen("menu:check-updates", async () => {
+      const u = useUpdates.getState();
+      const busy = ["downloading", "installing", "ready"].includes(u.state.kind);
+      const s = busy ? u.state : await u.check();
+      if (s.kind === "available" || busy) u.setPopover(true);
+      else useStore.getState().openModal({ kind: "settings", section: "updates" });
+    });
+    return () => {
+      unlisten.then((off) => off());
+    };
   }, []);
 
   // ⌘W comes from the native menu (it never reaches keydown): close the open

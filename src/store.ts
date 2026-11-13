@@ -59,7 +59,7 @@ export type Modal =
   /** select: an environment or collection id to open on */
   /** addVar: start a new, empty variable of that name in the selected environment or collection */
   | { kind: "environments"; select?: string; addVar?: string }
-  | { kind: "settings"; section?: "appearance" | "requests" }
+  | { kind: "settings"; section?: "appearance" | "requests" | "updates" }
   /** create a project (no id) or edit one */
   | { kind: "project"; projectId?: string }
   /** import a file, URL or pasted text; source is set when a file was dropped or picked before the dialog opened */

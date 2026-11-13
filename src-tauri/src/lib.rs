@@ -11,6 +11,7 @@ mod menu {
 
     pub const CLOSE_TAB: &str = "close_tab";
     pub const CLOSE_WINDOW: &str = "close_window";
+    pub const CHECK_UPDATES: &str = "check_updates";
 
     /// The stock Tauri menu binds ⌘W to the native "Close Window", which quits a
     /// single-window app. This menu gives ⌘W to "Close Tab" (handled by the
@@ -29,6 +30,7 @@ mod menu {
             true,
             &[
                 &PredefinedMenuItem::about(app, None, Some(about))?,
+                &MenuItem::with_id(app, CHECK_UPDATES, "Check for Updates…", true, None::<&str>)?,
                 &PredefinedMenuItem::separator(app)?,
                 &PredefinedMenuItem::services(app, None)?,
                 &PredefinedMenuItem::separator(app)?,
@@ -86,6 +88,9 @@ mod menu {
             CLOSE_TAB => {
                 let _ = app.emit("menu:close-tab", ());
             }
+            CHECK_UPDATES => {
+                let _ = app.emit("menu:check-updates", ());
+            }
             CLOSE_WINDOW => {
                 if let Some(w) = app.get_webview_window("main") {
                     let _ = w.close();
@@ -106,6 +111,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(http::HttpState::default())
         .manage(grpc::GrpcState::default())
         .invoke_handler(tauri::generate_handler![
