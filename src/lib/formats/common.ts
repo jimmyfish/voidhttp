@@ -3,8 +3,8 @@
  * the collections and environments it would add, plus what changed on the way in.
  */
 import { parse as parseYaml } from "yaml";
-import type { Auth, Collection, Environment, KV, RequestDef, RequestNode, TreeNode } from "../../types";
-import { isSecretKey, scrubEchoes, sentSecrets } from "../mask";
+import type { Auth, Collection, Environment, GrpcResult, KV, RequestDef, RequestNode, TreeNode } from "../../types";
+import { isSecretKey, scrubEchoes, scrubGrpcEchoes, sentSecrets } from "../mask";
 import { kv, parseQuery, urlWithParams } from "../model";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -265,7 +265,19 @@ export function capRequest<T extends RequestDef>(r: T): T {
   };
 }
 
-/** Imported collections with every table cut to MAX_ROWS rows: request tables, example response headers, variables. */
+/** A gRPC example's call with metadata and trailers cut to MAX_ROWS rows, and only the last MAX_ROWS messages (the rest counted as dropped). */
+function capGrpcResult(g: GrpcResult): GrpcResult {
+  const cut = Math.max(0, g.messages.length - MAX_ROWS);
+  return {
+    ...g,
+    headers: g.headers.slice(0, MAX_ROWS),
+    messages: cut ? g.messages.slice(cut) : g.messages,
+    dropped: (g.dropped ?? 0) + cut || undefined,
+    end: g.end && { ...g.end, trailers: g.end.trailers.slice(0, MAX_ROWS) },
+  };
+}
+
+/** Imported collections with every table cut to MAX_ROWS rows: request tables, example response headers and gRPC messages, variables. */
 export function capRows(collections: Collection[]): Collection[] {
   // at most MAX_NODES requests and folders in one import: the sidebar lists every one, on every launch
   let left = MAX_NODES;
@@ -277,7 +289,12 @@ export function capRows(collections: Collection[]): Collection[] {
       return [
         {
           ...capRequest(n),
-          examples: n.examples?.slice(0, MAX_ROWS).map((e) => ({ ...e, request: capRequest(e.request), response: e.response && { ...e.response, headers: e.response.headers.slice(0, MAX_ROWS) } })),
+          examples: n.examples?.slice(0, MAX_ROWS).map((e) => ({
+            ...e,
+            request: capRequest(e.request),
+            response: e.response && { ...e.response, headers: e.response.headers.slice(0, MAX_ROWS) },
+            grpc: e.grpc && capGrpcResult(e.grpc),
+          })),
         },
       ];
     });
@@ -475,10 +492,31 @@ function blankSecretXml(raw: string): string {
   return out + raw.slice(at);
 }
 
-function scrubNodes(nodes: TreeNode[]): TreeNode[] {
+/** Shorter pieces are left: emptying every "id" or "1" from a message would wreck it, and they carry no real secret. */
+const MIN_SECRET_PIECE = 4;
+
+/**
+ * The values of the variables "Blank" treats as credentials (secret-looking names, and the ones `used` names),
+ * as they may sit filled in inside a saved gRPC call. A value built from other variables (`Bearer {{t}}`) gives
+ * its literal parts; the variables it uses are credentials too, so their values are in the list. Longest first,
+ * so a shorter value never splits a longer one before it is replaced.
+ */
+function credentialValues(used: Set<string>, ...lists: KV[][]): string[] {
+  const out = new Set<string>();
+  for (const v of lists.flat()) {
+    if (!used.has(v.key) && !isSecretKey(v.key)) continue;
+    for (const piece of String(v.value ?? "").split(/\{\{[^{}]*\}\}/)) {
+      for (const p of [piece, piece.trim()]) if (p.length >= MIN_SECRET_PIECE) out.add(p);
+    }
+  }
+  return [...out].sort((a, b) => b.length - a.length);
+}
+
+/** `secrets`: credential values to empty from saved gRPC calls, whose sent messages hold variables filled in. */
+function scrubNodes(nodes: TreeNode[], secrets: string[]): TreeNode[] {
   return nodes.map((n) =>
     n.type === "folder"
-      ? { ...n, children: scrubNodes(n.children) }
+      ? { ...n, children: scrubNodes(n.children, secrets) }
       : {
           ...scrubRequest(n),
           examples: n.examples?.map((e) => {
@@ -486,7 +524,9 @@ function scrubNodes(nodes: TreeNode[]): TreeNode[] {
             // the response URL is the one sent, with variables filled in: the scrubbed template replaces it,
             // and its secrets are emptied wherever the server echoed them (Link headers, a "url" field)
             const response = e.response && { ...scrubEchoes(e.response, sentSecrets(e.response.url, e.request.auth), ""), url: request.url };
-            return { ...e, request, response };
+            // a gRPC example keeps the messages as sent, variables filled in: credential values are emptied there
+            const grpc = e.grpc && scrubGrpcEchoes(e.grpc, secrets, "");
+            return { ...e, request, response, grpc };
           }),
         },
   );
@@ -563,11 +603,12 @@ export function blankHarEnv(c: Collection, vars: KV[]): KV[] {
 export function blankValues(c: Collection, envs: Environment[], followThrough: KV[][] = []): { collection: Collection; environments: Environment[] } {
   // `followThrough`: variables that link a credential to collection values without being exported (the active environment)
   const used = secretVarNames(c, ...envs.map((e) => e.variables), ...followThrough);
+  const secrets = credentialValues(used, c.variables, ...envs.map((e) => e.variables), ...followThrough);
   return {
     collection: {
       ...c,
       variables: blankSecretKv(c.variables).map((v) => (used.has(v.key) ? { ...v, value: "" } : { ...v, value: scrubVarValue(v.value) })),
-      children: scrubNodes(c.children),
+      children: scrubNodes(c.children, secrets),
     },
     environments: envs.map((e) => ({ ...e, variables: blankKv(e.variables) })),
   };

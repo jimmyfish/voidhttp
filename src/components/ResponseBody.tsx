@@ -1,9 +1,10 @@
 import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { formatBytes } from "../lib/model";
+import type { Example, Tab } from "../types";
+import { findNode, formatBytes } from "../lib/model";
 import { highlightLines } from "../lib/highlight";
 import { compile, query } from "../lib/jsonpath";
 import { useStore } from "../store";
-import { ChevronDown, ChevronUp, CircleHelp, Copy, Filter, Search, WrapText, X, ico } from "./Icon";
+import { Bookmark, ChevronDown, ChevronUp, CircleHelp, Copy, EyeOff, Filter, Search, WrapText, X, ico } from "./Icon";
 
 /** Above this size lines are not split or highlighted, to keep the UI snappy. */
 const LINES_LIMIT = 512 * 1024;
@@ -33,6 +34,35 @@ interface Filtered {
 
 export const when = (ts: number) =>
   `${new Date(ts).toDateString() === new Date().toDateString() ? "Today" : new Date(ts).toLocaleDateString([], { day: "numeric", month: "short" })}, ${new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+
+/** The saved example an example tab shows, read from its collection (for when it was saved and what was masked). */
+export function useTabExample(tab: Tab): Example | undefined {
+  return useStore((s) => {
+    const ref = tab.example;
+    const col = ref && s.collections.find((c) => c.id === ref.collectionId);
+    const node = col && findNode(col.children, ref.nodeId);
+    return node?.type === "request" ? node.examples?.find((e) => e.id === ref!.exampleId) : undefined;
+  });
+}
+
+/** The strip over an example tab, HTTP or gRPC: when it was saved and what was masked. */
+export function ExampleBanner({ example }: { example?: Example }) {
+  const masked = example?.masked;
+  const savedAt = example?.savedAt;
+  return (
+    <div className="res-banner">
+      <Bookmark {...ico} />
+      <span>Example</span>
+      {savedAt && <span className="dim">Saved {when(savedAt)}</span>}
+      {!!masked?.length && (
+        <span className="push masked-note" title={masked.join("\n")}>
+          <EyeOff {...ico} />
+          {masked.length === 1 ? "1 field masked" : `${masked.length} fields masked`}
+        </span>
+      )}
+    </div>
+  );
+}
 
 /** Headers, metadata, trailers: a read-only two-column table. */
 export function PairsTable({ rows, empty = "None" }: { rows: { key: string; value: string }[]; empty?: string }) {

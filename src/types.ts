@@ -98,7 +98,9 @@ export interface Example {
   name: string;
   savedAt: number;
   request: RequestDef;
-  response: HttpResponse;
+  /** An HTTP example holds `response`, a gRPC example holds `grpc` (an ended call); never both. */
+  response?: HttpResponse;
+  grpc?: GrpcResult;
   /** What was masked before saving, e.g. "Response body $.email" */
   masked: string[];
 }

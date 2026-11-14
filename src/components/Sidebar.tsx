@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { RenameField } from "./InlineRename";
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
 import { useStore } from "../store";
-import type { Collection, Example, HistoryEntry, TreeNode } from "../types";
+import type { Collection, Example, GrpcResult, HistoryEntry, TreeNode } from "../types";
 import { countRequests, entryStatus, findNode, methodLabel, type DropWhere } from "../lib/model";
 import {
   Bookmark,
@@ -471,7 +471,8 @@ function ExampleRow({ example, collectionId, nodeId, depth, active }: { example:
         s.openModal({ kind: "confirm", title: `Delete example “${example.name}”?`, message: "This cannot be undone.", onConfirm: () => s.deleteExample(ref) }),
     },
   ];
-  const st = example.response.status;
+  // a gRPC example shows its status code the way history does: OK for 0
+  const st = entryStatus({ request: example.request, status: example.grpc ? example.grpc.end?.code : example.response?.status });
   return (
     <div
       className={`row example${menu ? " menu-open" : ""}`}
@@ -488,7 +489,7 @@ function ExampleRow({ example, collectionId, nodeId, depth, active }: { example:
             {example.name}
           </span>
         )}
-        <span className={`hstatus ${st < 400 ? "ok" : "fail"}`}>{st}</span>
+        <span className={`hstatus ${st.ok ? "ok" : "fail"}`}>{st.text}</span>
       </RowMain>
       <button
         ref={moreRef}
@@ -525,7 +526,8 @@ function HistoryRow({ entry: h }: { entry: HistoryEntry }) {
   const asExample = async () => {
     const response = await s.historyResponse(h.id);
     if (!response) return s.notify("The saved response is missing");
-    s.openModal({ kind: "example", request: h.request, response });
+    // a gRPC entry keeps its call (messages, status, metadata) in the same file
+    s.openModal({ kind: "example", request: h.request, response: h.request.method === "GRPC" ? (response as unknown as GrpcResult) : response });
   };
   const toCollection = async () => {
     await s.openHistory(h.id);
@@ -534,7 +536,7 @@ function HistoryRow({ entry: h }: { entry: HistoryEntry }) {
   };
   const items: MenuItem[] = [
     { label: "Open in new tab", icon: <FilePlus {...ico} />, run: () => s.openHistory(h.id) },
-    ...(h.kept === "full" && h.request.method !== "GRPC" ? ([{ label: "Save response as example…", icon: <BookmarkPlus {...ico} />, run: asExample }] as MenuItem[]) : []),
+    ...(h.kept === "full" ? ([{ label: "Save response as example…", icon: <BookmarkPlus {...ico} />, run: asExample }] as MenuItem[]) : []),
     { label: "Save request to collection…", icon: <CopyPlus {...ico} />, run: toCollection },
     "sep",
     { label: "Delete from history", icon: <Trash2 {...ico} />, run: () => s.deleteHistory(h.id), danger: true },

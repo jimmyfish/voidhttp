@@ -3,9 +3,9 @@ import type { GrpcResult, Tab } from "../types";
 import { formatBytes } from "../lib/model";
 import { highlightLines } from "../lib/highlight";
 import { useStore } from "../store";
-import { BodyViewer, PairsTable } from "./ResponseBody";
+import { BodyViewer, ExampleBanner, PairsTable, useTabExample } from "./ResponseBody";
 import { RunBanner, RunsButton } from "./Runs";
-import { ArrowDown, ArrowUp, Copy, Trash2, ico } from "./Icon";
+import { ArrowDown, ArrowUp, BookmarkPlus, Copy, Trash2, ico } from "./Icon";
 
 type Sub = "body" | "metadata" | "trailers";
 
@@ -19,9 +19,27 @@ const pretty = (json: string) => {
 const seconds = (ms: number) => (ms < 10_000 ? `${(ms / 1000).toFixed(2)}s` : ms < 100_000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms / 1000)}s`);
 const duration = (ms: number) => (ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`);
 
+/** "Save as example", once the call has ended; an example tab has nothing to save. */
+function SaveExampleButton({ tab, g }: { tab: Tab; g: GrpcResult }) {
+  const openModal = useStore((s) => s.openModal);
+  if (tab.example || !g.end || tab.inflightId) return null;
+  return (
+    <button
+      type="button"
+      className="icon-btn"
+      title="Save as example"
+      aria-label="Save as example"
+      onClick={() => openModal({ kind: "example", request: tab.request, response: g, target: tab.savedRef })}
+    >
+      <BookmarkPlus {...ico} />
+    </button>
+  );
+}
+
 /** The response side of a gRPC tab: one reply (or error) for unary calls, a live message list for streams. */
 export function GrpcResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   const [sub, setSub] = useState<Sub>("body");
+  const example = useTabExample(tab);
   const g = tab.grpc;
   // a new call starts on its messages; trailers do not exist yet
   useEffect(() => setSub("body"), [g?.callId]);
@@ -66,6 +84,7 @@ export function GrpcResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   return shell(
     <>
       {tab.fromHistory && <RunBanner tab={tab} hint="Invoke to call it again" />}
+      {tab.example && <ExampleBanner example={example} />}
       <nav className="subtabs" aria-label="Response">
         <button type="button" className="subtab" aria-pressed={sub === "body"} onClick={() => setSub("body")}>
           {streamed ? (
@@ -171,7 +190,16 @@ function UnaryBody({ tab, g }: { tab: Tab; g: GrpcResult }) {
           message: end.message,
           ...(end.details && { details: JSON.parse(end.details) }),
         });
-  return <BodyViewer key={`${g.callId}-${end.code}`} tabId={tab.id} body={body} contentType="application/json" />;
+  return (
+    <BodyViewer
+      key={`${g.callId}-${end.code}`}
+      tabId={tab.id}
+      body={body}
+      contentType="application/json"
+      example={!!tab.example}
+      tools={<SaveExampleButton tab={tab} g={g} />}
+    />
+  );
 }
 
 /** Stream messages, newest last; click one to read it in full. */
@@ -228,10 +256,11 @@ function MessageList({ tab, g }: { tab: Tab; g: GrpcResult }) {
             Received
           </span>
         </span>
+        <span style={{ marginLeft: "auto" }} />
+        <SaveExampleButton tab={tab} g={g} />
         <button
           type="button"
           className="icon-btn"
-          style={{ marginLeft: "auto" }}
           title="Copy all messages as JSON"
           aria-label="Copy all messages"
           disabled={!g.messages.length}
@@ -239,9 +268,11 @@ function MessageList({ tab, g }: { tab: Tab; g: GrpcResult }) {
         >
           <Copy {...ico} />
         </button>
-        <button type="button" className="icon-btn" title="Clear messages" aria-label="Clear messages" disabled={!g.messages.length} onClick={() => clear(tab.id)}>
-          <Trash2 {...ico} />
-        </button>
+        {!tab.example && (
+          <button type="button" className="icon-btn" title="Clear messages" aria-label="Clear messages" disabled={!g.messages.length} onClick={() => clear(tab.id)}>
+            <Trash2 {...ico} />
+          </button>
+        )}
       </div>
       <div className="res-body">
         <div

@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { Select } from "./Select";
 import { useStore } from "../store";
-import type { Collection, HttpResponse, RequestDef, SavedRef, TreeNode } from "../types";
+import type { Collection, Example, RequestDef, SavedRef, TreeNode } from "../types";
 import { findNode, uid } from "../lib/model";
-import { applyMasks, findSensitive, isCookieName, maskValue, type MaskStyle } from "../lib/mask";
+import { applyMasks, findSensitive, isCookieName, isGrpcResult, maskValue, type MaskStyle, type Received } from "../lib/mask";
 
 /** Every saved request, as "Collection / Folder / Request", for the "Save under" list. */
 function allRequests(collections: Collection[]): { ref: SavedRef; label: string; method: string; url: string }[] {
@@ -20,9 +20,16 @@ function allRequests(collections: Collection[]): { ref: SavedRef; label: string;
 
 const key = (r: SavedRef) => `${r.collectionId}|${r.nodeId}`;
 
+/** The name an example starts with: the status, e.g. "200 OK", or "0 OK" for a gRPC call. */
+function statusName(res: Received): string {
+  if (!isGrpcResult(res)) return `${res.status} ${res.statusText}`.trim();
+  return res.end ? `${res.end.code} ${res.end.status}`.trim() : "Example";
+}
+
 /**
  * Save a response as an example under a saved request. Sensitive values are found by name and masked
  * in the saved copy only; the tab and history keep what was received.
+ * A gRPC call is saved the same way once it has ended: its metadata, messages, trailers and status.
  */
 export function ExampleModal({
   request,
@@ -31,13 +38,15 @@ export function ExampleModal({
   onClose,
 }: {
   request: RequestDef;
-  response: HttpResponse;
+  response: Received;
   target?: SavedRef;
   onClose: () => void;
 }) {
   const s = useStore.getState();
-  const requests = useMemo(() => allRequests(s.collections), [s.collections]);
-  const [name, setName] = useState(`${response.status} ${response.statusText}`.trim());
+  // a gRPC call goes under a gRPC request, an HTTP response under an HTTP one
+  const grpc = isGrpcResult(response);
+  const requests = useMemo(() => allRequests(s.collections).filter((r) => (r.method === "GRPC") === grpc), [s.collections, grpc]);
+  const [name, setName] = useState(() => statusName(response));
   const [under, setUnder] = useState(() => {
     const col = target && s.collections.find((c) => c.id === target.collectionId);
     if (target && col && findNode(col.children, target.nodeId)) return key(target);
@@ -73,12 +82,17 @@ export function ExampleModal({
     const ref = requests.find((r) => key(r.ref) === under)?.ref;
     if (!ref || !name.trim()) return;
     const masked = applyMasks(request, response, chosen, style);
+    const out = masked.response;
+    // a saved call is finished: the call id and the open send side belong to a live tab only
+    const kept: Pick<Example, "response" | "grpc"> = isGrpcResult(out)
+      ? { grpc: { ...out, callId: undefined, sendOpen: undefined } }
+      : { response: out };
     s.saveExample(ref, {
       id: uid(),
       name: name.trim(),
       savedAt: Date.now(),
       request: masked.request,
-      response: masked.response,
+      ...kept,
       masked: chosen.map((g) => `${g.where} ${g.label}`),
     });
     onClose();

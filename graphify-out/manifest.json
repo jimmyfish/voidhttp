@@ -84,15 +84,15 @@
     "semantic_hash": ""
   },
   "src/components/ResponsePane.tsx": {
-    "mtime": 1794566263.3331516,
-    "seen": 1794566373.404853,
-    "ast_hash": "4ac4badfd376b966fb61e6ee3084e33c",
+    "mtime": 1794673310.9359522,
+    "seen": 1794673337.778358,
+    "ast_hash": "a3b4c6d046f6727c74dd07f02ecb92b9",
     "semantic_hash": ""
   },
   "src/components/Sidebar.tsx": {
-    "mtime": 1794566263.5464373,
-    "seen": 1794566373.404855,
-    "ast_hash": "863e2a120e283d07441a8af268e9e11d",
+    "mtime": 1794673282.9238486,
+    "seen": 1794673337.7783601,
+    "ast_hash": "296a7ffa2c74a452b113941c2fd7db8f",
     "semantic_hash": ""
   },
   "src/components/TabsBar.tsx": {
@@ -138,15 +138,15 @@
     "semantic_hash": ""
   },
   "src/store.ts": {
-    "mtime": 1794596593.900868,
-    "seen": 1794596610.478616,
-    "ast_hash": "3e7ff23e8bf1419009457672cc15dc15",
+    "mtime": 1794673260.3708222,
+    "seen": 1794673337.778378,
+    "ast_hash": "98e94866b9c708a574ece96c2d650bfa",
     "semantic_hash": ""
   },
   "src/types.ts": {
-    "mtime": 1794569264.4845161,
-    "seen": 1794569286.517714,
-    "ast_hash": "e1d47da6fbeb4612b644763e8e19e9ea",
+    "mtime": 1794673195.6808794,
+    "seen": 1794673197.09967,
+    "ast_hash": "ad1290e46788fd9ed742f6b2391dea24",
     "semantic_hash": ""
   },
   "tsconfig.json": {
@@ -378,15 +378,15 @@
     "semantic_hash": ""
   },
   "src/lib/mask.ts": {
-    "mtime": 1794590051.0301423,
-    "seen": 1794590052.043479,
-    "ast_hash": "9ec71cd3d4f4be7fe1c3082952bde676",
+    "mtime": 1794673735.8284733,
+    "seen": 1794673793.617045,
+    "ast_hash": "2ff7e290f9427d3eedcb8ab891558930",
     "semantic_hash": ""
   },
   "src/components/ExampleModal.tsx": {
-    "mtime": 1794588935.4322026,
-    "seen": 1794588936.269984,
-    "ast_hash": "c52a8e7771f47a86cac29a943af72931",
+    "mtime": 1794673426.9585452,
+    "seen": 1794673429.1350179,
+    "ast_hash": "e6a60d013f314f36dea6183e0cb4544a",
     "semantic_hash": ""
   },
   "src/components/UrlInput.tsx": {
@@ -420,15 +420,15 @@
     "semantic_hash": ""
   },
   "src/components/GrpcResponse.tsx": {
-    "mtime": 1794566263.3318293,
-    "seen": 1794566373.4048471,
-    "ast_hash": "7e4c75119501fe4e2dc22f20c44ad294",
+    "mtime": 1794673336.5343454,
+    "seen": 1794673337.77835,
+    "ast_hash": "8bb5b8f2f010dc342d5b9630ad9d52dd",
     "semantic_hash": ""
   },
   "src/components/ResponseBody.tsx": {
-    "mtime": 1794566263.332951,
-    "seen": 1794566373.404853,
-    "ast_hash": "bc4908a670ff79f5005959a6cd6603e3",
+    "mtime": 1794673310.9356258,
+    "seen": 1794673337.778357,
+    "ast_hash": "95379de5431a73b4783caa7d48d4ba4a",
     "semantic_hash": ""
   },
   "src/components/Runs.tsx": {
@@ -468,9 +468,9 @@
     "semantic_hash": ""
   },
   "src/lib/formats/common.ts": {
-    "mtime": 1794598953.592196,
-    "seen": 1794598957.5522969,
-    "ast_hash": "bdf20c2b5e6b93df095277f6d5e01fb2",
+    "mtime": 1794673786.3727202,
+    "seen": 1794673793.617037,
+    "ast_hash": "795e5daf36bd38ef47124e0d93fa9f32",
     "semantic_hash": ""
   },
   ".hallmark/preview/transfer.html": {
@@ -480,9 +480,9 @@
     "semantic_hash": ""
   },
   "src/lib/formats/postman.ts": {
-    "mtime": 1794595857.8612106,
-    "seen": 1794595860.439469,
-    "ast_hash": "023608b09b7fe6579fbd2ab884118374",
+    "mtime": 1794673206.1754282,
+    "seen": 1794673337.778369,
+    "ast_hash": "99142eb3973d59c9283c1f3cd1b291b2",
     "semantic_hash": ""
   },
   "src/lib/formats/openapi.ts": {
@@ -510,9 +510,9 @@
     "semantic_hash": ""
   },
   "src/lib/formats/native.ts": {
-    "mtime": 1794591639.6129994,
-    "seen": 1794591658.335062,
-    "ast_hash": "4906b1f3919dd302471d04881764b7cd",
+    "mtime": 1794673361.0497255,
+    "seen": 1794673411.489272,
+    "ast_hash": "7225cca988a0151a766edf9268906a59",
     "semantic_hash": ""
   },
   "src/lib/files.ts": {
@@ -609,6 +609,12 @@
     "mtime": 1794598964.8272367,
     "seen": 1794599115.700341,
     "ast_hash": "5679514bc77dc2ffa63a9d9331ecede9",
+    "semantic_hash": ""
+  },
+  "tests/grpc-examples.test.ts": {
+    "mtime": 1794673774.4083953,
+    "seen": 1794673793.617056,
+    "ast_hash": "e5063f53d176a9be898c8cf5a79eab6f",
     "semantic_hash": ""
   }
 }

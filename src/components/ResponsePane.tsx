@@ -1,12 +1,12 @@
 import { useState } from "react";
 import type { Tab } from "../types";
-import { findNode, formatBytes } from "../lib/model";
+import { formatBytes } from "../lib/model";
 import { useStore } from "../store";
 import { isGrpc } from "../lib/grpc";
 import { GrpcResponsePane } from "./GrpcResponse";
-import { BodyViewer, PairsTable, when } from "./ResponseBody";
+import { BodyViewer, ExampleBanner, PairsTable, useTabExample } from "./ResponseBody";
 import { RunBanner, RunsButton } from "./Runs";
-import { Bookmark, BookmarkPlus, Copy, EyeOff, ico } from "./Icon";
+import { BookmarkPlus, Copy, ico } from "./Icon";
 
 export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   return isGrpc(tab.request) ? <GrpcResponsePane tab={tab} grow={grow} /> : <HttpResponsePane tab={tab} grow={grow} />;
@@ -18,14 +18,7 @@ function HttpResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   const openModal = useStore((s) => s.openModal);
   const maxMb = useStore((s) => s.settings.keepResponseMaxMb ?? 1);
   // an example tab reads when it was saved and what was masked from the example in its collection
-  const example = useStore((s) => {
-    const ref = tab.example;
-    const col = ref && s.collections.find((c) => c.id === ref.collectionId);
-    const node = col && findNode(col.children, ref.nodeId);
-    return node?.type === "request" ? node.examples?.find((e) => e.id === ref!.exampleId) : undefined;
-  });
-  const masked = example?.masked;
-  const savedAt = example?.savedAt;
+  const example = useTabExample(tab);
   const res = tab.response;
 
   const shell = (children: React.ReactNode, role?: string) => (
@@ -91,19 +84,7 @@ function HttpResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   return shell(
     <>
       {tab.fromHistory && <RunBanner tab={tab} hint="Send to get a fresh response" />}
-      {tab.example && (
-        <div className="res-banner">
-          <Bookmark {...ico} />
-          <span>Example</span>
-          {savedAt && <span className="dim">Saved {when(savedAt)}</span>}
-          {!!masked?.length && (
-            <span className="push masked-note" title={masked.join("\n")}>
-              <EyeOff {...ico} />
-              {masked.length === 1 ? "1 field masked" : `${masked.length} fields masked`}
-            </span>
-          )}
-        </div>
-      )}
+      {tab.example && <ExampleBanner example={example} />}
       <nav className="subtabs" aria-label="Response">
         <button type="button" className="subtab" aria-pressed={sub === "body"} onClick={() => setSub("body")}>
           Body

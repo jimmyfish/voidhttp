@@ -2,7 +2,7 @@
  * voidHTTP's own export: collections and environments exactly as stored, so nothing is lost
  * (gRPC calls, saved examples, environment colours). Ids are made fresh on import.
  */
-import type { Auth, Collection, Environment, GrpcDef, KV, MultipartField, RequestNode, TreeNode } from "../../types";
+import type { Auth, Collection, Environment, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, TreeNode } from "../../types";
 import { cloneNode, uid } from "../model";
 import { newRequest } from "../model";
 import { dropFilePaths, requestsOf, type Any, type ImportPlan } from "./common";
@@ -56,6 +56,39 @@ function saneGrpc(g: Any): GrpcDef | undefined {
   };
 }
 
+const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+const pairs = (list: unknown) =>
+  (Array.isArray(list) ? list : []).filter((r) => r && typeof r === "object").map((r: Any) => ({ key: text(r.key), value: text(r.value) }));
+
+/**
+ * The ended gRPC call of a gRPC example, with every field of the type the app expects. A call without an end
+ * is dropped: an example is a finished call. Error details are kept only when they parse, since the pane reads them as JSON.
+ */
+function saneGrpcResult(g: Any): GrpcResult | undefined {
+  if (!g || typeof g !== "object" || !g.end || typeof g.end !== "object") return undefined;
+  const e = g.end;
+  let details: string | undefined;
+  if (typeof e.details === "string") {
+    try {
+      JSON.parse(e.details);
+      details = e.details;
+    } catch {
+      details = undefined;
+    }
+  }
+  return {
+    startedAt: num(g.startedAt),
+    stream: ["unary", "server", "client", "bidi"].includes(g.stream) ? g.stream : "unary",
+    tls: g.tls === true,
+    headers: pairs(g.headers),
+    messages: (Array.isArray(g.messages) ? g.messages : [])
+      .filter((m: unknown) => m && typeof m === "object")
+      .map((m: Any) => ({ dir: m.dir === "out" ? "out" : "in", json: text(m.json), size: num(m.size), atMs: num(m.atMs) })),
+    dropped: num(g.dropped) || undefined,
+    end: { code: num(e.code), status: text(e.status), message: text(e.message), details, trailers: pairs(e.trailers), elapsedMs: num(e.elapsedMs) },
+  };
+}
+
 /** Fills fields a hand-edited or older file may miss, and gives every field its type, so the rest of the app can trust the shape. */
 function sane(n: Any): TreeNode | null {
   if (!n || typeof n !== "object") return null;
@@ -84,18 +117,26 @@ function sane(n: Any): TreeNode | null {
     grpc: saneGrpc(n.grpc),
     examples: Array.isArray(n.examples)
       ? n.examples
-          .filter((e: Any) => e && typeof e === "object" && e.request && typeof e.request === "object" && e.response && typeof e.response === "object")
+          // an HTTP example has a response; a gRPC example has an ended call instead
+          .filter(
+            (e: Any) =>
+              e && typeof e === "object" && e.request && typeof e.request === "object" && ((e.response && typeof e.response === "object") || saneGrpcResult(e.grpc)),
+          )
           .map((e: Any) => {
             // the saved request gets the same checks; it has no examples of its own
             const { type: _t, examples: _e, ...request } = sane({ ...e.request, type: "request", examples: undefined }) as RequestNode;
             const r = e.response;
-            const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
-            return {
+            const head = {
               ...e,
               name: text(e.name, "Example"),
               savedAt: num(e.savedAt),
               masked: Array.isArray(e.masked) ? e.masked.map((m: unknown) => text(m)) : [],
               request,
+            };
+            if (!r || typeof r !== "object") return { ...head, response: undefined, grpc: saneGrpcResult(e.grpc) };
+            return {
+              ...head,
+              grpc: undefined,
               response: {
                 ...r,
                 status: num(r.status),

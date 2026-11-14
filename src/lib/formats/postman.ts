@@ -252,15 +252,22 @@ function pmItems(nodes: TreeNode[]): Any[] {
       {
         name: n.name,
         request: pmRequest(n),
-        response: (n.examples ?? []).map((e) => ({
-          name: e.name,
-          originalRequest: pmRequest(e.request),
-          status: e.response.statusText,
-          code: e.response.status,
-          header: e.response.headers.map((h) => ({ key: h.key, value: h.value })),
-          body: e.response.bodyEncoding === "utf8" ? e.response.body : "",
-          ...(/json/i.test(e.response.headers.find((h) => h.key.toLowerCase() === "content-type")?.value ?? "") && { _postman_previewlanguage: "json" }),
-        })),
+        // only HTTP examples have a Postman form
+        response: (n.examples ?? []).flatMap(({ name, request, response: r }) =>
+          r
+            ? [
+                {
+                  name,
+                  originalRequest: pmRequest(request),
+                  status: r.statusText,
+                  code: r.status,
+                  header: r.headers.map((h) => ({ key: h.key, value: h.value })),
+                  body: r.bodyEncoding === "utf8" ? r.body : "",
+                  ...(/json/i.test(r.headers.find((h) => h.key.toLowerCase() === "content-type")?.value ?? "") && { _postman_previewlanguage: "json" }),
+                },
+              ]
+            : [],
+        ),
       },
     ];
   });

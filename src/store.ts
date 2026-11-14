@@ -66,8 +66,8 @@ export type Modal =
   | { kind: "import"; source?: Source }
   /** export a collection to a file */
   | { kind: "export"; collectionId: string }
-  /** save a response as an example; target is the request it goes under when known */
-  | { kind: "example"; request: RequestDef; response: HttpResponse; target?: SavedRef };
+  /** save a response (or an ended gRPC call) as an example; target is the request it goes under when known */
+  | { kind: "example"; request: RequestDef; response: HttpResponse | GrpcResult; target?: SavedRef };
 
 export type View = "home" | "project";
 
@@ -238,7 +238,7 @@ function restoreTabs(tabs: Tab[], collections: Collection[]): Tab[] {
   return tabs.flatMap((t) => {
     if (!t.example) return [t];
     const ex = findExample(collections, t.example);
-    return ex ? [{ ...t, response: ex.response }] : [];
+    return ex ? [{ ...t, response: ex.response, grpc: ex.grpc }] : [];
   });
 }
 
@@ -741,7 +741,7 @@ export const useStore = create<State>((set, get) => {
       if (existing) return set({ activeTabId: existing.id });
       const ex = findExample(get().collections, ref);
       if (!ex) return;
-      const tab: Tab = { id: uid(), request: { ...structuredClone(ex.request), name: ex.name }, example: ref, response: ex.response, dirty: false };
+      const tab: Tab = { id: uid(), request: { ...structuredClone(ex.request), name: ex.name }, example: ref, response: ex.response, grpc: ex.grpc, dirty: false };
       set((s) => ({ tabs: [...s.tabs, tab], activeTabId: tab.id }));
     },
 
