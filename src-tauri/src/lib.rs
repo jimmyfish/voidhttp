@@ -129,6 +129,7 @@ pub fn run() {
             store::prune_responses,
             fonts::list_fonts,
             files::read_text_file,
+            files::read_ref_file,
             files::write_text_file,
         ])
         .run(tauri::generate_context!())

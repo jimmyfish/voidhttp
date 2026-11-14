@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { Channel, invoke } from "@tauri-apps/api/core";
 import type { GrpcDef, GrpcEnd, GrpcMessage, GrpcStream, KV, RequestDef, Settings } from "../types";
-import { resolve, type VarScope } from "./vars";
+import { resolve, type VarScope, resolveWithin } from "./vars";
 import { prepare } from "./http";
 import { stripJsonComments } from "./jsonc";
 import { shellWords } from "./curl";
@@ -68,17 +68,20 @@ const schemaOf = (def: GrpcDef): SchemaSource =>
   def.source === "protos" ? { source: "protos", files: def.protoFiles, importPaths: def.importPaths } : { source: "reflection" };
 
 /** Variables, auth and metadata applied, as the engine needs them. Pure: also used by Copy as grpcurl. */
-export function prepareGrpc(req: RequestDef, scope: VarScope, settings: Settings): PreparedCall {
+export function prepareGrpc(req: RequestDef, scope: VarScope, settings: Settings, budget?: number): PreparedCall {
   const def = req.grpc ?? defaultGrpc(req.url);
   // auth becomes metadata like it becomes a header for HTTP; an API key always goes in metadata
   const auth = req.auth.type === "apikey" ? { ...req.auth, in: "header" as const } : req.auth;
-  const p = prepare({ ...req, auth, body: { ...req.body, mode: "none" } }, scope);
+  // a preview (with a budget) shares one allowance between the metadata and the message
+  const shared = budget === undefined ? undefined : { left: budget };
+  const p = prepare({ ...req, auth, body: { ...req.body, mode: "none" } }, scope, budget);
+  if (shared) shared.left = budget! - JSON.stringify(p).length;
   return {
     target: { address: p.url.trim(), tls: def.tls, insecure: settings.insecure, metadata: p.headers },
     schema: schemaOf(def),
     service: def.service,
     method: def.method,
-    message: resolve(stripJsonComments(req.body.raw), scope),
+    message: shared ? resolveWithin(stripJsonComments(req.body.raw), scope, shared) : resolve(stripJsonComments(req.body.raw), scope),
   };
 }
 
@@ -168,7 +171,8 @@ export function toGrpcurl(call: PreparedCall): string {
   }
   const body = call.message.trim();
   if (body) parts.push("-d", q(body));
-  parts.push(q(address.replace(/^https?:\/\//i, "").replace(/\/.*$/, "")), q(`${call.service}/${call.method}`));
+  const host = address.replace(/^https?:\/\//i, "");
+  parts.push(q(host.includes("/") ? host.slice(0, host.indexOf("/")) : host), q(`${call.service}/${call.method}`));
   return parts.join(" ");
 }
 

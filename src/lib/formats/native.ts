@@ -2,10 +2,10 @@
  * voidHTTP's own export: collections and environments exactly as stored, so nothing is lost
  * (gRPC calls, saved examples, environment colours). Ids are made fresh on import.
  */
-import type { Collection, Environment, RequestNode, TreeNode } from "../../types";
+import type { Auth, Collection, Environment, GrpcDef, KV, MultipartField, RequestNode, TreeNode } from "../../types";
 import { cloneNode, uid } from "../model";
 import { newRequest } from "../model";
-import { requestsOf, type Any, type ImportPlan } from "./common";
+import { dropFilePaths, requestsOf, type Any, type ImportPlan } from "./common";
 
 export const NATIVE_VERSION = 1;
 
@@ -21,37 +21,116 @@ export function exportNative(collections: Collection[], environments: Environmen
   return JSON.stringify(file, null, 2);
 }
 
-/** Fills fields a hand-edited or older file may miss, so the rest of the app can trust the shape. */
+const text = (v: unknown, fallback = "") => (typeof v === "string" ? v : v === undefined || v === null ? fallback : typeof v === "object" ? fallback : String(v));
+
+/** Key/value rows: anything that is not an object is dropped, and every field gets the type the app expects. */
+function rows<T extends KV>(list: unknown, extra: (r: Any) => Partial<T> = () => ({})): T[] {
+  return (Array.isArray(list) ? list : [])
+    .filter((r) => r && typeof r === "object")
+    .map((r: Any) => ({ ...r, id: text(r.id) || uid(), key: text(r.key), value: text(r.value), enabled: r.enabled !== false, ...extra(r) }) as T);
+}
+
+/** Auth with the fields of its type, as strings; an unknown type becomes none. */
+function saneAuth(a: Any): Auth {
+  if (!a || typeof a !== "object") return { type: "none" };
+  if (a.type === "bearer") return { type: "bearer", token: text(a.token) };
+  if (a.type === "basic") return { type: "basic", username: text(a.username), password: text(a.password) };
+  if (a.type === "apikey") return { type: "apikey", key: text(a.key), value: text(a.value), in: a.in === "query" ? "query" : "header" };
+  return { type: "none" };
+}
+
+/** A gRPC call's settings with every field of the type the app expects; anything that is not an object is dropped. */
+function saneGrpc(g: Any): GrpcDef | undefined {
+  if (!g || typeof g !== "object") return undefined;
+  const list = (v: unknown) => (Array.isArray(v) ? v.filter((x) => typeof x === "string") : []);
+  return {
+    ...g,
+    service: text(g.service),
+    method: text(g.method),
+    stream: ["unary", "server", "client", "bidi"].includes(g.stream) ? g.stream : undefined,
+    inputType: typeof g.inputType === "string" ? g.inputType : undefined,
+    tls: g.tls === true,
+    source: g.source === "protos" ? "protos" : "reflection",
+    protoFiles: list(g.protoFiles),
+    importPaths: list(g.importPaths),
+  };
+}
+
+/** Fills fields a hand-edited or older file may miss, and gives every field its type, so the rest of the app can trust the shape. */
 function sane(n: Any): TreeNode | null {
   if (!n || typeof n !== "object") return null;
-  if (n.type === "folder") return { type: "folder", id: uid(), name: String(n.name ?? "Folder"), children: (Array.isArray(n.children) ? n.children : []).map(sane).filter(Boolean) as TreeNode[] };
+  if (n.type === "folder") return { type: "folder", id: uid(), name: text(n.name, "Folder"), children: (Array.isArray(n.children) ? n.children : []).map(sane).filter(Boolean) as TreeNode[] };
   if (n.type !== "request") return null;
   const base = newRequest();
+  const body = n.body && typeof n.body === "object" ? n.body : {};
   const node: RequestNode = {
     ...base,
     ...n,
     type: "request",
-    params: Array.isArray(n.params) ? n.params : [],
-    headers: Array.isArray(n.headers) ? n.headers : [],
-    body: { ...base.body, ...(n.body ?? {}) },
-    auth: n.auth?.type ? n.auth : base.auth,
+    name: text(n.name, base.name),
+    method: text(n.method, base.method),
+    url: text(n.url),
+    params: rows(n.params),
+    headers: rows(n.headers),
+    body: {
+      ...base.body,
+      ...body,
+      mode: typeof body.mode === "string" ? body.mode : base.body.mode,
+      raw: text(body.raw),
+      form: rows(body.form),
+      multipart: rows<MultipartField>(body.multipart, (r) => ({ kind: r.kind === "file" ? "file" : "text" })),
+    },
+    auth: saneAuth(n.auth),
+    grpc: saneGrpc(n.grpc),
+    examples: Array.isArray(n.examples)
+      ? n.examples
+          .filter((e: Any) => e && typeof e === "object" && e.request && typeof e.request === "object" && e.response && typeof e.response === "object")
+          .map((e: Any) => {
+            // the saved request gets the same checks; it has no examples of its own
+            const { type: _t, examples: _e, ...request } = sane({ ...e.request, type: "request", examples: undefined }) as RequestNode;
+            const r = e.response;
+            const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+            return {
+              ...e,
+              name: text(e.name, "Example"),
+              savedAt: num(e.savedAt),
+              masked: Array.isArray(e.masked) ? e.masked.map((m: unknown) => text(m)) : [],
+              request,
+              response: {
+                ...r,
+                status: num(r.status),
+                statusText: text(r.statusText),
+                httpVersion: text(r.httpVersion),
+                url: text(r.url),
+                headers: rows(r.headers),
+                body: text(r.body),
+                bodyEncoding: r.bodyEncoding === "base64" ? "base64" : "utf8",
+                size: num(r.size),
+                elapsedMs: num(r.elapsedMs),
+              },
+            };
+          })
+      : undefined,
   };
   return cloneNode(node);
 }
 
 export function importNative(doc: Any): ImportPlan {
   if (Number(doc.voidhttp) > NATIVE_VERSION) throw new Error("This file is from a newer voidHTTP. Update the app to import it.");
-  const collections: Collection[] = (Array.isArray(doc.collections) ? doc.collections : []).map((c: Any) => ({
-    id: uid(),
-    name: String(c.name ?? "Imported collection"),
-    children: (Array.isArray(c.children) ? c.children : []).map(sane).filter(Boolean) as TreeNode[],
-    variables: Array.isArray(c.variables) ? c.variables : [],
-  }));
+  const files = dropFilePaths(
+    (Array.isArray(doc.collections) ? doc.collections : []).map((c: Any) => ({
+      id: uid(),
+      name: String(c.name ?? "Imported collection"),
+      children: (Array.isArray(c.children) ? c.children : []).map(sane).filter(Boolean) as TreeNode[],
+      variables: rows(c.variables),
+    })),
+  );
+  const collections: Collection[] = files.collections;
   const environments: Environment[] = (Array.isArray(doc.environments) ? doc.environments : []).map((e: Any) => ({
     id: uid(),
     name: String(e.name ?? "Imported environment"),
-    variables: Array.isArray(e.variables) ? e.variables : [],
-    ...(e.color && { color: e.color }),
+    variables: rows(e.variables),
+    ...(typeof e.color === "string" && { color: e.color }),
   }));
   const n = collections.reduce((m, c) => m + requestsOf(c.children).length, 0);
   const parts = [
@@ -59,5 +138,5 @@ export function importNative(doc: Any): ImportPlan {
     `${n} request${n === 1 ? "" : "s"}`,
     environments.length && `${environments.length} environment${environments.length === 1 ? "" : "s"}`,
   ].filter(Boolean);
-  return { format: "voidhttp", label: "voidHTTP", detail: parts.join(" · "), collections, environments, notes: [] };
+  return { format: "voidhttp", label: "voidHTTP", detail: parts.join(" · "), collections, environments, notes: files.notes };
 }

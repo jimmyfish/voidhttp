@@ -1,3 +1,4 @@
+import { RENDER_GROWTH } from "../lib/vars";
 import { TitleName } from "./InlineRename";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -87,7 +88,8 @@ export function GrpcRequestPane({ tab, grow, lookup, missing, path, saveControls
   const loading = !!tab.inflightId;
   const streamsOut = clientStreams(def.stream);
 
-  const call = prepareGrpc(req, scopeFor(tab.id), settings);
+  // on every render: variables fill in within the render budget; a send prepares again with the full one
+  const call = prepareGrpc(req, scopeFor(tab.id), settings, RENDER_GROWTH);
   const key = schemaKey(call);
   const schema = useSchema(key);
   const load = () => loadSchema(call);

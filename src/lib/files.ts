@@ -6,6 +6,8 @@ import type { Source } from "./formats/common";
 export const IMPORT_EXTENSIONS = ["json", "yaml", "yml", "har"];
 
 export const readTextFile = (path: string) => invoke<string>("read_text_file", { path });
+/** A `$ref` file of the spec at `spec`: the Rust side refuses it unless it really sits in the spec's folder. */
+export const readRefFile = (spec: string, path: string) => invoke<string>("read_ref_file", { spec, path });
 export const writeTextFile = (path: string, contents: string) => invoke<void>("write_text_file", { path, contents });
 
 export const baseName = (path: string) => path.split(/[\\/]/).pop() ?? path;

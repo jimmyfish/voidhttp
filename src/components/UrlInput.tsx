@@ -9,7 +9,7 @@ export type VarInfo =
 type Tok = { t: "text" | "q"; s: string } | { t: "var"; s: string; name: string } | { t: "path"; s: string; name: string };
 
 // same name rule as VAR_RE in lib/vars.ts; a path variable is a ":name" segment before the query
-const TOKEN = /(\{\{\s*([^{}]+?)\s*\}\})|\/(:([A-Za-z_][\w-]*))|([?&=])/g;
+const TOKEN = /(\{\{([^{}]*)\}\})|\/(:([A-Za-z_][\w-]*))|([?&=])/g;
 
 export function tokenizeUrl(v: string): Tok[] {
   const out: Tok[] = [];
@@ -19,7 +19,8 @@ export function tokenizeUrl(v: string): Tok[] {
   for (const m of v.matchAll(TOKEN)) {
     text(v.slice(last, m.index));
     last = m.index + m[0].length;
-    if (m[1]) out.push({ t: "var", s: m[1], name: m[2] });
+    if (m[1] && m[2].trim()) out.push({ t: "var", s: m[1], name: m[2].trim() });
+    else if (m[1]) text(m[1]);
     else if (m[3]) {
       text("/");
       out.push(query ? { t: "text", s: m[3] } : { t: "path", s: m[3], name: m[4] });

@@ -31,7 +31,7 @@ fn local_dir(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(dir)
 }
 
-fn vault_dir(app: &AppHandle) -> Result<PathBuf, String> {
+pub(crate) fn vault_dir(app: &AppHandle) -> Result<PathBuf, String> {
     let config = match std::env::var_os("XDG_CONFIG_HOME").map(PathBuf::from) {
         Some(p) if p.is_absolute() => p,
         _ => app

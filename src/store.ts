@@ -34,7 +34,7 @@ import {
 } from "./lib/model";
 import { buildScope, type VarScope } from "./lib/vars";
 import { cancel, prepare, send } from "./lib/http";
-import type { Source } from "./lib/formats/common";
+import { capEnvironments, capRows, type Source } from "./lib/formats/common";
 import {
   clientStreams,
   findMethod,
@@ -421,7 +421,9 @@ export const useStore = create<State>((set, get) => {
       }
     },
 
-    applyImport(projectId, collections, environments, message) {
+    applyImport(projectId, imported, importedEnvs, message) {
+      const collections = capRows(imported);
+      const environments = capEnvironments(importedEnvs);
       const s = get();
       if (s.currentProjectId !== projectId || s.view !== "project") get().openProject(projectId);
       set((st) => ({ collections: [...st.collections, ...collections], environments: [...st.environments, ...environments] }));

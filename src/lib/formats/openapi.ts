@@ -35,11 +35,24 @@ function joinKey(base: string, rel: string): string | null {
   return parts.join("/");
 }
 
+/**
+ * A local `$ref` file must sit in the root spec's folder or below it. Without this, `../` walks to any file
+ * on this Mac (the voidHTTP vault included), and its values land in requests sent to the spec's server.
+ */
+function insideRoot(rootKey: string, target: string): boolean {
+  if (target === rootKey || isUrl(target)) return true;
+  if (isUrl(rootKey)) return false;
+  const dir = rootKey.slice(0, rootKey.lastIndexOf("/") + 1);
+  return dir !== "" && target.startsWith(dir);
+}
+
 const unescapePtr = (s: string) => decodeURIComponent(s).replace(/~1/g, "/").replace(/~0/g, "~");
 
 export class Refs {
   readonly docs = new Map<string, Any>();
   readonly missing = new Set<string>();
+  /** `$ref` files refused because they are outside the root spec's folder. */
+  readonly outside = new Set<string>();
   constructor(
     root: Any,
     readonly rootKey: string,
@@ -58,6 +71,10 @@ export class Refs {
         const target = joinKey(key, file);
         if (target === null) {
           this.missing.add(file);
+          continue;
+        }
+        if (!insideRoot(this.rootKey, target)) {
+          this.outside.add(file);
           continue;
         }
         if (this.docs.has(target) || this.missing.has(target)) continue;
@@ -82,7 +99,7 @@ export class Refs {
     for (let hops = 0; node && typeof node === "object" && typeof node.$ref === "string" && hops < 32; hops++) {
       const [path, frag = ""] = node.$ref.split("#");
       const target = path ? joinKey(file, path) : file;
-      if (target === null) return [undefined, file];
+      if (target === null || !insideRoot(this.rootKey, target)) return [undefined, file];
       let v = this.docs.get(target);
       if (v === undefined) return [undefined, target];
       for (const seg of frag.split("/").filter(Boolean)) v = v?.[unescapePtr(seg)];
@@ -479,6 +496,10 @@ export function buildOpenApi(spec: LoadedSpec, opts: OpenApiOptions): ImportPlan
   if (callbacks) notes.push({ level: "warn", text: `${callbacks} callback${callbacks === 1 ? "" : "s"} (webhooks the API calls) left out.` });
   const webhooks = Object.keys(doc.webhooks ?? {}).length;
   if (webhooks) notes.push({ level: "warn", text: `${webhooks} webhook${webhooks === 1 ? "" : "s"} left out.` });
+  // every local file a `$ref` read is named, so a spec cannot quietly pull values out of files beside it
+  const read = [...spec.refs.docs.keys()].filter((k) => k !== spec.refs.rootKey && !isUrl(k));
+  if (read.length) notes.push({ level: "warn", text: `Values were read from ${read.map((k) => `\`${k}\``).join(", ")} through \`$ref\`. Check them before sending.` });
+  for (const m of spec.refs.outside) notes.push({ level: "warn", text: `\`$ref\` file \`${m}\` is outside the spec's folder and was not read; parts that use it are empty.` });
   for (const m of spec.refs.missing) notes.push({ level: "warn", text: `\`$ref\` file \`${m.split("/").pop()}\` could not be read; parts that use it are empty.` });
   if (b.notes.schemaBodies)
     notes.push({ level: "info", text: `${b.notes.schemaBodies} request bod${b.notes.schemaBodies === 1 ? "y is" : "ies are"} built from the schema, because the spec has no example.` });

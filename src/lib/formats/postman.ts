@@ -4,10 +4,10 @@
  */
 import type { Auth, Collection, Environment, Example, KV, RequestBody, RequestNode, TreeNode } from "../../types";
 import { kv, newRequest, paramsFromUrl, parseQuery, uid } from "../model";
-import { requestsOf, type Any, type ImportPlan, type Note } from "./common";
+import { dropFilePaths, requestsOf, str, type Any, type ImportPlan, type Note } from "./common";
 
 const toKV = (list: Any[] | undefined): KV[] =>
-  (Array.isArray(list) ? list : []).map((x) => kv(String(x.key ?? ""), String(x.value ?? ""), !x.disabled && x.enabled !== false));
+  (Array.isArray(list) ? list : []).filter((x) => x && typeof x === "object").map((x) => kv(str(x.key), str(x.value), !x.disabled && x.enabled !== false));
 
 function pick(list: Any[] | undefined, key: string): string {
   return String((Array.isArray(list) ? list : []).find((x) => x.key === key)?.value ?? "");
@@ -126,7 +126,7 @@ function convertItems(items: Any[], parentAuth: Auth, seen: Seen): TreeNode[] {
     });
     req.params = paramsFromUrl(url, []);
     // carry over disabled query params from the structured url
-    for (const qp of r.url?.query ?? []) if (qp.disabled) req.params.push(kv(qp.key ?? "", qp.value ?? "", false));
+    for (const qp of Array.isArray(r.url?.query) ? r.url.query : []) if (qp?.disabled) req.params.push(kv(str(qp.key), str(qp.value), false));
     const node: RequestNode = { type: "request", ...req };
     const examples = convertExamples(it.response, node);
     return examples.length ? { ...node, examples } : node;
@@ -138,13 +138,16 @@ const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? on
 export function importPostman(doc: Any): ImportPlan {
   const seen: Seen = { scripts: hasScript(doc.event) ? 1 : 0, auth: new Map() };
   const rootAuth = convertAuth(doc.auth, seen) ?? { type: "none" };
-  const collection: Collection = {
-    id: uid(),
-    name: String(doc.info?.name ?? "Imported collection"),
-    children: convertItems(doc.item, rootAuth, seen),
-    variables: toKV(doc.variable),
-  };
-  const notes: Note[] = [];
+  const files = dropFilePaths([
+    {
+      id: uid(),
+      name: String(doc.info?.name ?? "Imported collection"),
+      children: convertItems(doc.item, rootAuth, seen),
+      variables: toKV(doc.variable),
+    },
+  ]);
+  const collection: Collection = files.collections[0];
+  const notes: Note[] = [...files.notes];
   if (seen.scripts) notes.push({ level: "warn", text: `${count(seen.scripts, "pre-request or test script")} left out. voidHTTP does not run scripts.` });
   const oauth = seen.auth.get("oauth2");
   if (oauth) notes.push({ level: "warn", text: `OAuth2 auth on ${count(oauth, "item")} becomes Bearer \`{{token}}\`. voidHTTP has no OAuth2 flow yet.` });

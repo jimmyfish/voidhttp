@@ -2,7 +2,8 @@ import { TitleName } from "./InlineRename";
 import { useEffect, useRef, useState } from "react";
 import { Select } from "./Select";
 import { useStore } from "../store";
-import type { Auth, BodyMode, Tab } from "../types";
+import type { Auth, BodyMode, RequestDef, Tab } from "../types";
+import { capRequest } from "../lib/formats/common";
 import { findNode, paramsFromUrl, pathTo, urlWithParams } from "../lib/model";
 import { DYNAMIC, resolve, unresolved } from "../lib/vars";
 import { isSecretKey } from "../lib/mask";
@@ -49,12 +50,30 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
 
   // where a {{name}} in the address bar gets its value; the environment overrides the collection
   const env = environments.find((e) => e.id === activeEnvId);
+  // once per name per render: the address bar asks for every {{token}}, and a URL may repeat one many times
+  const looked = new Map<string, VarInfo>();
+  const byName = (vars: { enabled: boolean; key: string; value: string }[] | undefined) => {
+    const m = new Map<string, { enabled: boolean; key: string; value: string }>();
+    for (const v of vars ?? []) if (v.enabled && !m.has(v.key)) m.set(v.key, v);
+    return m;
+  };
+  let envVars: ReturnType<typeof byName> | undefined;
+  let colVars: ReturnType<typeof byName> | undefined;
   const lookup = (name: string): VarInfo => {
-    const on = (v: { enabled: boolean; key: string }) => v.enabled && v.key === name;
-    const hit = env?.variables.find(on);
-    const colHit = col ? col.variables.find(on) : undefined;
+    const known = looked.get(name);
+    if (known) return known;
+    const info = lookupOnce(name);
+    looked.set(name, info);
+    return info;
+  };
+  const lookupOnce = (name: string): VarInfo => {
+    envVars ??= byName(env?.variables);
+    colVars ??= byName(col?.variables);
+    const hit = envVars.get(name);
+    const colHit = colVars.get(name);
     const v = hit ?? colHit;
-    if (v) return { kind: "value", value: resolve(v.value, scope), source: hit ? env!.name : `Collection · ${col && col.name}`, secret: isSecretKey(name) };
+    // a tooltip shows the value: a small budget keeps a variable that grows on expansion cheap
+    if (v) return { kind: "value", value: resolve(v.value, scope, 0, 1 << 12), source: hit ? env!.name : `Collection · ${col && col.name}`, secret: isSecretKey(name) };
     if (DYNAMIC.includes(name)) return { kind: "dynamic" };
     const target = env ?? (col || undefined);
     return {
@@ -180,7 +199,7 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
               e.preventDefault();
               const parsed = parseCurl(text);
               if (!parsed) return st.notify("Couldn’t find a URL in that cURL command");
-              set(parsed);
+              set(capRequest(parsed as RequestDef));
               if (parsed.body.mode !== "none") setSection("body");
               st.notify("Imported from cURL");
             }}

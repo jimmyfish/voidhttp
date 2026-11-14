@@ -1,5 +1,5 @@
 /** Import: what a source is, and how far it gets before the review step. */
-import { detect, type ImportPlan, type Source } from "./common";
+import { detect, dropFilePaths, type ImportPlan, type Source } from "./common";
 import { importPostman, importPostmanEnv } from "./postman";
 import { loadOpenApi, type LoadedSpec, type RefLoader } from "./openapi";
 import { readHar, type HarFile } from "./har";
@@ -24,8 +24,13 @@ export async function analyze(src: Source, load?: RefLoader): Promise<Analysis> 
       return { kind: "plan", plan: importPostmanEnv(hit.doc) };
     case "voidhttp":
       return { kind: "plan", plan: importNative(hit.doc) };
-    case "commands":
-      return { kind: "plan", plan: importCommands(src.text) };
+    case "commands": {
+      const plan = importCommands(src.text);
+      // pasted commands are read by the person; a file or URL is not, so its `-F field=@path` files are dropped
+      if (!src.path && !src.url) return { kind: "plan", plan };
+      const files = dropFilePaths(plan.collections);
+      return { kind: "plan", plan: { ...plan, collections: files.collections, notes: [...files.notes, ...plan.notes] } };
+    }
     case "openapi":
     case "swagger":
       return { kind: "openapi", spec: await loadOpenApi(hit.doc, src, load) };

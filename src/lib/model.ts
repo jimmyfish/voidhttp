@@ -130,9 +130,13 @@ export function parseQuery(url: string): { key: string; value: string }[] {
   });
 }
 
+/** More query params than any real request has; a table of them would hang the editor. */
+export const MAX_PARAMS = 1000;
+
 /** URL changed → rebuild enabled params, keep disabled ones. */
 export function paramsFromUrl(url: string, prev: KV[]): KV[] {
-  const parsed = parseQuery(url);
+  // the table shows at most MAX_PARAMS rows; the URL keeps its whole query, so what is sent does not change
+  const parsed = parseQuery(url).slice(0, MAX_PARAMS);
   const enabledPrev = prev.filter((p) => p.enabled);
   const next = parsed.map((p, i) => {
     const old = enabledPrev[i];

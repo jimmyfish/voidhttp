@@ -8,8 +8,12 @@ import { Import, Pencil, Plus, X, ico, icoLg } from "./Icon";
 const DAY = 86_400_000;
 
 /** "/v1/transfers" from "https://api.x.com/v1/transfers?a=1" or "{{baseUrl}}/v1/transfers" */
-const pathOf = (url: string) =>
-  url.replace(/^(https?:\/\/[^/]+|\{\{[^}]+\}\}|[^/{]+(?=\/))/, "").replace(/[?#].*$/, "") || "/";
+const pathOf = (url: string) => {
+  const path = url.replace(/^(https?:\/\/[^/]+|\{\{[^}]+\}\}|[^/{]+(?=\/))/, "");
+  // cut at the first ? or #: a search, not /[?#].*$/, which rescans to a line end from every ? and # in a long URL
+  const cut = path.search(/[?#]/);
+  return (cut === -1 ? path : path.slice(0, cut)) || "/";
+};
 
 const greeting = (h: number) => (h < 5 ? "Good night" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening");
 

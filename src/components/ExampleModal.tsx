@@ -3,7 +3,7 @@ import { Select } from "./Select";
 import { useStore } from "../store";
 import type { Collection, HttpResponse, RequestDef, SavedRef, TreeNode } from "../types";
 import { findNode, uid } from "../lib/model";
-import { applyMasks, findSensitive, maskValue, type MaskStyle } from "../lib/mask";
+import { applyMasks, findSensitive, isCookieName, maskValue, type MaskStyle } from "../lib/mask";
 
 /** Every saved request, as "Collection / Folder / Request", for the "Save under" list. */
 function allRequests(collections: Collection[]): { ref: SavedRef; label: string; method: string; url: string }[] {
@@ -144,7 +144,7 @@ export function ExampleModal({
                       {g.label}
                       {g.locs.length > 1 && <span className="mask-n"> ×{g.locs.length}</span>}
                     </code>
-                    <code className="mask-val">{on ? maskValue(g.sample, g.kind, style) : g.sample}</code>
+                    <code className="mask-val">{on ? maskValue(g.sample, g.kind, style, isCookieName(g.label)) : g.sample}</code>
                   </label>
                 );
               })}

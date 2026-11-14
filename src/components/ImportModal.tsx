@@ -9,7 +9,7 @@ import { requestsOf } from "../lib/formats/common";
 import { buildOpenApi } from "../lib/formats/openapi";
 import { defaultPick, harPlan, type HarFile, type HarOptions } from "../lib/formats/har";
 import { commandsSummary } from "../lib/formats/commands";
-import { pickImportFile, readTextFile } from "../lib/files";
+import { pickImportFile, readRefFile } from "../lib/files";
 import { cancel, prepare, send } from "../lib/http";
 import { buildScope, resolve } from "../lib/vars";
 import { envStyle } from "../lib/tags";
@@ -35,7 +35,10 @@ async function fetchText(url: string): Promise<string> {
 }
 
 /** `$ref` files: beside a local file, or fetched beside a URL. */
-const loadRef = (key: string) => (isUrl(key) ? fetchText(key) : readTextFile(key));
+const loadRef =
+  (spec: string | undefined) =>
+  (key: string): Promise<string> =>
+    isUrl(key) ? fetchText(key) : spec ? readRefFile(spec, key) : Promise.reject(new Error(`${key} is not beside a local file`));
 
 /** Note text with `code` spans. */
 function NoteText({ text }: { text: string }) {
@@ -129,7 +132,7 @@ export function ImportModal({ source, onClose }: { source?: Source; onClose: () 
     setBusy(true);
     setError("");
     try {
-      const a = await analyze(s, s.path || s.url ? loadRef : undefined);
+      const a = await analyze(s, s.path || s.url ? loadRef(s.path) : undefined);
       setSrc(s);
       setAnalysis(a);
     } catch (e) {

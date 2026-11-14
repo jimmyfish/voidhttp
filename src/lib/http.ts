@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { HttpResponse, RequestDef, Settings } from "../types";
-import { resolve, type VarScope } from "./vars";
+import { resolve, type VarScope, resolveWithin } from "./vars";
 import { uid } from "./model";
 import { stripJsonComments } from "./jsonc";
 
@@ -23,9 +23,19 @@ const CONTENT_TYPES: Record<string, string> = {
   text: "text/plain",
 };
 
+/** UTF-8 then base64, in chunks: spreading a large credential into one call overflows the stack. */
+function base64Utf8(s: string): string {
+  const bytes = new TextEncoder().encode(s);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+
 /** Applies variables, auth and implicit headers. Pure: used by Send and by cURL export. */
-export function prepare(req: RequestDef, scope: VarScope): Prepared {
-  const r = (s: string) => resolve(s, scope);
+export function prepare(req: RequestDef, scope: VarScope, budget?: number): Prepared {
+  // `budget`: one allowance for the whole request when rendering a preview; left out (a send), each field gets the full one
+  const shared = budget === undefined ? undefined : { left: budget };
+  const r = (s: string) => (shared ? resolveWithin(s, scope, shared) : resolve(s, scope));
   let url = r(req.url);
   const headers: WireKV[] = req.headers
     .filter((h) => h.enabled && h.key)
@@ -37,7 +47,7 @@ export function prepare(req: RequestDef, scope: VarScope): Prepared {
     headers.push({ key: "Authorization", value: `Bearer ${r(auth.token)}` });
   } else if (auth.type === "basic" && !has("authorization")) {
     const raw = `${r(auth.username)}:${r(auth.password)}`;
-    const b64 = btoa(String.fromCharCode(...new TextEncoder().encode(raw)));
+    const b64 = base64Utf8(raw);
     headers.push({ key: "Authorization", value: `Basic ${b64}` });
   } else if (auth.type === "apikey" && auth.key) {
     if (auth.in === "header") headers.push({ key: r(auth.key), value: r(auth.value) });

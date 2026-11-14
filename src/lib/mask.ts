@@ -2,7 +2,7 @@
  * Masking for "Save as example": finds sensitive values by field name in a request and its response,
  * and returns masked copies. History never goes through here; it keeps responses as received.
  */
-import type { HttpResponse, RequestDef } from "../types";
+import type { Auth, HttpResponse, RequestDef } from "../types";
 import { stripJsonComments } from "./jsonc";
 import { urlWithParams } from "./model";
 
@@ -122,14 +122,35 @@ export function findSensitive(req: RequestDef, res: HttpResponse, extra: string[
   return [...groups.values()];
 }
 
+const COOKIE_ATTRS = new Set(["path", "domain", "expires", "max-age", "samesite", "priority"]);
+const COOKIE_FLAGS = new Set(["httponly", "secure", "partitioned"]);
+
+/** A Cookie or Set-Cookie field, whose value is masked as name=value. */
+export const isCookieName = (key: string) => /^(set-)?cookie2?$/i.test(key.trim());
+
 /** The masked form of one value. */
-export function maskValue(value: string, kind: Kind, style: MaskStyle): string {
+export function maskValue(value: string, kind: Kind, style: MaskStyle, isCookie = false): string {
   const dots = (n: number) => "•".repeat(Math.max(2, Math.min(n, 12)));
-  // keep the scheme of an auth header and the name of a cookie; the secret part goes
+  // keep the scheme of an auth header and the name of a cookie; the secret part goes.
+  // Only a Cookie / Set-Cookie value is read as name=value: a base64 key ending in "==" would keep almost all of itself.
   const scheme = /^(Bearer|Basic|Digest|Token)\s+/i.exec(value);
   if (scheme) return `${scheme[0]}••••••••`;
-  const cookie = /^([^=;\s]+)=([^;]*)(.*)$/.exec(value);
-  if (cookie && kind === "secret" && cookie[2]) return `${cookie[1]}=••••••••${cookie[3]}`;
+  // every name=value pair goes, so `theme=dark; session=…` keeps no session; Set-Cookie attributes stay readable
+  // a part with no name, or a value that is only "=" padding of a bare token, is masked whole
+  if (isCookie && kind === "secret")
+    return value
+      .split(";")
+      .map((part) => {
+        const lead = /^\s*/.exec(part)![0];
+        const body = part.slice(lead.length);
+        const eq = body.indexOf("=");
+        const name = eq === -1 ? body.trim() : body.slice(0, eq).trim();
+        if (eq === -1) return !name || COOKIE_FLAGS.has(name.toLowerCase()) ? part : `${lead}••••••••`;
+        const v = body.slice(eq + 1);
+        if (COOKIE_ATTRS.has(name.toLowerCase())) return part;
+        return /^=*$/.test(v) && v ? `${lead}••••••••` : `${lead}${body.slice(0, eq)}=${v ? "••••••••" : ""}`;
+      })
+      .join(";");
   if (kind === "secret" || style === "full") return "••••••••";
   const email = /^([^@\s])[^@\s]*(@.+)$/.exec(value);
   if (email) return `${email[1]}••${email[2]}`;
@@ -141,11 +162,75 @@ export function maskValue(value: string, kind: Kind, style: MaskStyle): string {
   return value.replace(/\S+/g, (w) => w[0] + dots(w.length - 1));
 }
 
+/**
+ * Values that went out in the query of `sentUrl` as secrets: secret-looking params, and API-key auth sent in the query.
+ * A server may echo them back (a Link header, a "url" field), so they are looked for in the response too.
+ */
+export function sentSecrets(sentUrl: string, auth: Auth): string[] {
+  const q = sentUrl.indexOf("?");
+  if (q === -1) return [];
+  const hash = sentUrl.indexOf("#", q);
+  const out = new Set<string>();
+  for (const pair of sentUrl.slice(q + 1, hash === -1 ? undefined : hash).split("&")) {
+    const eq = pair.indexOf("=");
+    if (eq === -1) continue;
+    const decode = (s: string) => {
+      try {
+        return decodeURIComponent(s);
+      } catch {
+        return s;
+      }
+    };
+    const key = decode(pair.slice(0, eq).replace(/\+/g, " "));
+    const raw = pair.slice(eq + 1);
+    if (raw.length < 8 || !(isSecretKey(key) || (auth.type === "apikey" && auth.in === "query" && key === auth.key))) continue;
+    // the value as it went out, decoded, and encoded again: a server may echo any of them, JSON may escape "/" as "\/"
+    for (const v of [raw, decode(raw), decode(raw.replace(/\+/g, " ")), encodeURIComponent(decode(raw))]) {
+      out.add(v);
+      out.add(v.replace(/\//g, "\\/"));
+    }
+  }
+  // longest first, so a shorter form never splits a longer one before it is replaced
+  return [...out].filter((v) => v.length >= 8).sort((a, b) => b.length - a.length);
+}
+
+/** `res` with every occurrence of `secrets` in its headers and text body replaced. */
+export function scrubEchoes(res: HttpResponse, secrets: string[], replacement: string): HttpResponse {
+  if (!secrets.length) return res;
+  const scrub = (s: string) => secrets.reduce((acc, v) => acc.split(v).join(replacement), s);
+  let body = res.bodyEncoding === "utf8" ? scrub(res.body) : res.body;
+  // JSON may write a secret with \uXXXX escapes, which the text search cannot see: scrub the parsed strings too
+  const doc = res.bodyEncoding === "utf8" ? parseJson(body) : undefined;
+  if (doc !== undefined) {
+    let hit = false;
+    const walk = (v: unknown): unknown => {
+      if (typeof v === "string") {
+        const s = scrub(v);
+        if (s !== v) hit = true;
+        return s;
+      }
+      if (Array.isArray(v)) return v.map(walk);
+      if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [walk(k) as string, walk(x)]));
+      return v;
+    };
+    const out = walk(doc);
+    if (hit) body = body.includes("\n") ? JSON.stringify(out, null, 2) : JSON.stringify(out);
+  }
+  return {
+    ...res,
+    headers: res.headers.map((h) => ({ ...h, value: scrub(h.value) })),
+    body,
+    size: body === res.body ? res.size : new TextEncoder().encode(body).length,
+  };
+}
+
 function setAt(root: unknown, path: (string | number)[], fn: (v: string) => string) {
   let cur = root as Record<string | number, unknown>;
-  for (let i = 0; i < path.length - 1; i++) cur = cur[path[i]] as Record<string | number, unknown>;
+  for (let i = 0; i < path.length - 1 && cur && typeof cur === "object"; i++) cur = cur[path[i]] as Record<string | number, unknown>;
+  // a path that no longer exists in the value is skipped, not thrown on
+  if (!cur || typeof cur !== "object") return;
   const last = path[path.length - 1];
-  cur[last] = fn(String(cur[last]));
+  if (last in cur) cur[last] = fn(String(cur[last]));
 }
 
 /** Masked copies of `req` and `res`, with the chosen groups replaced. */
@@ -158,7 +243,7 @@ export function applyMasks(req: RequestDef, res: HttpResponse, groups: MaskGroup
   let resJsonHit = false;
   let paramHit = false;
   for (const g of groups) {
-    const m = (v: string) => maskValue(v, g.kind, style);
+    const m = (v: string) => maskValue(v, g.kind, style, isCookieName(g.label));
     for (const loc of g.locs) {
       switch (loc.t) {
         case "reqHeader":
@@ -202,5 +287,8 @@ export function applyMasks(req: RequestDef, res: HttpResponse, groups: MaskGroup
     response.body = response.body.includes("\n") ? JSON.stringify(resJson, null, 2) : JSON.stringify(resJson);
     response.size = new TextEncoder().encode(response.body).length;
   }
-  return { request, response };
+  // the response URL is the one sent, with variables and query auth filled in; the masked template stands in for it,
+  // and secrets sent in the query are masked wherever the server echoed them. This runs last, so field masks find
+  // their keys; secret fields are masked whole, so no part of an echoed secret is left for it to miss.
+  return { request, response: { ...scrubEchoes(response, sentSecrets(res.url, req.auth), maskValue("", "secret", style)), url: request.url } };
 }

@@ -1,7 +1,8 @@
 import type { KV } from "../types";
 import { uid } from "./model";
 
-const VAR_RE = /\{\{\s*([^{}]+?)\s*\}\}/g;
+// one run of non-brace characters, trimmed by the callers: `\s*([^{}]+?)\s*` backtracked in cubic time on `{{` + spaces
+const VAR_RE = /\{\{([^{}]*)\}\}/g;
 
 export type VarScope = Map<string, string>;
 
@@ -32,18 +33,41 @@ function dynamic(name: string): string | undefined {
   }
 }
 
-/** Replaces {{var}} recursively (max depth 5 to stop cycles). */
-export function resolve(input: string, scope: VarScope, depth = 0): string {
-  if (depth > 5 || !input.includes("{{")) return input;
-  const out = input.replace(VAR_RE, (m, name: string) => {
+/**
+ * How much {{var}} substitution may add to a value: a variable that holds itself many times would grow without end.
+ * Sending allows a large file-sized value; what runs on every render (`unresolved`) gets far less.
+ */
+const MAX_GROWTH = 64 << 20;
+export const RENDER_GROWTH = 1 << 20;
+
+/** What {{var}} substitution may still spend; one object can be shared by many fields (a whole render). */
+export type Budget = { left: number };
+
+/** Replaces {{var}} recursively (max depth 5 to stop cycles, and at most MAX_GROWTH characters added). */
+export function resolve(input: string, scope: VarScope, depth = 0, budget = MAX_GROWTH): string {
+  return resolveWithin(input, scope, { left: budget }, depth);
+}
+
+/**
+ * `resolve` against a budget object: growth is charged, and so is each pass after the first (a chain of
+ * same-length hops would otherwise rescan a large value for free). When it runs out, the rest stays as written.
+ */
+export function resolveWithin(input: string, scope: VarScope, budget: Budget, depth = 0): string {
+  if (depth > 5 || !input.includes("{{") || budget.left <= 0) return input;
+  if (depth > 0) budget.left -= input.length;
+  const out = input.replace(VAR_RE, (m, raw: string) => {
+    const name = raw.trim();
+    if (!name) return m;
     const v = scope.get(name) ?? dynamic(name);
-    return v === undefined ? m : v;
+    if (v === undefined || v.length - m.length > budget.left) return m;
+    budget.left -= Math.max(0, v.length - m.length);
+    return v;
   });
-  return out === input ? out : resolve(out, scope, depth + 1);
+  return out === input ? out : resolveWithin(out, scope, budget, depth + 1);
 }
 
 export function unresolved(input: string, scope: VarScope): string[] {
   const missing = new Set<string>();
-  for (const m of resolve(input, scope).matchAll(VAR_RE)) missing.add(m[1]);
+  for (const m of resolve(input, scope, 0, RENDER_GROWTH).matchAll(VAR_RE)) if (m[1].trim()) missing.add(m[1].trim());
   return [...missing];
 }

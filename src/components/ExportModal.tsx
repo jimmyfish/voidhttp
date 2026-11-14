@@ -3,7 +3,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { useStore } from "../store";
 import type { Environment } from "../types";
 import { TriangleAlert, X, ico } from "./Icon";
-import { blankSecretKv, blankValues, fileStem, requestsOf } from "../lib/formats/common";
+import { blankHarEnv, blankValues, fileStem, requestsOf } from "../lib/formats/common";
 import { exportNative } from "../lib/formats/native";
 import { exportPostman, exportPostmanEnv } from "../lib/formats/postman";
 import { exportHar } from "../lib/formats/har";
@@ -70,7 +70,7 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
       const strip = (nodes: typeof collection.children): typeof collection.children =>
         nodes.map((n) => (n.type === "folder" ? { ...n, children: strip(n.children) } : { ...n, examples: examples ? n.examples : undefined }));
       const base = { ...collection, children: strip(collection.children) };
-      const safe = keep ? { collection: base, environments: chosenEnvs } : blankValues(base, chosenEnvs);
+      const safe = keep ? { collection: base, environments: chosenEnvs } : blankValues(base, chosenEnvs, s.environments.map((e) => e.variables)) /* every environment: any of them may link a secret-named variable to a collection value */;
       const written: string[] = [baseName(path)];
       if (format === "void") {
         await writeTextFile(path, exportNative([safe.collection], safe.environments));
@@ -84,9 +84,9 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
           written.push(baseName(p));
         }
       } else {
-        // variables are filled in: the active environment over the collection's own; Blank empties only secret-looking ones,
-        // since an address cannot be filled in from an empty value
-        const scope = buildScope(safe.collection.variables, keep ? active?.variables : blankSecretKv(active?.variables ?? []));
+        // variables are filled in: the active environment over the collection's own; Blank empties only secret-looking ones
+        // and the ones a request uses as a credential, since an address cannot be filled in from an empty value
+        const scope = buildScope(safe.collection.variables, keep ? active?.variables : blankHarEnv(base, active?.variables ?? []));
         await writeTextFile(path, exportHar(safe.collection, scope, await getVersion().catch(() => "")).text);
       }
       s.notify(`Exported “${collection.name}” to ${written.join(", ")}`);
