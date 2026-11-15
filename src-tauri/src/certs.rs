@@ -13,7 +13,11 @@ use std::{
 };
 
 use rustls::{
-    client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier},
+    client::{
+        danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier},
+        verify_server_name, WebPkiServerVerifier,
+    },
+    server::ParsedCertificate,
     crypto::CryptoProvider,
     pki_types::{
         pem::{PemObject, SectionKind},
@@ -90,6 +94,8 @@ struct Identity {
 
 struct Certs {
     roots: Arc<RootCertStore>,
+    /// The CA files' certificates as read, for a server that uses one of them as its own certificate.
+    pinned: Arc<Vec<CertificateDer<'static>>>,
     clients: Vec<ClientCert>,
     /// Client certificates read so far, by id. Cleared when the settings or a passphrase change.
     loaded: Mutex<HashMap<String, Arc<Identity>>>,
@@ -111,15 +117,22 @@ fn provider() -> Arc<CryptoProvider> {
 impl Certs {
     fn build(config: &CertConfig) -> Self {
         let mut roots = RootCertStore { roots: webpki_roots::TLS_SERVER_ROOTS.to_vec() };
+        let mut pinned = Vec::new();
         if config.ca_enabled {
             for path in &config.ca_files {
                 // a file that can't be used is reported on its row in Settings (certs_inspect_ca)
                 if let Ok(certs) = read_certs(path) {
+                    pinned.extend(certs.iter().cloned());
                     roots.add_parsable_certificates(certs);
                 }
             }
         }
-        Self { roots: Arc::new(roots), clients: config.clients.clone(), loaded: Mutex::new(HashMap::new()) }
+        Self {
+            roots: Arc::new(roots),
+            pinned: Arc::new(pinned),
+            clients: config.clients.clone(),
+            loaded: Mutex::new(HashMap::new()),
+        }
     }
 
     fn client_for(&self, host: &str, port: u16) -> Option<&ClientCert> {
@@ -159,8 +172,13 @@ pub fn tls_config(insecure: bool, host: &str, port: u16) -> Result<ClientConfig,
         .map_err(|e| format!("TLS setup failed: {e}"))?;
     let builder = if insecure {
         builder.dangerous().with_custom_certificate_verifier(Arc::new(NoVerify(provider)))
-    } else {
+    } else if certs.pinned.is_empty() {
         builder.with_root_certificates(certs.roots.clone())
+    } else {
+        let inner = WebPkiServerVerifier::builder_with_provider(certs.roots.clone(), provider)
+            .build()
+            .map_err(|e| format!("TLS setup failed: {e}"))?;
+        builder.dangerous().with_custom_certificate_verifier(Arc::new(AddedCertVerifier { inner, pinned: certs.pinned.clone() }))
     };
     let Some(client) = certs.client_for(host, port) else {
         return Ok(builder.with_no_client_auth());
@@ -176,6 +194,95 @@ fn client_label(c: &ClientCert) -> String {
     match c.port {
         Some(p) => format!("{}:{p}", c.host.trim()),
         None => c.host.trim().to_string(),
+    }
+}
+
+/// The normal checks against the public CAs and the CA files, plus the allowance Postman and browsers
+/// make for a self-signed dev server: when the server's certificate is exactly one of the added files,
+/// it is trusted even if it calls itself a CA (plain `openssl req -x509`) or names its host only in
+/// the common name. Its dates and host are still checked, and the handshake still proves the server
+/// holds its key.
+#[derive(Debug)]
+struct AddedCertVerifier {
+    inner: Arc<WebPkiServerVerifier>,
+    pinned: Arc<Vec<CertificateDer<'static>>>,
+}
+
+impl ServerCertVerifier for AddedCertVerifier {
+    fn verify_server_cert(
+        &self,
+        end_entity: &CertificateDer<'_>,
+        intermediates: &[CertificateDer<'_>],
+        server_name: &ServerName<'_>,
+        ocsp: &[u8],
+        now: UnixTime,
+    ) -> Result<ServerCertVerified, rustls::Error> {
+        let err = match self.inner.verify_server_cert(end_entity, intermediates, server_name, ocsp, now) {
+            Ok(v) => return Ok(v),
+            Err(e) => e,
+        };
+        if !self.pinned.iter().any(|c| c.as_ref() == end_entity.as_ref()) {
+            return Err(err);
+        }
+        added_cert_fits(end_entity, server_name, now)?;
+        Ok(ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(
+        &self,
+        message: &[u8],
+        cert: &CertificateDer<'_>,
+        dss: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, rustls::Error> {
+        self.inner.verify_tls12_signature(message, cert, dss)
+    }
+
+    fn verify_tls13_signature(
+        &self,
+        message: &[u8],
+        cert: &CertificateDer<'_>,
+        dss: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, rustls::Error> {
+        self.inner.verify_tls13_signature(message, cert, dss)
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
+        self.inner.supported_verify_schemes()
+    }
+}
+
+/// Dates and host of a server certificate that is one of the added CA files. The host comes from the
+/// subject alternative names, or from the common name when the certificate has none (old openssl
+/// commands make those; Postman accepts them).
+fn added_cert_fits(der: &CertificateDer<'_>, server_name: &ServerName<'_>, now: UnixTime) -> Result<(), rustls::Error> {
+    use rustls::{CertificateError, Error::InvalidCertificate};
+    let (_, cert) = x509_parser::parse_x509_certificate(der).map_err(|_| InvalidCertificate(CertificateError::BadEncoding))?;
+    let now = now.as_secs() as i64;
+    let validity = cert.validity();
+    if now < validity.not_before.timestamp() {
+        return Err(InvalidCertificate(CertificateError::NotValidYet));
+    }
+    if now > validity.not_after.timestamp() {
+        return Err(InvalidCertificate(CertificateError::Expired));
+    }
+    let name_err = match verify_server_name(&ParsedCertificate::try_from(der)?, server_name) {
+        Ok(()) => return Ok(()),
+        Err(e) => e,
+    };
+    let has_san = matches!(cert.subject_alternative_name(), Ok(Some(_)));
+    let host = match server_name {
+        ServerName::DnsName(d) => d.as_ref().trim_end_matches('.').to_ascii_lowercase(),
+        _ => return Err(name_err),
+    };
+    let cn_matches = cert
+        .subject()
+        .iter_common_name()
+        .filter_map(|cn| cn.as_str().ok())
+        .any(|cn| cn.trim_end_matches('.').eq_ignore_ascii_case(&host));
+    if !has_san && cn_matches {
+        Ok(())
+    } else {
+        Err(name_err)
     }
 }
 
@@ -220,7 +327,7 @@ impl ServerCertVerifier for NoVerify {
 
 /// What to do about a TLS failure, added to the error a request shows.
 pub fn tls_hint(error: &str) -> Option<&'static str> {
-    if error.contains("UnknownIssuer") {
+    if error.contains("UnknownIssuer") || error.contains("CaUsedAsEndEntity") {
         Some("The server's certificate is self-signed or from a CA voidHTTP doesn't know. Add that CA in Settings > Certificates.")
     } else if error.contains("CertificateRequired") || error.contains("HandshakeFailure") && error.contains("alert") {
         Some("The server may want a client certificate. Add one for this host in Settings > Certificates.")
@@ -512,6 +619,7 @@ mod tests {
     fn host_matching_prefers_exact_host_and_set_port() {
         let certs = Certs {
             roots: Arc::new(RootCertStore::empty()),
+            pinned: Arc::default(),
             clients: vec![entry("*.dev.local", None), entry("api.dev.local", None), entry("api.dev.local", Some(8443))],
             loaded: Mutex::new(HashMap::new()),
         };
@@ -685,6 +793,74 @@ mod tests {
 
         configure(&CertConfig::default());
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    /// One TLS connection to a localhost server using `chain`, no client certificate asked.
+    async fn plain_handshake(chain: Vec<CertificateDer<'static>>, key: PrivateKeyDer<'static>) -> Result<(), String> {
+        let server = rustls::ServerConfig::builder_with_provider(provider())
+            .with_safe_default_protocol_versions()
+            .unwrap()
+            .with_no_client_auth()
+            .with_single_cert(chain, key)
+            .unwrap();
+        let acceptor = tokio_rustls::TlsAcceptor::from(Arc::new(server));
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let serve = tokio::spawn(async move {
+            let (tcp, _) = listener.accept().await.unwrap();
+            let _ = acceptor.accept(tcp).await;
+        });
+        let config = tls_config(false, "localhost", port)?;
+        let tcp = tokio::net::TcpStream::connect(("127.0.0.1", port)).await.map_err(|e| e.to_string())?;
+        let name = ServerName::try_from("localhost").unwrap();
+        let result = tokio_rustls::TlsConnector::from(Arc::new(config)).connect(name, tcp).await.map(|_| ()).map_err(|e| e.to_string());
+        serve.abort();
+        result
+    }
+
+    /// What `openssl req -x509 -subj /CN=<cn> [-addext subjectAltName=DNS:<san>]` makes: one
+    /// self-signed certificate that also says CA:TRUE, used by the server directly. Connects to
+    /// localhost before and after adding the certificate.
+    async fn self_signed_case(cn: &str, san: Option<&str>) -> (Result<(), String>, Result<(), String>) {
+        use rcgen::{BasicConstraints, CertificateParams, DnType, IsCa, KeyPair};
+        let mut params = CertificateParams::new(san.map(String::from).into_iter().collect::<Vec<_>>()).unwrap();
+        params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
+        params.distinguished_name.push(DnType::CommonName, cn);
+        let key = KeyPair::generate().unwrap();
+        let cert = params.self_signed(&key).unwrap();
+        let path = std::env::temp_dir().join(format!("voidhttp-selfsigned-{}-{cn}.pem", std::process::id()));
+        fs::write(&path, cert.pem()).unwrap();
+        let chain = vec![cert.der().clone()];
+        let server_key = || PrivateKeyDer::from(PrivatePkcs8KeyDer::from(key.serialize_der()));
+
+        configure(&CertConfig::default());
+        let before = plain_handshake(chain.clone(), server_key()).await;
+        configure(&CertConfig { ca_enabled: true, ca_files: vec![path.to_string_lossy().into()], clients: vec![] });
+        let after = plain_handshake(chain, server_key()).await;
+        configure(&CertConfig::default());
+        let _ = fs::remove_file(&path);
+        (before, after)
+    }
+
+    #[tokio::test]
+    async fn an_openssl_self_signed_server_certificate_is_trusted_once_added() {
+        // with a subject alternative name
+        let (before, after) = self_signed_case("localhost", Some("localhost")).await;
+        assert!(tls_hint(&before.unwrap_err()).is_some_and(|h| h.contains("Add that CA")));
+        assert_eq!(after, Ok(()));
+
+        // common name only
+        let (before, after) = self_signed_case("localhost", None).await;
+        assert!(tls_hint(&before.unwrap_err()).is_some_and(|h| h.contains("Add that CA")));
+        assert_eq!(after, Ok(()));
+
+        // added, but made for another host
+        let (_, after) = self_signed_case("api.other.dev", None).await;
+        let err = after.unwrap_err();
+        assert!(err.contains("not valid for name"), "{err}");
+        let (_, after) = self_signed_case("localhost", Some("api.other.dev")).await;
+        let err = after.unwrap_err();
+        assert!(err.contains("not valid for name"), "{err}");
     }
 
     #[test]

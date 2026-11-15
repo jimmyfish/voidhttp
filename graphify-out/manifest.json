@@ -6,9 +6,9 @@
     "semantic_hash": ""
   },
   "src-tauri/Cargo.toml": {
-    "mtime": 1794754538.4541872,
-    "seen": 1794754588.8447318,
-    "ast_hash": "fc9b56ab6f14a55f88b4b51af28f4bf4",
+    "mtime": 1794759378.8318305,
+    "seen": 1794759379.752775,
+    "ast_hash": "9dcfb777eea45d980daf8c87f90025cc",
     "semantic_hash": ""
   },
   "src-tauri/build.rs": {
@@ -30,9 +30,9 @@
     "semantic_hash": ""
   },
   "src-tauri/src/lib.rs": {
-    "mtime": 1794754485.9644492,
-    "seen": 1794754537.2947981,
-    "ast_hash": "7d2cda1a9e4a7175c3f64218210115e2",
+    "mtime": 1794759378.8319206,
+    "seen": 1794759379.7527838,
+    "ast_hash": "fc5ca139b6ad5f92f64ad51d1a3c2c33",
     "semantic_hash": ""
   },
   "src-tauri/src/main.rs": {
@@ -582,9 +582,9 @@
     "semantic_hash": ""
   },
   "src-tauri/src/ws.rs": {
-    "mtime": 1794754485.9633915,
-    "seen": 1794754537.2947998,
-    "ast_hash": "b6d790b8d7886bd96c21ef3674b46c01",
+    "mtime": 1794759278.7828832,
+    "seen": 1794759280.6598778,
+    "ast_hash": "b3596141cf1a3c7710d5f59ac9283101",
     "semantic_hash": ""
   },
   ".hallmark/preview/websocket.html": {
@@ -636,9 +636,9 @@
     "semantic_hash": ""
   },
   "src-tauri/src/certs.rs": {
-    "mtime": 1794755530.3684187,
-    "seen": 1794755551.67067,
-    "ast_hash": "b03b2871da2d43d2b5670d0e5c27456c",
+    "mtime": 1794759332.3872693,
+    "seen": 1794759340.521697,
+    "ast_hash": "5b081cf015ebeecf2cf054c7eed4bd0c",
     "semantic_hash": ""
   },
   ".hallmark/preview/socketio.html": {
@@ -657,6 +657,12 @@
     "mtime": 1794755489.3960247,
     "seen": 1794755551.670678,
     "ast_hash": "b0d742cae43eee49758a45589a77e69b",
+    "semantic_hash": ""
+  },
+  "src-tauri/src/sio.rs": {
+    "mtime": 1794759378.8317075,
+    "seen": 1794759379.752786,
+    "ast_hash": "6a145689b08bc324191694bf283c8964",
     "semantic_hash": ""
   }
 }
