@@ -14,7 +14,8 @@ import { looksLikeCurl, parseCurl, toCurl } from "../lib/curl";
 import { KVEditor } from "./KVEditor";
 import { CodeArea } from "./CodeArea";
 import { formatJsonc, stripJsonComments } from "../lib/jsonc";
-import { ChevronDown, CircleCheck, CircleDashed, CircleDot, CodeXml, SlidersHorizontal, WandSparkles, WrapText, ico } from "./Icon";
+import { ChevronDown, CircleCheck, CircleDashed, CircleDot, CodeXml, FileCode, SendHorizontal, SlidersHorizontal, WandSparkles, WrapText, ico, icoLg } from "./Icon";
+import { OPEN_SCRIPT, SNIPPETS, hasScript, type OpenScript } from "../lib/script";
 import { defaultGrpc, isGrpc, looksLikeGrpcurl, parseGrpcurl } from "../lib/grpc";
 import { GrpcRequestPane } from "./GrpcPane";
 import { WsRequestPane } from "./WsPane";
@@ -22,11 +23,12 @@ import { defaultWs, isWs } from "../lib/ws";
 import { SioRequestPane } from "./SioPane";
 import { defaultSio, isSio } from "../lib/sio";
 
-type Section = "params" | "headers" | "body" | "auth";
+type Section = "params" | "headers" | "body" | "auth" | "scripts";
 
 export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
   const [section, setSection] = useState<Section>(tab.request.body.mode !== "none" ? "body" : "params");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [phase, setPhase] = useState<"pre" | "post">(hasScript(tab.request.scripts?.pre) || !hasScript(tab.request.scripts?.post) ? "pre" : "post");
   const menuRef = useRef<HTMLDivElement>(null);
   const update = useStore((s) => s.updateRequest);
   const scopeFor = useStore((s) => s.scopeFor);
@@ -99,6 +101,17 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
       window.removeEventListener("keydown", close);
     };
   }, [menuOpen]);
+
+  useEffect(() => {
+    const open = (e: Event) => {
+      const d = (e as CustomEvent<OpenScript>).detail;
+      if (d.tabId !== tab.id) return;
+      setSection("scripts");
+      setPhase(d.src);
+    };
+    window.addEventListener(OPEN_SCRIPT, open);
+    return () => window.removeEventListener(OPEN_SCRIPT, open);
+  }, [tab.id]);
 
   const copyCurl = async () => {
     setMenuOpen(false);
@@ -270,6 +283,19 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
             </button>
             {menuOpen && (
               <div className="menu" role="menu" aria-label="Send options">
+                {(hasScript(req.scripts?.pre) || hasScript(req.scripts?.post)) && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      st.sendTab(tab.id, { skipScripts: true });
+                    }}
+                  >
+                    <SendHorizontal {...ico} />
+                    Send without scripts
+                  </button>
+                )}
                 <button type="button" role="menuitem" onClick={copyCurl}>
                   <CodeXml {...ico} />
                   Copy as cURL
@@ -300,13 +326,14 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
       </div>
 
       <nav className="subtabs" aria-label="Request">
-        {(["params", "body", "headers", "auth"] as Section[]).map((s) => (
+        {(["params", "body", "headers", "auth", "scripts"] as Section[]).map((s) => (
           <button key={s} type="button" className="subtab" aria-pressed={section === s} onClick={() => setSection(s)}>
             {s[0].toUpperCase() + s.slice(1)}
             {s === "params" && n(enabledParams)}
             {s === "body" && n(req.body.mode !== "none" ? 1 : 0)}
             {s === "headers" && n(enabledHeaders)}
             {s === "auth" && n(req.auth.type !== "none" ? 1 : 0)}
+            {s === "scripts" && n(Number(hasScript(req.scripts?.pre)) + Number(hasScript(req.scripts?.post)))}
           </button>
         ))}
         <button type="button" className="icon-btn push" title="Copy as cURL" aria-label="Copy as cURL" onClick={copyCurl}>
@@ -326,6 +353,7 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
           {section === "headers" && <KVEditor rows={req.headers} nameLabel="Header" addLabel="Add a header" onChange={(headers) => set({ headers })} />}
           {section === "body" && <BodyEditor tab={tab} />}
           {section === "auth" && <AuthEditor auth={req.auth} onChange={(auth) => set({ auth })} />}
+          {section === "scripts" && <ScriptsEditor tab={tab} phase={phase} setPhase={setPhase} />}
         </fieldset>
       </div>
     </div>
@@ -399,6 +427,132 @@ function BodyEditor({ tab }: { tab: Tab }) {
       {body.mode === "form" && <KVEditor rows={body.form} addLabel="Add a field" onChange={(form) => set({ form })} />}
       {body.mode === "multipart" && <KVEditor files rows={body.multipart} addLabel="Add a field" onChange={(multipart) => set({ multipart })} />}
       {body.mode === "none" && <p className="muted">This request has no body.</p>}
+    </>
+  );
+}
+
+const SCRIPT_TEXT = {
+  pre: {
+    label: "Pre-request script",
+    empty: "No pre-request script",
+    what: (
+      <>
+        Runs before Send. Change the request with <code>pm.request</code>, or set values with <code>pm.environment.set</code>.
+      </>
+    ),
+  },
+  post: {
+    label: "Post-response script",
+    empty: "No post-response script",
+    what: (
+      <>
+        Runs after the response arrives. Check it with <code>pm.test</code>, or save values with <code>pm.environment.set</code>.
+      </>
+    ),
+  },
+};
+
+function ScriptsEditor({ tab, phase, setPhase }: { tab: Tab; phase: "pre" | "post"; setPhase: (p: "pre" | "post") => void }) {
+  const update = useStore((s) => s.updateRequest);
+  const runScripts = useStore((s) => s.settings.runScripts !== false);
+  const envName = useStore((s) => s.environments.find((e) => e.id === s.activeEnvironmentId)?.name);
+  const openModal = useStore((s) => s.openModal);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const scripts = tab.request.scripts ?? {};
+  const code = scripts[phase] ?? "";
+  const set = (v: string) => update(tab.id, { scripts: { ...scripts, [phase]: v } });
+  // the line the last run failed on, while the script is the one that failed
+  const failed = tab.scripts?.failed;
+  const mark = failed?.src === phase ? failed.line : undefined;
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener("mousedown", close);
+    window.addEventListener("keydown", close);
+    return () => {
+      window.removeEventListener("mousedown", close);
+      window.removeEventListener("keydown", close);
+    };
+  }, [open]);
+
+  const insert = (snippet: string) => {
+    set(code.trim() ? `${code.replace(/\s*$/, "")}\n\n${snippet}\n` : `${snippet}\n`);
+    setOpen(false);
+  };
+  const groups = SNIPPETS.map((g) => ({ ...g, items: g.items.filter((i) => !i.only || i.only === phase) })).filter((g) => g.items.length);
+  const t = SCRIPT_TEXT[phase];
+
+  return (
+    <>
+      <div className="script-head">
+        <div className="seg" role="group" aria-label="When it runs">
+          {(["pre", "post"] as const).map((p) => (
+            <button key={p} type="button" aria-pressed={phase === p} onClick={() => setPhase(p)}>
+              {p === "pre" ? "Pre-request" : "Post-response"}
+              {hasScript(scripts[p]) && <span className="has" role="img" aria-label="has a script" />}
+            </button>
+          ))}
+        </div>
+        <div className="snip-wrap push" ref={ref}>
+          <button type="button" className="btn btn--quiet" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+            Snippets
+            <ChevronDown {...ico} />
+          </button>
+          {open && (
+            <div className="menu snip-menu" role="menu" aria-label="Snippets">
+              {groups.map((g, i) => (
+                <div key={g.group} role="group" aria-label={g.group}>
+                  {i > 0 && <hr />}
+                  <div className="grp">{g.group}</div>
+                  {g.items.map((s) => (
+                    <button key={s.label} type="button" role="menuitem" onClick={() => insert(s.code)}>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      <CodeArea
+        value={code}
+        js
+        mark={mark}
+        label={t.label}
+        onChange={set}
+        empty={
+          <>
+            <FileCode {...icoLg} />
+            <strong>{t.empty}</strong>
+            <span>{t.what}</span>
+            <span>Start from Snippets, or type here.</span>
+          </>
+        }
+      />
+      {runScripts ? (
+        <span className="script-hint">
+          {phase === "pre" ? (
+            <>
+              Runs before Send. Changes to <code>pm.request</code> go on the wire; <code>pm.environment.set</code>{" "}
+              {envName ? <>writes to {envName}.</> : <>needs an environment.</>}
+            </>
+          ) : (
+            "Runs after the response arrives. Results show in the Tests and Console tabs."
+          )}
+        </span>
+      ) : (
+        <span className="script-hint">
+          Scripts are off.{" "}
+          <button type="button" className="link" onClick={() => openModal({ kind: "settings", section: "requests" })}>
+            Turn them on in Settings
+          </button>
+        </span>
+      )}
     </>
   );
 }

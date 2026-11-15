@@ -4,6 +4,7 @@ mod fonts;
 mod grpc;
 mod http;
 mod net;
+mod script;
 mod store;
 mod sio;
 mod ws;
@@ -121,6 +122,7 @@ pub fn run() {
         .manage(ws::WsState::default())
         .manage(sio::SioState::default())
         .invoke_handler(tauri::generate_handler![
+            script::run_script,
             http::send_request,
             http::cancel_request,
             grpc::grpc_describe,

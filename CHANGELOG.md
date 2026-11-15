@@ -15,6 +15,7 @@ All notable changes to voidHTTP are listed here. The format follows [Keep a Chan
 - **Settings > Certificates**, for HTTP, WebSocket, Socket.IO and gRPC:
   - CA certificates (`.pem`) trusted on top of the public CAs, for dev servers with a self-signed or company certificate.
   - Client certificates for mutual TLS (CRT + KEY or PFX), matched by host and port. Passphrases are kept in the macOS Keychain, and certificate files are referenced by path, never copied.
+- **Scripts.** HTTP requests get a Scripts tab with a pre-request script (runs before Send) and a post-response script (runs once the response arrives), using Postman's `pm` API: environment, collection and request variables, changing the request before it goes out, `pm.test` with chai-style `pm.expect`, and `console.log`. The response gets a Tests tab (passed and failed tests, with the failing assertion and its line) and a Console tab. A failing pre-request script stops the send and points at its line. Snippets cover the common cases. Scripts run in an isolated QuickJS sandbox with a time and memory limit. Postman imports now keep request scripts instead of dropping them, and Postman exports write them.
 - **gRPC examples.** Save a finished gRPC call (metadata, messages sent and received, trailers, error details) as an example under a saved request. Masking covers all of these parts.
 
 ### Changed
@@ -23,6 +24,7 @@ All notable changes to voidHTTP are listed here. The format follows [Keep a Chan
 
 ### Security
 
+- Scripts never run in the app's webview. They run in a separate QuickJS sandbox with no network, file system or app access, stopped after 10 seconds or 64 MB. Imported collections can bring scripts that run on every send; the import review says how many, and Settings › Requests › Run scripts turns them all off.
 - An imported multipart field can no longer choose which local file gets uploaded: file paths that come in with an import are dropped, and the review step names them.
 - OpenAPI `$ref` files are read only from the spec's folder or below it, with symlinks resolved. Only `.json`, `.yaml` and `.yml` files are read, and never from hidden folders or voidHTTP's own data.
 - Exports are written through a fresh, unguessable temporary name, so a symlink planted at a predictable path cannot redirect the write.

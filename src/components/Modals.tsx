@@ -659,6 +659,22 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
               </div>
               <div className="set-item">
                 <div className="set-text">
+                  <label htmlFor="set-scripts">Run scripts</label>
+                  <span className="desc">Run pre-request and post-response scripts on each send, including those from imported collections</span>
+                </div>
+                <div className="set-ctl">
+                  <input
+                    id="set-scripts"
+                    className="switch"
+                    type="checkbox"
+                    role="switch"
+                    checked={settings.runScripts !== false}
+                    onChange={(e) => setSettings({ runScripts: e.target.checked })}
+                  />
+                </div>
+              </div>
+              <div className="set-item">
+                <div className="set-text">
                   <label htmlFor="set-keep">Keep responses in history</label>
                   <span className="desc">Status, headers and body of each send, stored on this Mac as received</span>
                 </div>

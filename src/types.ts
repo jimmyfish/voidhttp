@@ -35,6 +35,39 @@ export interface RequestDef {
   grpc?: GrpcDef;
   ws?: WsDef;
   sio?: SioDef;
+  /** Postman-style JavaScript run around an HTTP send: `pre` before it, `post` once the response arrives. */
+  scripts?: RequestScripts;
+}
+
+export interface RequestScripts {
+  pre?: string;
+  post?: string;
+}
+
+/** One line of a script's console: console.* output, a variable it changed ("var"), or the error that stopped it. */
+export interface ScriptLog {
+  level: "log" | "info" | "warn" | "error" | "var";
+  text: string;
+  /** ms since that script started */
+  at: number;
+  src: "pre" | "post";
+}
+
+export interface ScriptTest {
+  name: string;
+  passed: boolean;
+  skipped?: boolean;
+  /** why it failed, e.g. "AssertionError: expected 'EUR' to deeply equal 'IDR'" */
+  error?: string;
+  /** the line of the post-response script it failed on */
+  line?: number;
+}
+
+/** What the scripts of the last send left: tests, console lines, and the error that stopped one of them. */
+export interface ScriptRun {
+  tests: ScriptTest[];
+  logs: ScriptLog[];
+  failed?: { src: "pre" | "post"; name: string; message: string; line?: number };
 }
 
 export interface SioDef {
@@ -268,6 +301,8 @@ export interface Tab {
   /** the last connection of a WebSocket tab, live while it is open */
   ws?: WsResult;
   error?: string;
+  /** what the pre-request and post-response scripts of the last send reported */
+  scripts?: ScriptRun;
   /** The response came from history, not from a send in this tab. Cleared by the next send. */
   fromHistory?: { at: number; bodyDropped: boolean; entryId?: string };
 }
@@ -318,6 +353,8 @@ export interface Settings {
   /** Soft-wrap long lines in the request body editor (default off) and the response body (default on). */
   wrapRequestBody?: boolean;
   wrapResponseBody?: boolean;
+  /** Run pre-request and post-response scripts on send (default on). */
+  runScripts?: boolean;
   /** Look for a new version when the app opens (default on). */
   autoUpdateCheck?: boolean;
   /** Settings > Network; missing fields take DEFAULT_NET (src/lib/net.ts): all off. */

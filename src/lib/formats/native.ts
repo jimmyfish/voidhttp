@@ -2,7 +2,7 @@
  * voidHTTP's own export: collections and environments exactly as stored, so nothing is lost
  * (gRPC calls, saved examples, environment colours). Ids are made fresh on import.
  */
-import type { Auth, Collection, Environment, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, SioDef, TreeNode, WsDef } from "../../types";
+import type { Auth, Collection, Environment, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, RequestScripts, SioDef, TreeNode, WsDef } from "../../types";
 import { defaultSio } from "../sio";
 import { cloneNode, uid } from "../model";
 import { newRequest } from "../model";
@@ -115,6 +115,13 @@ function saneGrpcResult(g: Any): GrpcResult | undefined {
   };
 }
 
+function saneScripts(v: Any): RequestScripts | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const pre = typeof v.pre === "string" && v.pre ? v.pre : undefined;
+  const post = typeof v.post === "string" && v.post ? v.post : undefined;
+  return pre || post ? { ...(pre && { pre }), ...(post && { post }) } : undefined;
+}
+
 /** Fills fields a hand-edited or older file may miss, and gives every field its type, so the rest of the app can trust the shape. */
 function sane(n: Any): TreeNode | null {
   if (!n || typeof n !== "object") return null;
@@ -143,6 +150,7 @@ function sane(n: Any): TreeNode | null {
     grpc: saneGrpc(n.grpc),
     ws: saneWs(n.ws),
     sio: saneSio(n.sio),
+    scripts: saneScripts(n.scripts),
     examples: Array.isArray(n.examples)
       ? n.examples
           // an HTTP example has a response; a gRPC example has an ended call instead

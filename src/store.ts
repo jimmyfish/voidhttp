@@ -13,6 +13,7 @@ import type {
   ProjectMeta,
   RequestDef,
   SavedRef,
+  ScriptRun,
   SessionV2,
   Settings,
   Tab,
@@ -36,6 +37,7 @@ import {
 } from "./lib/model";
 import { buildScope, type VarScope } from "./lib/vars";
 import { cancel, prepare, send } from "./lib/http";
+import { applyVarOps, hasScript, runScript, withScriptRequest, type VarOp } from "./lib/script";
 import { capEnvironments, capRows, type Source } from "./lib/formats/common";
 import {
   clientStreams,
@@ -119,8 +121,10 @@ interface State extends ProjectData {
   closeTab(id: string): void;
   setActiveTab(id: string): void;
   updateRequest(tabId: string, patch: Partial<RequestDef>): void;
-  sendTab(tabId: string): Promise<void>;
+  /** `skipScripts`: send without the pre-request and post-response scripts, once */
+  sendTab(tabId: string, opts?: { skipScripts?: boolean }): Promise<void>;
   cancelTab(tabId: string): void;
+  clearScriptLogs(tabId: string): void;
   /** gRPC: start the call, or on an open client stream send the next message */
   callGrpc(tabId: string): Promise<void>;
   /** gRPC: send the editor's message on the open client or bidi stream */
@@ -254,6 +258,9 @@ function keepWs(id: string, result: WsResult, settings: Settings): HistoryEntry[
 const loadingRun = new Map<string, string>();
 
 /** Stops whatever a tab has in flight: an HTTP request, a gRPC call, a WebSocket or a Socket.IO connection. */
+/** Sends whose pre-request script is still running (by inflight id): nothing is on the wire yet. */
+const inScript = new Set<string>();
+
 function stopInflight(t: Tab) {
   if (t.inflightId) (isGrpc(t.request) ? grpcCancel : isWs(t.request) ? wsClose : isSio(t.request) ? sioClose : cancel)(t.inflightId).catch(() => undefined);
 }
@@ -274,6 +281,11 @@ export const useStore = create<State>((set, get) => {
     if (!pid || s.currentProjectId === pid) return set(fn(liveData(s)));
     const d = s.stash[pid];
     if (d) set({ stash: { ...s.stash, [pid]: { ...d, ...fn(d) } } });
+  };
+  /** One project's data, open or stashed. */
+  const projectOf = (pid: string | null): ProjectData | undefined => {
+    const s = get();
+    return !pid || s.currentProjectId === pid ? liveData(s) : s.stash[pid];
   };
 
   return {
@@ -506,7 +518,7 @@ export const useStore = create<State>((set, get) => {
       return buildScope(col?.variables, env?.variables);
     },
 
-    async sendTab(tabId) {
+    async sendTab(tabId, opts) {
       const tab = get().tabs.find((t) => t.id === tabId);
       if (tab && isGrpc(tab.request)) return get().callGrpc(tabId);
       // ⌘Enter on a WebSocket or Socket.IO tab: Connect, or send (emit) once it is open
@@ -516,25 +528,90 @@ export const useStore = create<State>((set, get) => {
       const pid = get().currentProjectId;
       const inflightId = uid();
       loadingRun.delete(tabId);
-      set((s) => ({ tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, inflightId, error: undefined })) }));
+      set((s) => ({ tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, inflightId, error: undefined, scripts: undefined })) }));
       const request = structuredClone(tab.request);
       const ref = tab.savedRef?.nodeId;
+
+      // scripts read and write the environment active at Send and the collection the request is saved in
+      const scripts = get().settings.runScripts !== false && !opts?.skipScripts ? request.scripts : undefined;
+      const envId = get().activeEnvironmentId;
+      const colId = tab.savedRef?.collectionId;
+      const scriptCtx = () => {
+        const d = projectOf(pid);
+        const col = d?.collections.find((c) => c.id === colId);
+        return { environment: d?.environments.find((e) => e.id === envId), collectionVariables: col?.variables, inCollection: !!col, requestId: ref };
+      };
+      const saveVars = (ops: VarOp[]) => {
+        const env = ops.filter((o) => o.scope === "environment");
+        const col = ops.filter((o) => o.scope === "collectionVariables");
+        if (!env.length && !col.length) return;
+        applyToProject(pid, (d) => ({
+          ...(env.length && { environments: d.environments.map((e) => (e.id === envId ? { ...e, variables: applyVarOps(e.variables, env) } : e)) }),
+          ...(col.length && { collections: d.collections.map((c) => (c.id === colId ? { ...c, variables: applyVarOps(c.variables, col) } : c)) }),
+        }));
+      };
+      const stillSending = () => projectOf(pid)?.tabs.find((t) => t.id === tabId)?.inflightId === inflightId;
+      const run: ScriptRun = { tests: [], logs: [] };
+
+      let toSend = request;
+      let locals: Record<string, string> = {};
+      if (hasScript(scripts?.pre)) {
+        inScript.add(inflightId);
+        const out = await runScript("pre", scripts!.pre!, { request, ...scriptCtx() });
+        inScript.delete(inflightId);
+        if (!stillSending()) return; // cancelled while the script ran: its variable changes are dropped too
+        saveVars(out.vars);
+        run.logs.push(...out.logs.map((l) => ({ ...l, src: "pre" as const })));
+        if (out.error) {
+          // nothing goes on the wire: the error stands in for the response
+          run.failed = { src: "pre", ...out.error };
+          applyToProject(pid, (d) => ({
+            tabs: patchTab(d.tabs, tabId, (t) => ({ ...t, inflightId: undefined, response: undefined, error: undefined, fromHistory: undefined, scripts: run })),
+          }));
+          return;
+        }
+        toSend = withScriptRequest(request, out.request);
+        locals = out.locals;
+      }
+
       try {
-        const prepared = prepare(request, get().scopeFor(tabId));
+        const d = projectOf(pid);
+        const scope = buildScope(d?.collections.find((c) => c.id === colId)?.variables, d?.environments.find((e) => e.id === envId)?.variables);
+        for (const [k, v] of Object.entries(locals)) scope.set(k, v);
+        const prepared = prepare(toSend, scope);
         const response = await send(prepared, get().settings, inflightId);
         const entryId = uid();
         const kept = keepResponse(entryId, response, get().settings);
+        const ran = hasScript(scripts?.pre) || hasScript(scripts?.post);
         applyToProject(pid, (d) => ({
-          tabs: patchTab(d.tabs, tabId, (t) => ({ ...t, inflightId: undefined, response, error: undefined, fromHistory: undefined })),
+          tabs: patchTab(d.tabs, tabId, (t) => ({ ...t, inflightId: undefined, response, error: undefined, fromHistory: undefined, scripts: ran ? run : undefined })),
           history: [
             { id: entryId, at: Date.now(), request, ref, status: response.status, elapsedMs: response.elapsedMs, size: response.size, kept },
             ...d.history,
           ].slice(0, HISTORY_LIMIT),
         }));
+        if (hasScript(scripts?.post)) {
+          const out = await runScript("post", scripts!.post!, { request: toSend, response, locals, ...scriptCtx() });
+          saveVars(out.vars);
+          const done: ScriptRun = {
+            tests: out.tests,
+            logs: [...run.logs, ...out.logs.map((l) => ({ ...l, src: "post" as const }))],
+            failed: out.error ? { src: "post", ...out.error } : undefined,
+          };
+          // only onto this send's response: a newer send replaced it
+          applyToProject(pid, (d) => ({ tabs: patchTab(d.tabs, tabId, (t) => (t.response === response ? { ...t, scripts: done } : t)) }));
+        }
       } catch (e) {
         const error = String(e);
         applyToProject(pid, (d) => ({
-          tabs: patchTab(d.tabs, tabId, (t) => ({ ...t, inflightId: undefined, response: undefined, error, fromHistory: undefined })),
+          tabs: patchTab(d.tabs, tabId, (t) => ({
+            ...t,
+            inflightId: undefined,
+            response: undefined,
+            error,
+            fromHistory: undefined,
+            scripts: run.logs.length ? run : undefined,
+          })),
           history:
             error === "Request cancelled"
               ? d.history
@@ -545,7 +622,18 @@ export const useStore = create<State>((set, get) => {
 
     cancelTab(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
-      if (tab) stopInflight(tab);
+      if (!tab) return;
+      // a pre-request script has no request to cancel yet: the send just stops waiting for it
+      if (tab.inflightId && inScript.has(tab.inflightId)) {
+        inScript.delete(tab.inflightId);
+        set((s) => ({ tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, inflightId: undefined })) }));
+        return;
+      }
+      stopInflight(tab);
+    },
+
+    clearScriptLogs(tabId) {
+      set((s) => ({ tabs: patchTab(s.tabs, tabId, (t) => (t.scripts ? { ...t, scripts: { ...t.scripts, logs: [] } } : t)) }));
     },
 
     async callGrpc(tabId) {

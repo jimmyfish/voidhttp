@@ -27,6 +27,16 @@ A lightweight, local-first API client. Rust + React + Tauri v2.
 - Cookie jar shared across requests (in memory)
 - Request cancellation
 
+### Scripts
+
+- Each HTTP request can have a pre-request script (runs before Send) and a post-response script (runs once the response arrives), written in Postman's `pm` JavaScript API
+- `pm.environment`, `pm.collectionVariables` and `pm.variables` (get, set, unset, `replaceIn`): changes are saved to the active environment or the request's collection
+- The pre-request script can change the request before it goes out: `pm.request.url`, `.method`, `.headers` (`add`, `upsert`, `remove`) and a text body
+- `pm.test` with `pm.expect` (a chai-style subset: `equal`, `eql`, `include`, `match`, `property`, `keys`, `length`, `above`/`below`, `a`/`an`, and more) and `pm.response.to.have.status` / `.header`. The legacy `tests["…"]`, `responseBody` and `postman.setEnvironmentVariable` forms work too
+- Results show in the response's Tests tab (passed / failed, with the failing assertion and its line) and Console tab (`console.log` output, variable changes, errors)
+- A failing pre-request script stops the send and points at its line; "Send without scripts" sends once without them. Settings › Requests can turn scripts off
+- Scripts run in an isolated QuickJS sandbox with no network, file or app access, a 10-second time limit and a 64 MB memory limit. Not supported yet: `pm.sendRequest`, `require()` libraries (lodash, CryptoJS…), cookies, folder and collection scripts
+
 ### gRPC
 
 Pick gRPC in the method menu. Methods come from server reflection (v1, falling back to v1alpha) or from `.proto` files compiled in-app (no `protoc` needed). Unary, server, client and bidirectional streams; messages are JSON, with "Fill example" from the schema. Metadata (keys ending in `-bin` take base64), TLS or plaintext per request, error details (`google.rpc.ErrorInfo`, `BadRequest`…) decoded, history, and Copy as grpcurl. Paste a grpcurl command into the address bar to import it (a cURL command pasted into a gRPC tab turns it back into HTTP).
@@ -52,7 +62,7 @@ Import from a file (picker or drag-and-drop onto the window), a URL, or pasted t
 | Format | Import | Export |
 | --- | --- | --- |
 | voidHTTP export (`.voidhttp.json`): collections and environments, nothing lost | ✓ | ✓ |
-| Postman Collection v2.0 / v2.1 and Postman environments | ✓ (auth inheritance flattened, scripts dropped) | ✓ v2.1, environments written beside it |
+| Postman Collection v2.0 / v2.1 and Postman environments | ✓ (auth inheritance flattened; request scripts kept, folder and collection scripts dropped) | ✓ v2.1, environments written beside it |
 | OpenAPI 3.x and Swagger 2 (JSON or YAML) | ✓ folders from tags or paths, `{{baseUrl}}` from the first server, response examples, `$ref` into files beside the spec or URLs | |
 | HAR | ✓ pick which captured calls become requests | ✓ each request with its latest saved example as the response |
 | cURL and grpcurl commands, one or many | ✓ | |
@@ -147,7 +157,7 @@ Per-device state stays in the app data dir (`~/Library/Application Support/dev.v
 
 ## Not yet
 
-These are not implemented yet: pre-request and test scripts, GraphQL, Socket.IO long-polling, gRPC-Web, OAuth 2 flows, collection runner, and code generation beyond cURL and grpcurl.
+These are not implemented yet: folder and collection scripts, `pm.sendRequest`, GraphQL, Socket.IO long-polling, gRPC-Web, OAuth 2 flows, collection runner, and code generation beyond cURL and grpcurl.
 
 ## Contributing
 
