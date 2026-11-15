@@ -17,6 +17,8 @@ import { formatJsonc, stripJsonComments } from "../lib/jsonc";
 import { ChevronDown, CircleCheck, CircleDashed, CircleDot, CodeXml, SlidersHorizontal, WandSparkles, WrapText, ico } from "./Icon";
 import { defaultGrpc, isGrpc, looksLikeGrpcurl, parseGrpcurl } from "../lib/grpc";
 import { GrpcRequestPane } from "./GrpcPane";
+import { WsRequestPane } from "./WsPane";
+import { defaultWs, isWs } from "../lib/ws";
 
 type Section = "params" | "headers" | "body" | "auth";
 
@@ -138,6 +140,13 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
     </>
   );
   const titlePath = ex ? `${exPath} · example` : saved ? [col!.name, ...folders].join(" / ") : "Not saved";
+  // the method menu, whichever pane shows it: gRPC and WebSocket bring their own settings and a message body
+  const pickMethod = (m: string) =>
+    m === "GRPC"
+      ? set({ method: "GRPC", grpc: req.grpc ?? defaultGrpc(req.url), body: { ...req.body, mode: "json" } })
+      : m === "WS"
+        ? set({ method: "WS", ws: req.ws ?? defaultWs(), body: { ...req.body, mode: req.body.mode === "text" ? "text" : "json" } })
+        : set({ method: m });
 
   if (isGrpc(req))
     return (
@@ -149,6 +158,20 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
         path={titlePath}
         saveControls={saveControls}
         authEditor={<AuthEditor auth={req.auth} onChange={(auth) => set({ auth })} />}
+      />
+    );
+
+  if (isWs(req))
+    return (
+      <WsRequestPane
+        tab={tab}
+        grow={grow}
+        lookup={lookup}
+        missing={missing}
+        path={titlePath}
+        saveControls={saveControls}
+        authEditor={<AuthEditor auth={req.auth} onChange={(auth) => set({ auth })} />}
+        onKind={pickMethod}
       />
     );
 
@@ -170,9 +193,7 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
             value={req.method}
             disabled={!!ex}
             className={`method-pick m-${req.method}`}
-            onPick={(m) =>
-              m === "GRPC" ? set({ method: "GRPC", grpc: req.grpc ?? defaultGrpc(req.url), body: { ...req.body, mode: "json" } }) : set({ method: m })
-            }
+            onPick={pickMethod}
           >
             {req.method}
           </MethodMenu>

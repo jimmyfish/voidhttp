@@ -18,6 +18,8 @@ import type {
   Tab,
   TreeNode,
   WorkspaceV2,
+  WsClose,
+  WsResult,
 } from "./types";
 import {
   cloneNode,
@@ -47,10 +49,13 @@ import {
   prepareGrpc,
   type GrpcEvent,
 } from "./lib/grpc";
+import { connectWs, isWs, prepareWs, wsClose, wsMessageText, wsSend, type WsEvent } from "./lib/ws";
 
 const HISTORY_LIMIT = 200;
 /** A gRPC stream keeps this many messages on screen; older ones are counted, not kept. */
 const GRPC_MESSAGE_LIMIT = 2000;
+/** A WebSocket keeps this many messages on screen, the same way. */
+const WS_MESSAGE_LIMIT = 2000;
 
 export type Modal =
   | { kind: "prompt"; title: string; initial: string; onSubmit: (v: string) => void }
@@ -120,6 +125,13 @@ interface State extends ProjectData {
   /** gRPC: no more messages from the client; replies keep coming */
   endGrpcSending(tabId: string): void;
   clearGrpcMessages(tabId: string): void;
+  /** WebSocket: open the socket (Connect) */
+  openSocket(tabId: string): Promise<void>;
+  /** WebSocket: send the editor's message on the open socket */
+  sendSocketMessage(tabId: string): Promise<void>;
+  /** WebSocket: close the socket (1000), or stop a handshake still running */
+  closeSocket(tabId: string): void;
+  clearSocketMessages(tabId: string): void;
   scopeFor(tabId: string): VarScope;
 
   /** Open a history entry in a new tab, with its stored response when there is one. */
@@ -225,12 +237,22 @@ function keepGrpc(id: string, result: GrpcResult, settings: Settings): HistoryEn
   return over ? "meta" : "full";
 }
 
+/** Stores a WebSocket session with its history entry, like keepGrpc. */
+function keepWs(id: string, result: WsResult, settings: Settings): HistoryEntry["kept"] {
+  if (settings.keepResponses === false) return undefined;
+  const size = result.messages.reduce((n, m) => n + m.data.length, 0);
+  const over = size > (settings.keepResponseMaxMb ?? 1) * 1024 * 1024;
+  const data: WsResult = { ...result, connId: undefined, ...(over && { messages: [], dropped: (result.dropped ?? 0) + result.messages.length }) };
+  invoke("save_response", { id, data }).catch((e) => useStore.getState().notify(`Could not keep the response: ${e}`));
+  return over ? "meta" : "full";
+}
+
 /** The history entry each tab is loading with showRun, so an older pick that lands late is dropped. */
 const loadingRun = new Map<string, string>();
 
-/** Stops whatever a tab has in flight: an HTTP request or a gRPC call. */
+/** Stops whatever a tab has in flight: an HTTP request, a gRPC call or a WebSocket. */
 function stopInflight(t: Tab) {
-  if (t.inflightId) (isGrpc(t.request) ? grpcCancel : cancel)(t.inflightId).catch(() => undefined);
+  if (t.inflightId) (isGrpc(t.request) ? grpcCancel : isWs(t.request) ? wsClose : cancel)(t.inflightId).catch(() => undefined);
 }
 
 /** Session tabs come back without responses; example tabs get theirs from the collection, or close when it is gone. */
@@ -484,6 +506,8 @@ export const useStore = create<State>((set, get) => {
     async sendTab(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
       if (tab && isGrpc(tab.request)) return get().callGrpc(tabId);
+      // ⌘Enter on a WebSocket: Connect, or send the message once it is open
+      if (tab && isWs(tab.request)) return tab.inflightId ? get().sendSocketMessage(tabId) : get().openSocket(tabId);
       if (!tab || tab.inflightId || tab.example) return;
       // the response lands in this project even if another one is open by the time it arrives
       const pid = get().currentProjectId;
@@ -663,6 +687,127 @@ export const useStore = create<State>((set, get) => {
       }));
     },
 
+    async openSocket(tabId) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab || tab.example || tab.inflightId) return;
+      const pid = get().currentProjectId;
+      const connId = uid();
+      const settings = get().settings;
+      const request = structuredClone(tab.request);
+      const prepared = prepareWs(request, get().scopeFor(tabId), settings);
+      loadingRun.delete(tabId);
+      const fresh: WsResult = { connId, startedAt: Date.now(), url: prepared.url, messages: [] };
+      set((s) => ({
+        tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, inflightId: connId, error: undefined, response: undefined, grpc: undefined, fromHistory: undefined, ws: fresh })),
+      }));
+
+      // events land in batches: one state update per frame, however fast the server sends
+      let queue: WsEvent[] = [];
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let latest = fresh;
+      let finished = false;
+      const ref = tab.savedRef?.nodeId;
+      const record = (entry: Omit<HistoryEntry, "id" | "at" | "request">, kept?: (id: string) => HistoryEntry["kept"]) => {
+        const id = uid();
+        applyToProject(pid, (d) => ({ history: [{ id, at: Date.now(), request, ref, ...entry, kept: kept?.(id) }, ...d.history].slice(0, HISTORY_LIMIT) }));
+      };
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        const size = latest.messages.reduce((n, m) => n + (m.dir === "in" ? m.size : 0), 0);
+        const hs = latest.handshake;
+        const elapsedMs = latest.close?.elapsedMs ?? hs?.elapsedMs;
+        record({ status: hs?.status, elapsedMs, size }, (id) => keepWs(id, latest, get().settings));
+      };
+      const flush = () => {
+        timer = undefined;
+        const batch = queue;
+        queue = [];
+        if (!batch.length) return;
+        let ended = false;
+        applyToProject(pid, (d) => ({
+          tabs: patchTab(d.tabs, tabId, (t) => {
+            if (t.ws?.connId !== connId) return t;
+            const w: WsResult = { ...t.ws };
+            const incoming = [];
+            for (const e of batch) {
+              if (e.type === "open" || e.type === "refused") {
+                const { type, ...hs } = e;
+                w.handshake = hs;
+                if (type === "refused") {
+                  w.refused = true;
+                  ended = true;
+                }
+              } else if (e.type === "message") incoming.push({ dir: e.dir, kind: e.kind, data: e.data, size: e.size, atMs: e.atMs });
+              else {
+                const close: WsClose = { code: e.code, reason: e.reason, by: e.by, elapsedMs: e.elapsedMs };
+                w.close = close;
+                ended = true;
+              }
+            }
+            if (incoming.length) {
+              const all = [...w.messages, ...incoming];
+              const over = Math.max(0, all.length - WS_MESSAGE_LIMIT);
+              w.messages = over ? all.slice(over) : all;
+              if (over) w.dropped = (w.dropped ?? 0) + over;
+            }
+            latest = w;
+            return ended ? { ...t, ws: w, inflightId: undefined } : { ...t, ws: w };
+          }),
+        }));
+        if (ended) finish();
+      };
+      const onEvent = (e: WsEvent) => {
+        queue.push(e);
+        if (e.type === "close" || e.type === "refused") {
+          clearTimeout(timer);
+          flush();
+        } else if (!timer) timer = setTimeout(flush, 16);
+      };
+
+      try {
+        await connectWs(connId, prepared, onEvent);
+        // the close event comes first; should it ever not, end the session rather than spin forever
+        setTimeout(() => {
+          flush();
+          if (!finished) onEvent({ type: "close", code: 1006, reason: "The connection ended without a close", by: "lost", elapsedMs: Date.now() - fresh.startedAt });
+        }, 1500);
+      } catch (e) {
+        clearTimeout(timer);
+        flush();
+        if (finished) return;
+        finished = true;
+        const error = String(e);
+        applyToProject(pid, (d) => ({
+          tabs: patchTab(d.tabs, tabId, (t) => (t.ws?.connId === connId ? { ...t, inflightId: undefined, ws: undefined, error } : t)),
+        }));
+        if (error !== "Connection cancelled") record({});
+      }
+    },
+
+    async sendSocketMessage(tabId) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab?.inflightId || !tab.ws?.handshake || tab.ws.close) return;
+      const text = wsMessageText(tab.request, get().scopeFor(tabId));
+      if (!text.trim()) return get().notify("The message is empty");
+      try {
+        await wsSend(tab.inflightId, text);
+      } catch (e) {
+        get().notify(String(e));
+      }
+    },
+
+    closeSocket(tabId) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (tab?.inflightId) wsClose(tab.inflightId).catch((e) => get().notify(String(e)));
+    },
+
+    clearSocketMessages(tabId) {
+      set((s) => ({
+        tabs: patchTab(s.tabs, tabId, (t) => (t.ws ? { ...t, ws: { ...t.ws, messages: [], dropped: 0 } } : t)),
+      }));
+    },
+
     async historyResponse(entryId) {
       const entry = get().history.find((h) => h.id === entryId);
       if (!entry?.kept) return null;
@@ -685,10 +830,18 @@ export const useStore = create<State>((set, get) => {
       const fromHistory = { at: entry.at, bodyDropped: entry.kept === "meta", entryId };
       // a gRPC entry keeps its call (messages, status, metadata) in the same file
       const grpc = isGrpc(entry.request) ? (response as unknown as GrpcResult) : undefined;
+      // a WebSocket entry keeps its session (handshake, messages, close) the same way
+      const ws = isWs(entry.request) ? (response as unknown as WsResult) : undefined;
       // the tab may have been sent (or closed) while the file was read
       applyToProject(pid, (d) => ({
         tabs: patchTab(d.tabs, tabId, (t) =>
-          t.response || t.grpc || t.inflightId || t.error ? t : grpc ? { ...t, grpc, fromHistory } : { ...t, response, fromHistory },
+          t.response || t.grpc || t.ws || t.inflightId || t.error
+            ? t
+            : grpc
+              ? { ...t, grpc, fromHistory }
+              : ws
+                ? { ...t, ws, fromHistory }
+                : { ...t, response, fromHistory },
         ),
       }));
     },
@@ -706,11 +859,21 @@ export const useStore = create<State>((set, get) => {
       if (!response) return get().notify("The saved response is missing");
       const fromHistory = { at: entry.at, bodyDropped: entry.kept === "meta", entryId };
       const grpc = isGrpc(entry.request) ? (response as unknown as GrpcResult) : undefined;
+      const ws = isWs(entry.request) ? (response as unknown as WsResult) : undefined;
       applyToProject(pid, (d) => ({
         tabs: patchTab(d.tabs, tabId, (t) =>
           t.inflightId
             ? t
-            : { ...t, error: undefined, fromHistory, ...(grpc ? { grpc, response: undefined } : { response, grpc: undefined }) },
+            : {
+                ...t,
+                error: undefined,
+                fromHistory,
+                ...(grpc
+                  ? { grpc, response: undefined, ws: undefined }
+                  : ws
+                    ? { ws, response: undefined, grpc: undefined }
+                    : { response, grpc: undefined, ws: undefined }),
+              },
         ),
       }));
     },

@@ -53,6 +53,8 @@ rustls = { version = "0.23", default-features = false, features = ["ring", "std"
 webpki-roots = "1"
 http = "1"
 tower = "0.5"
+tokio-tungstenite = { version = "0.30", default-features = false, features = ["connect", "__rustls-tls"] }
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 
 [profile.release]
 codegen-units = 1

@@ -247,7 +247,7 @@ function pmRequest(r: Omit<RequestNode, "type" | "examples">): Any {
 function pmItems(nodes: TreeNode[]): Any[] {
   return nodes.flatMap((n): Any[] => {
     if (n.type === "folder") return [{ name: n.name, item: pmItems(n.children) }];
-    if (n.method === "GRPC") return []; // v2.1 has no gRPC request
+    if (n.method === "GRPC" || n.method === "WS") return []; // v2.1 has no gRPC or WebSocket request
     return [
       {
         name: n.name,

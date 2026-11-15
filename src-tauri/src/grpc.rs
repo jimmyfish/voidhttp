@@ -629,7 +629,7 @@ async fn connect(target: &Target) -> Result<Channel, String> {
         .map_err(|e| format!("Connection failed: {}", root_cause(&e)))
 }
 
-fn tls_config(insecure: bool) -> rustls::ClientConfig {
+pub(crate) fn tls_config(insecure: bool) -> rustls::ClientConfig {
     let provider = Arc::new(rustls::crypto::ring::default_provider());
     let builder = rustls::ClientConfig::builder_with_provider(provider.clone())
         .with_safe_default_protocol_versions()

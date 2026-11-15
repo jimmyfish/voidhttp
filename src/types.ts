@@ -22,17 +22,71 @@ export interface RequestBody {
 export interface RequestDef {
   id: string;
   name: string;
-  /** An HTTP method, or "GRPC" for a gRPC call (see `grpc`). */
+  /** An HTTP method, "GRPC" for a gRPC call (see `grpc`), or "WS" for a WebSocket (see `ws`). */
   method: string;
-  /** The URL; for gRPC the server address, host:port. */
+  /** The URL; for gRPC the server address, host:port; for WebSocket a ws:// or wss:// URL. */
   url: string;
   params: KV[];
   /** HTTP headers; for gRPC the request metadata. */
   headers: KV[];
-  /** For gRPC, `raw` holds the request message as JSON. */
+  /** For gRPC, `raw` holds the request message as JSON; for WebSocket, the next message to send. */
   body: RequestBody;
   auth: Auth;
   grpc?: GrpcDef;
+  ws?: WsDef;
+}
+
+export interface WsDef {
+  /** offered in Sec-WebSocket-Protocol */
+  subprotocols: string[];
+  /** keep-alive ping every this many seconds; 0 sends none */
+  pingSec: number;
+}
+
+export interface WsMessage {
+  dir: "in" | "out";
+  /** "binary" holds `data` in base64 */
+  kind: "text" | "binary";
+  data: string;
+  size: number;
+  /** ms since the socket opened */
+  atMs: number;
+}
+
+/** The upgrade request and the server's answer: 101, or the HTTP status it refused with. */
+export interface WsHandshake {
+  status: number;
+  statusText: string;
+  requestHeaders: { key: string; value: string }[];
+  responseHeaders: { key: string; value: string }[];
+  protocol?: string | null;
+  /** a refused upgrade's body */
+  body?: string;
+  elapsedMs: number;
+}
+
+export interface WsClose {
+  code: number;
+  reason: string;
+  /** who closed it; "lost" when it dropped without a close */
+  by: "server" | "client" | "lost";
+  /** ms the socket was open */
+  elapsedMs: number;
+}
+
+/** One WebSocket connection as the response pane shows it: grows while the socket is open. */
+export interface WsResult {
+  /** the connection this belongs to; events of an older one are ignored */
+  connId?: string;
+  startedAt: number;
+  url: string;
+  handshake?: WsHandshake;
+  /** the server answered the upgrade with plain HTTP */
+  refused?: boolean;
+  messages: WsMessage[];
+  /** older messages left out to keep a long session light */
+  dropped?: number;
+  close?: WsClose;
 }
 
 /** How a gRPC method streams: one message each way, or a stream from the server, the client, or both. */
@@ -165,6 +219,8 @@ export interface Tab {
   response?: HttpResponse;
   /** the last gRPC call of a gRPC tab, live while it runs */
   grpc?: GrpcResult;
+  /** the last connection of a WebSocket tab, live while it is open */
+  ws?: WsResult;
   error?: string;
   /** The response came from history, not from a send in this tab. Cleared by the next send. */
   fromHistory?: { at: number; bodyDropped: boolean; entryId?: string };
@@ -174,7 +230,7 @@ export interface HistoryEntry {
   id: string;
   at: number;
   request: RequestDef;
-  /** HTTP status, or the gRPC status code for a gRPC call (0 is OK) */
+  /** HTTP status, the gRPC status code for a gRPC call (0 is OK), or the handshake status for a WebSocket (101 is OK) */
   status?: number;
   elapsedMs?: number;
   /** The response is stored in responses/<id>.json: "full", or "meta" when the body was over the size limit and left out. */

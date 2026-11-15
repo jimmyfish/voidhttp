@@ -65,7 +65,7 @@ select.field { appearance: none; -webkit-appearance: none; padding-right: 32px; 
 /* method labels: coloured text, never a chip */
 .m { font: 700 var(--text-xs)/1 var(--font-body); width: 44px; flex-shrink: 0; color: var(--m-other); }
 .m-GET { color: var(--m-get); } .m-POST { color: var(--m-post); } .m-PUT { color: var(--m-put); }
-.m-PATCH { color: var(--m-patch); } .m-DELETE { color: var(--m-delete); } .m-GRPC { color: var(--m-grpc); }
+.m-PATCH { color: var(--m-patch); } .m-DELETE { color: var(--m-delete); } .m-GRPC { color: var(--m-grpc); } .m-WS { color: var(--m-ws); }
 .m-HEAD { color: var(--m-head); } .m-OPTIONS { color: var(--m-options); }
 
 /* ---------- shell: rail + panel ---------- */
@@ -1020,7 +1020,7 @@ fieldset.ro { display: contents; }
 .method-menu button[aria-checked="true"] { background: var(--color-paper-2); }
 /* .menu button paints items in ink; the method colours must win over it */
 .method-menu .m-GET { color: var(--m-get); } .method-menu .m-POST { color: var(--m-post); } .method-menu .m-PUT { color: var(--m-put); } .method-menu .m-PATCH { color: var(--m-patch); }
-.method-menu .m-DELETE { color: var(--m-delete); } .method-menu .m-HEAD { color: var(--m-head); } .method-menu .m-OPTIONS { color: var(--m-options); } .method-menu .m-GRPC { color: var(--m-grpc); }
+.method-menu .m-DELETE { color: var(--m-delete); } .method-menu .m-HEAD { color: var(--m-head); } .method-menu .m-OPTIONS { color: var(--m-options); } .method-menu .m-GRPC { color: var(--m-grpc); } .method-menu .m-WS { color: var(--m-ws); }
 .method-menu hr { margin: var(--space-3xs) var(--space-xs); }
 
 /* ---------- import and export (approved preview .hallmark/preview/transfer.html, 2026-11-13) ---------- */
@@ -1295,3 +1295,54 @@ textarea.xf-paste { display: block; width: 100%; min-height: 220px; padding: var
 .set-status.ok { color: var(--color-ok); }
 .set-status.new { color: var(--color-link); font-weight: 600; }
 .set-status.bad { color: var(--color-error); }
+
+/* ---------- WebSocket (approved preview: .hallmark/preview/websocket.html) ---------- */
+/* request line: Connect / Disconnect sit where Send does */
+.ws-connect, .ws-disconnect { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2xs); min-width: 112px; }
+/* open connection: an outlined red Disconnect, so the live state reads from the request line too */
+.ws-disconnect { color: var(--color-error); border-color: color-mix(in srgb, var(--color-error) 55%, transparent); background: transparent; font-weight: 600; }
+.ws-disconnect:hover { background: color-mix(in srgb, var(--color-error) 7%, transparent); }
+/* the URL is locked while connected; edits wait for the next Connect */
+.url-field.is-live .url-input input { caret-color: transparent; }
+.url-field.is-live .url-hl { opacity: 0.75; }
+
+.msg-head .seg { margin-left: var(--space-2xs); }
+
+/* settings tab: bordered rows like the Settings dialog */
+.ws-settings { max-width: 760px; }
+.ws-settings .set-text .desc code { font: var(--text-code) var(--font-mono); color: var(--color-ink-2); }
+.ws-settings .set-ctl .field { width: 260px; font-family: var(--font-mono); font-size: var(--text-code); }
+.ws-settings .set-ctl .ws-num { width: 96px; }
+
+/* stream: system lines between messages (connected), same grid as a message row */
+.smsg-sys {
+  display: grid; grid-template-columns: 16px 3ch 7ch minmax(0, 1fr); align-items: center; gap: var(--space-xs);
+  min-height: 30px; padding: 0 var(--space-sm); color: var(--color-muted); font-family: var(--font-body); font-size: var(--text-sm);
+}
+.smsg-sys .ico { grid-column: 1; width: 14px; height: 14px; }
+.smsg-sys.ok .ico { color: var(--color-ok); }
+.smsg-sys .t { grid-column: 3; font: var(--text-code) var(--font-mono); font-variant-numeric: tabular-nums; }
+.smsg-sys .s { grid-column: 4; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.smsg-sys .s b { font: 600 var(--text-sm) var(--font-mono); color: var(--color-ok); }
+
+/* a binary frame: a small tag in front of the hex preview */
+.smsg .bin { display: inline-block; margin-right: var(--space-xs); padding: 0 var(--space-2xs); border-radius: var(--radius-pill); background: var(--color-paper-2); color: var(--color-ink-2); font: var(--text-xs)/1.6 var(--font-ui); }
+.smsg-open .hex { margin: 0; padding: var(--space-2xs) 0; font: var(--text-code)/1.65 var(--font-mono); color: var(--color-ink-2); white-space: pre; overflow-x: auto; }
+.smsg-open .ws-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* handshake tab: request and response headers of the upgrade */
+.hs { flex: 1; min-height: 0; overflow: auto; padding: var(--space-sm) var(--space-md); display: grid; align-content: start; gap: var(--space-md); }
+.hs h4 { display: flex; align-items: center; gap: var(--space-xs); margin: 0 0 var(--space-2xs); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink); }
+.hs h4 .ok, .hs h4 .fail { font: 600 var(--text-sm) var(--font-mono); }
+.hs h4 .ok { color: var(--color-ok); } .hs h4 .fail { color: var(--color-error); }
+.hs dl { display: grid; grid-template-columns: minmax(140px, max-content) minmax(0, 1fr); gap: 2px var(--space-md); margin: 0; font: var(--text-code)/1.65 var(--font-mono); }
+.hs dt { color: var(--color-muted); }
+.hs dd { margin: 0; color: var(--color-ink); overflow-wrap: anywhere; }
+
+/* refused handshake: the server's HTTP answer stands in for the stream */
+.ws-fail { display: grid; gap: var(--space-2xs); margin: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: 10px; background: color-mix(in srgb, var(--color-error) 7%, var(--color-paper)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-error) 30%, transparent); }
+.ws-fail strong { display: flex; align-items: center; gap: var(--space-xs); color: var(--color-ink); font-weight: 600; }
+.ws-fail strong .ico { color: var(--color-error); }
+.ws-fail .msg { font: var(--text-sm) var(--font-mono); color: var(--color-error); }
+.ws-fail .ws-fail-body { color: var(--color-ink-2); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; }
+.ws-fail .acts { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-2xs); font-size: var(--text-sm); }

@@ -55,6 +55,8 @@
   --color-unresolved: var(--tag-alizarin);
   /* gRPC is a protocol, not a scheme colour: the convention cyan in every theme and scheme, by owner request */
   --m-grpc: var(--tag-cyan);
+  /* WebSocket, the same way: amethyst, the one tag hue no method label uses */
+  --m-ws: var(--tag-amethyst);
   /* the faint grey ring round every tag dot and swatch: keeps Clouds visible on light and Asphalt on dark */
   --tag-ring: rgb(128 128 128 / 0.35);
   /* switch knob: white in every theme, on the grey or accent track */

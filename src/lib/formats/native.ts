@@ -2,7 +2,7 @@
  * voidHTTP's own export: collections and environments exactly as stored, so nothing is lost
  * (gRPC calls, saved examples, environment colours). Ids are made fresh on import.
  */
-import type { Auth, Collection, Environment, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, TreeNode } from "../../types";
+import type { Auth, Collection, Environment, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, TreeNode, WsDef } from "../../types";
 import { cloneNode, uid } from "../model";
 import { newRequest } from "../model";
 import { dropFilePaths, requestsOf, type Any, type ImportPlan } from "./common";
@@ -53,6 +53,15 @@ function saneGrpc(g: Any): GrpcDef | undefined {
     source: g.source === "protos" ? "protos" : "reflection",
     protoFiles: list(g.protoFiles),
     importPaths: list(g.importPaths),
+  };
+}
+
+/** A WebSocket's settings with every field of the type the app expects. */
+function saneWs(w: Any): WsDef | undefined {
+  if (!w || typeof w !== "object") return undefined;
+  return {
+    subprotocols: Array.isArray(w.subprotocols) ? w.subprotocols.filter((x: unknown) => typeof x === "string") : [],
+    pingSec: typeof w.pingSec === "number" && Number.isFinite(w.pingSec) && w.pingSec > 0 ? Math.floor(w.pingSec) : 0,
   };
 }
 
@@ -115,6 +124,7 @@ function sane(n: Any): TreeNode | null {
     },
     auth: saneAuth(n.auth),
     grpc: saneGrpc(n.grpc),
+    ws: saneWs(n.ws),
     examples: Array.isArray(n.examples)
       ? n.examples
           // an HTTP example has a response; a gRPC example has an ended call instead

@@ -27,8 +27,8 @@ export function cloneRequest(r: RequestDef): RequestDef {
 
 /** Strips tree-only fields so a node can be edited as a plain request. */
 export function toRequestDef(node: RequestDef): RequestDef {
-  const { id, name, method, url, params, headers, body, auth, grpc } = node;
-  return cloneRequest({ id, name, method, url, params, headers, body, auth, ...(grpc && { grpc }) });
+  const { id, name, method, url, params, headers, body, auth, grpc, ws } = node;
+  return cloneRequest({ id, name, method, url, params, headers, body, auth, ...(grpc && { grpc }), ...(ws && { ws }) });
 }
 
 // ---------- tree helpers (immutable) ----------

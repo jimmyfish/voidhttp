@@ -3,7 +3,7 @@ import { METHODS } from "../lib/model";
 
 /**
  * The method in the request line: our own menu instead of the native macOS one. Each method in its
- * scheme colour, the current one on a soft fill, gRPC after a rule. Methods are a fixed list.
+ * scheme colour, the current one on a soft fill, gRPC and WebSocket after a rule. Methods are a fixed list.
  */
 export function MethodMenu({
   value,
@@ -71,7 +71,7 @@ export function MethodMenu({
         type="button"
         className={className}
         title={title}
-        aria-label={`Method: ${current === "GRPC" ? "gRPC" : current}`}
+        aria-label={`Method: ${current === "GRPC" ? "gRPC" : current === "WS" ? "WebSocket" : current}`}
         aria-haspopup="menu"
         aria-expanded={open}
         disabled={disabled}
@@ -84,6 +84,7 @@ export function MethodMenu({
           {METHODS.map((m) => item(m, m))}
           <hr />
           {item("GRPC", "gRPC")}
+          {item("WS", "WebSocket")}
         </div>
       )}
     </div>

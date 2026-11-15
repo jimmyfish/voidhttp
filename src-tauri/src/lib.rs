@@ -3,6 +3,7 @@ mod fonts;
 mod grpc;
 mod http;
 mod store;
+mod ws;
 
 #[cfg(target_os = "macos")]
 mod menu {
@@ -114,6 +115,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(http::HttpState::default())
         .manage(grpc::GrpcState::default())
+        .manage(ws::WsState::default())
         .invoke_handler(tauri::generate_handler![
             http::send_request,
             http::cancel_request,
@@ -122,6 +124,9 @@ pub fn run() {
             grpc::grpc_send,
             grpc::grpc_end,
             grpc::grpc_cancel,
+            ws::ws_connect,
+            ws::ws_send,
+            ws::ws_close,
             store::load_state,
             store::save_state,
             store::save_response,

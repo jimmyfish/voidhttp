@@ -137,7 +137,8 @@ export function GrpcRequestPane({ tab, grow, lookup, missing, path, saveControls
   };
 
   const switchKind = (method: string) => {
-    if (method !== "GRPC") update(tab.id, { method });
+    if (method === "WS") update(tab.id, { method, ws: req.ws ?? { subprotocols: [], pingSec: 0 } });
+    else if (method !== "GRPC") update(tab.id, { method });
   };
 
   const n = (count: number) => (count ? <span className="n">{count}</span> : null);
