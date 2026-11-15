@@ -4,7 +4,8 @@
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 
-export const RELEASES_URL = "https://github.com/jimmyfish/voidhttp/releases";
+export const REPO_URL = "https://github.com/jimmyfish/voidhttp";
+export const RELEASES_URL = `${REPO_URL}/releases`;
 
 export type UpdateState =
   | { kind: "idle" }

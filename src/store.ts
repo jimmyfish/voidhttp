@@ -66,6 +66,8 @@ export type Modal =
   /** addVar: start a new, empty variable of that name in the selected environment or collection */
   | { kind: "environments"; select?: string; addVar?: string }
   | { kind: "settings"; section?: "appearance" | "requests" | "network" | "certificates" | "updates" }
+  /** About voidHTTP, from the app menu: version, updates, licence, links */
+  | { kind: "about" }
   /** create a project (no id) or edit one */
   | { kind: "project"; projectId?: string }
   /** import a file, URL or pasted text; source is set when a file was dropped or picked before the dialog opened */

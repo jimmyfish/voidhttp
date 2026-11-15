@@ -2,6 +2,8 @@
 name = "voidhttp"
 version = "0.1.0"
 description = "voidHTTP — a lightweight API client"
+license-file = "../LICENSE"
+repository = "https://github.com/jimmyfish/voidhttp"
 edition = "2021"
 
 [lib]

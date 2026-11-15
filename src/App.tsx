@@ -217,6 +217,14 @@ export default function App() {
     };
   }, []);
 
+  // "About voidHTTP" in the app menu opens our own dialog instead of the native panel
+  useEffect(() => {
+    const unlisten = listen("menu:about", () => useStore.getState().openModal({ kind: "about" }));
+    return () => {
+      unlisten.then((off) => off());
+    };
+  }, []);
+
   // ⌘W comes from the native menu (it never reaches keydown): close the open
   // dialog first, otherwise the active request tab
   useEffect(() => {

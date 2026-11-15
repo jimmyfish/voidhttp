@@ -1,0 +1,115 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · v2.0.0
+ * About voidHTTP (under design): replaces the native macOS About panel, which only takes plain text.
+ * The app menu's "About voidHTTP" opens this dialog. The licence is drawn as an HTTP response,
+ * since that is what voidHTTP shows all day. Uses only tokens from src/tokens.css. */
+
+.about {
+  position: relative; width: 420px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); overflow: hidden auto; overscroll-behavior: contain;
+  border-radius: var(--radius-card); background: var(--color-paper); border: 1px solid var(--color-rule);
+  box-shadow: 0 24px 64px var(--color-shadow); -webkit-user-select: text; user-select: text;
+}
+.about-close { position: absolute; top: var(--space-xs); right: var(--space-xs); z-index: 1; }
+
+/* hero: the icon sits in the void its own logo draws, rings drifting outward */
+.about-hero {
+  position: relative; display: grid; justify-items: center; gap: var(--space-2xs);
+  padding: var(--space-xl) var(--space-lg) var(--space-md); text-align: center; isolation: isolate;
+  background: radial-gradient(120% 90% at 50% 0%, var(--color-accent-soft), transparent 70%);
+}
+.about-orbit { position: relative; display: grid; place-items: center; width: 88px; height: 88px; margin-bottom: var(--space-xs); cursor: pointer; }
+.about-orbit img {
+  position: relative; width: 88px; height: 88px; filter: drop-shadow(0 6px 14px var(--color-shadow));
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: about-settle 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.about-orbit:hover img { transform: translateY(-2px) rotate(-4deg); }
+.about-orbit:active img { transform: scale(0.96); transition-duration: 0.1s; }
+/* rings: three drifting outward without pause, at 15% so they stay in the background */
+.about-orbit i {
+  position: absolute; inset: 0; z-index: -1; border-radius: 50%; opacity: 0; pointer-events: none;
+  border: 1.5px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+.about-orbit.ping i { animation: about-ripple 6s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
+.about-orbit.ping i:nth-child(2) { animation-delay: 2s; }
+.about-orbit.ping i:nth-child(3) { animation-delay: 4s; }
+@keyframes about-settle {
+  from { transform: translateY(8px) scale(0.9); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes about-ripple {
+  0% { transform: scale(0.9); opacity: 0; }
+  15% { opacity: 0.15; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .about-orbit img { animation: none; transition: none; }
+  .about-orbit:hover img, .about-orbit:active img { transform: none; }
+  .about-orbit.ping i { animation: none; }
+}
+
+.about-name { margin: 0; font-size: var(--text-3xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.about-name span { color: var(--color-accent); }
+.about-tag { margin: 0; color: var(--color-muted); font-size: var(--text-md); }
+
+/* version: one click copies it for a bug report */
+.about-ver {
+  display: inline-flex; align-items: center; gap: 6px; height: 24px; margin-top: var(--space-xs); padding: 0 8px 0 10px;
+  border: none; border-radius: var(--radius-pill); background: var(--color-paper-2); color: var(--color-ink-2);
+  font: 600 var(--text-xs) / 1 var(--font-mono); font-variant-numeric: tabular-nums;
+}
+.about-ver .ico { width: 12px; height: 12px; color: var(--color-muted); }
+.about-ver:hover { background: var(--color-paper-3); box-shadow: inset 0 0 0 1px var(--color-rule); }
+.about-ver:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.about-ver[data-copied] { color: var(--color-ok); }
+.about-ver[data-copied] .ico { color: var(--color-ok); }
+
+/* the licence, as a response: what voidHTTP shows all day */
+.about-body { display: grid; gap: var(--space-sm); padding: var(--space-xs) var(--space-lg) var(--space-lg); }
+.about-res { border: 1px solid var(--color-rule); border-radius: 10px; overflow: hidden; font: var(--text-code) / 1.5 var(--font-mono); }
+.about-res-line {
+  display: flex; align-items: center; gap: var(--space-xs); padding: 7px var(--space-sm);
+  background: var(--color-paper-2); border-bottom: 1px solid var(--color-rule);
+}
+.about-res-line .m { font-weight: 700; color: var(--m-get); }
+.about-res-line .url { color: var(--color-ink-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.about-res-line .status { margin-left: auto; font-weight: 700; color: var(--color-ok); white-space: nowrap; }
+.about-res dl { display: grid; grid-template-columns: max-content 1fr; gap: 3px var(--space-sm); margin: 0; padding: var(--space-xs) var(--space-sm) 10px; }
+.about-res dt { color: var(--j-key); }
+.about-res dt::after { content: ":"; color: var(--j-punct); }
+.about-res dd { margin: 0; color: var(--color-ink); }
+.about-res dd.deny { color: var(--color-error); }
+
+/* updates, as a request too: 304 when current, 206 while downloading, 205 to restart */
+.about-res-line { position: relative; }
+.about-res-line .status.redir { color: var(--color-redir); }
+.about-res-line .status.fail { color: var(--color-error); }
+.about-res-line .status.wait { display: inline-flex; align-items: center; gap: 5px; color: var(--color-muted); font-weight: 400; }
+.about-res-line .status.wait .ico { width: 13px; height: 13px; }
+.about-res-line .status.busy { color: var(--color-link); }
+/* download progress fills the line's bottom edge */
+.about-prog { position: absolute; left: 0; bottom: -1px; height: 2px; width: var(--p, 0%); background: var(--color-accent); transition: width 0.3s ease; }
+.about-upd-body { display: grid; gap: var(--space-xs); padding: 10px var(--space-sm) var(--space-sm); font: var(--text-sm) / 1.45 var(--font-ui); }
+.about-upd-row { display: flex; align-items: center; gap: var(--space-sm); }
+.about-upd-text { display: grid; flex: 1; min-width: 0; margin: 0; color: var(--color-ink); }
+.about-upd-text .sub { color: var(--color-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.about-upd-row .btn { flex-shrink: 0; gap: 6px; height: 28px; min-height: 28px; padding: 0 10px; font-size: var(--text-sm); white-space: nowrap; }
+.about-upd-row .btn .ico { width: 14px; height: 14px; }
+/* release notes: first 3 changes, the rest behind "Show all"; expanded, the list scrolls inside a fixed height
+ * so a long changelog never pushes the dialog off the window */
+.about-upd .upd-notes { max-height: none; overflow: visible; margin: 0; }
+.about-notes { display: grid; gap: var(--space-2xs); }
+.about-notes:not([data-open]) .upd-notes li:nth-child(n + 4) { display: none; }
+.about-notes[data-open] .upd-notes { max-height: 184px; overflow: auto; overscroll-behavior: contain; }
+.about-notes-more { justify-self: start; margin-left: 2px; }
+.about-notes-more .ico { transition: transform 0.2s ease; }
+.about-notes[data-open] .about-notes-more .ico { transform: rotate(180deg); }
+.about-upd .upd-err { font-size: var(--text-xs); }
+.about-upd .upd-link { margin-right: auto; }
+.about-upd[hidden] { display: none; }
+
+.about-foot { margin: 0; text-align: center; color: var(--color-muted); font-size: var(--text-xs); }
+
+.about-links { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3xs); }
+.about-links .btn { gap: 6px; height: 28px; min-height: 28px; padding: 0 10px; font-size: var(--text-sm); }
+.about-links .btn .ico { width: 14px; height: 14px; }
+

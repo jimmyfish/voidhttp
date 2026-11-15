@@ -1,0 +1,69 @@
+name: Bug report
+description: Something in voidHTTP does not work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Found a security problem? Do not file it here; use **Report a vulnerability** on the Security tab instead.
+        Remove tokens, passwords and personal data from anything you paste or attach.
+  - type: input
+    id: version
+    attributes:
+      label: voidHTTP version
+      description: Settings > Updates shows it.
+      placeholder: "0.1.6"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: macOS version and chip
+      placeholder: "macOS 26.1, Apple Silicon"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - HTTP
+        - gRPC
+        - WebSocket
+        - Socket.IO
+        - Import / export
+        - Collections, environments, variables
+        - History, runs, examples
+        - Settings (network, certificates, appearance)
+        - Updates
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a request to ...
+        2. Click ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Error messages, screenshots, or a short screen recording help.
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: A minimal `.voidhttp.json` export or a public test server that shows the problem.

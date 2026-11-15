@@ -11,6 +11,7 @@ import { Ban, Check, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalL
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useUpdates } from "../updates";
 import { CertificatesPane } from "./CertificatesPane";
+import { AboutModal } from "./AboutModal";
 import { RELEASES_URL } from "../lib/updater";
 import { ago } from "../lib/time";
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
@@ -57,6 +58,8 @@ export function Modals() {
       return <VariablesModal onClose={close} select={modal.select} addVar={modal.addVar} />;
     case "settings":
       return <SettingsModal onClose={close} section={modal.section} />;
+    case "about":
+      return <AboutModal onClose={close} />;
     case "project":
       return <ProjectModal projectId={modal.projectId} onClose={close} />;
     case "import":
