@@ -106,6 +106,13 @@ impl Default for HttpState {
 }
 
 impl HttpState {
+    /// Drops the pooled clients after Settings > Network changes; the next send builds new ones.
+    pub fn reset_clients(&self) {
+        if let Ok(mut clients) = self.clients.lock() {
+            clients.clear();
+        }
+    }
+
     /// One pooled client per (follow_redirects, insecure) combination so
     /// keep-alive connections are reused across sends.
     fn client(&self, follow_redirects: bool, insecure: bool) -> Result<Client, String> {
@@ -118,11 +125,13 @@ impl HttpState {
         } else {
             redirect::Policy::none()
         };
-        let client = Client::builder()
+        let builder = Client::builder()
             .user_agent(USER_AGENT)
             .redirect(policy)
             .danger_accept_invalid_certs(insecure)
-            .cookie_provider(self.jar.clone())
+            .cookie_provider(self.jar.clone());
+        let client = crate::net::current()
+            .apply(builder)?
             .build()
             .map_err(|e| format!("failed to build HTTP client: {e}"))?;
         clients.insert((follow_redirects, insecure), client.clone());

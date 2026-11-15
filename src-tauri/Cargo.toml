@@ -31,8 +31,9 @@ reqwest = { version = "0.12", default-features = false, features = [
   "multipart",
   "cookies",
   "stream",
+  "socks",
 ] }
-tokio = { version = "1", features = ["fs", "sync", "time", "macros"] }
+tokio = { version = "1", features = ["fs", "sync", "time", "macros", "net", "io-util"] }
 tokio-util = "0.7"
 base64 = "0.22"
 mime_guess = "2"
@@ -55,6 +56,11 @@ http = "1"
 tower = "0.5"
 tokio-tungstenite = { version = "0.30", default-features = false, features = ["connect", "__rustls-tls"] }
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+# Settings > Network: DNS over HTTPS (secure DNS), SOCKS5 for WebSocket and gRPC through a proxy,
+# and the TLS handshake of the connection check.
+hickory-resolver = { version = "0.25", default-features = false, features = ["tokio", "https-ring", "webpki-roots"] }
+tokio-socks = "0.5"
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
 
 [profile.release]
 codegen-units = 1

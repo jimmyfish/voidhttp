@@ -614,14 +614,18 @@ async fn connect(target: &Target) -> Result<Channel, String> {
         .connect_timeout(Duration::from_secs(10))
         .tcp_nodelay(true);
 
-    let mut http = hyper_util::client::legacy::connect::HttpConnector::new();
-    http.enforce_http(false);
-    http.set_nodelay(true);
+    // the TCP connection comes from Settings > Network (secure DNS, proxy); rustls and h2 go on top
+    let tcp = tower::service_fn(|uri: http::Uri| async move {
+        let host = uri.host().ok_or_else(|| std::io::Error::other("the address has no host"))?.to_string();
+        let port = uri.port_u16().unwrap_or(if uri.scheme_str() == Some("https") { 443 } else { 80 });
+        let stream = crate::net::current().connect(&host, port).await?;
+        Ok::<_, std::io::Error>(hyper_util::rt::TokioIo::new(stream))
+    });
     let connector = hyper_rustls::HttpsConnectorBuilder::new()
         .with_tls_config(tls_config(target.insecure))
         .https_or_http()
         .enable_http2()
-        .wrap_connector(http);
+        .wrap_connector(tcp);
 
     endpoint
         .connect_with_connector(connector)

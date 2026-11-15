@@ -274,6 +274,27 @@ export interface Settings {
   wrapResponseBody?: boolean;
   /** Look for a new version when the app opens (default on). */
   autoUpdateCheck?: boolean;
+  /** Settings > Network; missing fields take DEFAULT_NET (src/lib/net.ts): all off. */
+  network?: NetSettings;
+}
+
+/** Secure DNS and proxy for every request (HTTP, WebSocket, gRPC). */
+export interface NetSettings {
+  /** Look up hostnames over HTTPS (DoH) instead of the Mac's resolver. */
+  secureDns?: boolean;
+  /** cloudflare | google | quad9 | adguard | custom */
+  provider?: string;
+  /** DoH endpoint when provider is custom */
+  dohUrl?: string;
+  /** When secure DNS has no answer, ask the Mac's resolver (intranet names on a VPN). Default on. */
+  fallback?: boolean;
+  /** Domains that always use the Mac's resolver, comma separated; each covers its subdomains. */
+  systemDomains?: string;
+  proxy?: "none" | "socks5" | "http";
+  /** host:port, optionally user:pass@host:port */
+  proxyAddr?: string;
+  /** Hosts reached directly, comma separated; each covers its subdomains. */
+  proxySkip?: string;
 }
 
 /** A project: the unit shown as a tab in the title strip and as a card on Home. */

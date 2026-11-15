@@ -2,6 +2,7 @@ mod files;
 mod fonts;
 mod grpc;
 mod http;
+mod net;
 mod store;
 mod ws;
 
@@ -127,6 +128,8 @@ pub fn run() {
             ws::ws_connect,
             ws::ws_send,
             ws::ws_close,
+            net::net_configure,
+            net::net_test,
             store::load_state,
             store::save_state,
             store::save_response,

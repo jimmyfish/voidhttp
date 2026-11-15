@@ -47,6 +47,7 @@ export {
   Plug,
   Paperclip,
   Pencil,
+  Network,
   Plus,
   RefreshCw,
   Rows2,

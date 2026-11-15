@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{ipc::Channel as IpcChannel, State};
 use tokio::{sync::mpsc, time::Interval};
 use tokio_tungstenite::{
-    connect_async_tls_with_config,
+    client_async_tls_with_config,
     tungstenite::{
         self,
         client::IntoClientRequest,
@@ -134,18 +134,25 @@ impl Drop for ConnGuard<'_> {
 pub async fn ws_connect(state: State<'_, WsState>, request: WsRequest, on_event: IpcChannel<WsEvent>) -> Result<(), String> {
     let req = build_request(&request)?;
     let request_headers = header_list(req.headers());
-    let connector = if req.uri().scheme_str() == Some("wss") {
+    let secure = req.uri().scheme_str() == Some("wss");
+    let connector = if secure {
         Connector::Rustls(Arc::new(tls_config(request.insecure)))
     } else {
         Connector::Plain
     };
+    let host = req.uri().host().unwrap_or_default().to_string();
+    let port = req.uri().port_u16().unwrap_or(if secure { 443 } else { 80 });
 
     let (tx, mut rx) = mpsc::channel::<Cmd>(64);
     state.conns.lock().map_err(|e| e.to_string())?.insert(request.id.clone(), tx);
     let _guard = ConnGuard { state: &state, id: request.id.clone() };
 
     let started = Instant::now();
-    let connect = connect_async_tls_with_config(req, None, true, Some(connector));
+    // the socket comes from Settings > Network (secure DNS, proxy); tungstenite does TLS and the upgrade
+    let connect = async move {
+        let stream = crate::net::current().connect(&host, port).await.map_err(tungstenite::Error::Io)?;
+        client_async_tls_with_config(req, stream, None, Some(connector)).await
+    };
     let timeout = async {
         if request.timeout_ms > 0 {
             tokio::time::sleep(Duration::from_millis(request.timeout_ms)).await
@@ -460,7 +467,7 @@ mod tests {
         });
 
         let req = build_request(&req(&format!("ws://{addr}/"))).unwrap();
-        let (socket, res) = connect_async_tls_with_config(req, None, true, Some(Connector::Plain)).await.unwrap();
+        let (socket, res) = tokio_tungstenite::connect_async_tls_with_config(req, None, true, Some(Connector::Plain)).await.unwrap();
         assert_eq!(res.status().as_u16(), 101);
 
         let (tx, rx) = mpsc::channel(8);

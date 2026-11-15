@@ -1296,6 +1296,32 @@ textarea.xf-paste { display: block; width: 100%; min-height: 220px; padding: var
 .set-status.new { color: var(--color-link); font-weight: 600; }
 .set-status.bad { color: var(--color-error); }
 
+/* Settings > Network: DNS, Proxy and Test lists in one pane, each under a small heading */
+.set-group { margin: var(--space-md) 0 var(--space-2xs); color: var(--color-muted); font-size: var(--text-sm); font-weight: 600; }
+.set-pane h4 + .set-group { margin-top: 0; }
+.set-wide { width: 260px; font-family: var(--font-mono); font-size: var(--text-code); }
+/* a row that belongs to the one above it (provider, proxy address) */
+.set-item--sub { padding-left: calc(var(--space-md) * 2); }
+.set-problem {
+  display: flex; align-items: center; gap: 6px; margin: 0; padding: var(--space-xs) var(--space-md);
+  border-top: 1px solid var(--color-rule); color: var(--color-error); font-size: var(--text-sm);
+}
+.set-problem .ico { width: 14px; height: 14px; flex-shrink: 0; }
+.set-pane > .set-problem { border-top: none; padding: 0 0 var(--space-xs); }
+.net-test { display: flex; gap: var(--space-xs); }
+.net-test .field { width: 200px; font-family: var(--font-mono); font-size: var(--text-code); }
+.net-result {
+  display: grid; gap: var(--space-3xs); padding: var(--space-xs) var(--space-md) var(--space-sm);
+  border-top: 1px solid var(--color-rule); font-size: var(--text-sm); -webkit-user-select: text; user-select: text;
+}
+.net-result .set-status { font-weight: 600; }
+.net-steps { display: grid; grid-template-columns: max-content 1fr; gap: 2px var(--space-sm); margin: 0; font: var(--text-sm) / 1.5 var(--font-mono); }
+.net-step { display: contents; }
+.net-steps dt { color: var(--color-muted); }
+.net-steps dd { margin: 0; color: var(--color-ink); overflow-wrap: anywhere; }
+.net-steps dd.bad { color: var(--color-error); }
+.net-hint { color: var(--color-muted); }
+
 /* ---------- WebSocket (approved preview: .hallmark/preview/websocket.html) ---------- */
 /* request line: Connect / Disconnect sit where Send does */
 .ws-connect, .ws-disconnect { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2xs); min-width: 112px; }

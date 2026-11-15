@@ -1,0 +1,31 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · v2.0.0
+ * Settings > Network (under design): secure DNS (DNS over HTTPS) with a system-DNS fallback for
+ * intranet names, an optional SOCKS5/HTTP proxy (Cloudflare WARP proxy mode), and a connection check.
+ * Uses only tokens from src/tokens.css; ported into src/styles.css once approved. */
+
+/* preview only: the screen switcher stays above the dialog backdrop so other screens stay clickable */
+.pv-bar { position: relative; z-index: calc(var(--z-modal) + 1); }
+
+/* two row lists in one pane, each with a small heading above it */
+.set-group { margin: var(--space-md) 0 var(--space-2xs); color: var(--color-muted); font-size: var(--text-sm); font-weight: 600; }
+.set-pane h4 + .set-group { margin-top: 0; }
+.set-wide { width: 260px; }
+.set-wide.field, .set-wide .field { font-family: var(--font-mono); font-size: var(--text-code); }
+.set-wide .field { width: 100%; }
+/* a row that belongs to the one above it (provider URL, proxy address) */
+.set-item--sub { padding-left: calc(var(--space-md) + var(--space-md)); }
+
+/* connection check: host field + Test, result under the row */
+.net-test { display: flex; gap: var(--space-xs); }
+.net-test .field { width: 200px; font-family: var(--font-mono); font-size: var(--text-code); }
+.net-result {
+  display: grid; gap: var(--space-3xs); padding: var(--space-xs) var(--space-md) var(--space-sm);
+  border-top: 1px solid var(--color-rule); font-size: var(--text-sm);
+}
+.net-result .set-status { font-weight: 600; }
+.net-result .set-status.bad { color: var(--color-error); }
+.net-steps { display: grid; grid-template-columns: max-content 1fr; gap: 2px var(--space-sm); margin: 0; color: var(--color-muted); font: var(--text-sm) / 1.5 var(--font-mono); }
+.net-steps dt { color: var(--color-muted); }
+.net-steps dd { margin: 0; color: var(--color-ink); overflow-wrap: anywhere; }
+.net-steps dd.bad { color: var(--color-error); }
+.net-hint { color: var(--color-muted); }
