@@ -35,7 +35,8 @@ A lightweight, local-first API client. Rust + React + Tauri v2.
 - `pm.test` with `pm.expect` (a chai-style subset: `equal`, `eql`, `include`, `match`, `property`, `keys`, `length`, `above`/`below`, `a`/`an`, and more) and `pm.response.to.have.status` / `.header`. The legacy `tests["…"]`, `responseBody` and `postman.setEnvironmentVariable` forms work too
 - Results show in the response's Tests tab (passed / failed, with the failing assertion and its line) and Console tab (`console.log` output, variable changes, errors)
 - A failing pre-request script stops the send and points at its line; "Send without scripts" sends once without them. Settings › Requests can turn scripts off
-- Scripts run in an isolated QuickJS sandbox with no network, file or app access, a 10-second time limit and a 64 MB memory limit. Not supported yet: `pm.sendRequest`, `require()` libraries (lodash, CryptoJS…), cookies, folder and collection scripts
+- Scripts run in an isolated QuickJS sandbox with no network, file or app access, a 10-second time limit and a 64 MB memory limit. A post-response script sees the first 8 MB of the response body, and the Console keeps the first 1,000 lines
+- Not supported yet: `pm.sendRequest`, `require()` libraries (lodash, CryptoJS…), cookies, global variables (`pm.globals.set` warns and keeps nothing), folder and collection scripts
 
 ### gRPC
 
