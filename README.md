@@ -62,6 +62,7 @@ On export, pick which environments go along (none, the active one, all). Secret 
 - Compact mode: fewer icons, methods shown as coloured dots
 - Soft wrap for the request body and the response body
 - Requests: timeout, follow redirects, skip TLS verification, keep responses in history and the largest body kept
+- Certificates, for HTTP, WebSocket and gRPC alike: CA certificates (`.pem`) trusted on top of the public CAs, for dev servers with a self-signed or company certificate; client certificates for mutual TLS (CRT + KEY or PFX) matched by host and port, with passphrases kept in the macOS Keychain. Files stay where they are; only their paths are saved
 
 ### Shortcuts
 
@@ -113,6 +114,7 @@ The app is ad-hoc signed (no Apple Developer ID), so a first install needs `xatt
 src-tauri/src/http.rs     HTTP engine: reqwest, pooled clients, cancellation, multipart
 src-tauri/src/grpc.rs     gRPC engine: tonic, dynamic messages (prost-reflect), reflection, protox, streams
 src-tauri/src/ws.rs       WebSocket engine: tokio-tungstenite over rustls, one live socket per tab
+src-tauri/src/certs.rs    the one rustls setup: public + custom CAs, client certificates, Keychain passphrases
 src-tauri/src/store.rs    atomic JSON persistence in ~/.config/voidhttp and the app data dir
 src-tauri/src/files.rs    read and write import/export files (64 MB read limit, atomic writes)
 src-tauri/src/fonts.rs    installed system fonts for Settings

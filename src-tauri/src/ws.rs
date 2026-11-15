@@ -26,7 +26,7 @@ use tokio_tungstenite::{
     Connector,
 };
 
-use crate::{grpc::tls_config, http::Kv};
+use crate::http::Kv;
 
 const USER_AGENT: &str = concat!("voidHTTP/", env!("CARGO_PKG_VERSION"));
 /// How long a close we started waits for the server's close before the socket is dropped.
@@ -135,13 +135,13 @@ pub async fn ws_connect(state: State<'_, WsState>, request: WsRequest, on_event:
     let req = build_request(&request)?;
     let request_headers = header_list(req.headers());
     let secure = req.uri().scheme_str() == Some("wss");
+    let host = req.uri().host().unwrap_or_default().trim_matches(['[', ']']).to_string();
+    let port = req.uri().port_u16().unwrap_or(if secure { 443 } else { 80 });
     let connector = if secure {
-        Connector::Rustls(Arc::new(tls_config(request.insecure)))
+        Connector::Rustls(Arc::new(crate::certs::tls_config(request.insecure, &host, port)?))
     } else {
         Connector::Plain
     };
-    let host = req.uri().host().unwrap_or_default().to_string();
-    let port = req.uri().port_u16().unwrap_or(if secure { 443 } else { 80 });
 
     let (tx, mut rx) = mpsc::channel::<Cmd>(64);
     state.conns.lock().map_err(|e| e.to_string())?.insert(request.id.clone(), tx);

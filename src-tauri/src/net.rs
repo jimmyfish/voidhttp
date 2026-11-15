@@ -547,7 +547,7 @@ pub async fn net_test(host: String) -> Result<NetCheck, String> {
     }
     let t = Instant::now();
     let name = rustls::pki_types::ServerName::try_from(host.clone()).map_err(|e| format!("Invalid hostname: {e}"))?;
-    let connector = tokio_rustls::TlsConnector::from(Arc::new(crate::grpc::tls_config(false)));
+    let connector = tokio_rustls::TlsConnector::from(Arc::new(crate::certs::tls_config(false, &host, port)?));
     let proxied = net.proxy_for(&host).is_some();
     match timeout(STEP_TIMEOUT, connector.connect(name, stream)).await {
         Ok(Ok(conn)) => {

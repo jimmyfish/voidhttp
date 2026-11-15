@@ -14,6 +14,7 @@ import { DropImport } from "./components/DropImport";
 import { UpdateChip } from "./components/UpdateChip";
 import { useUpdates } from "./updates";
 import { useNetwork } from "./lib/net";
+import { useCerts } from "./lib/certs";
 
 export const SIDEBAR_DEFAULT = 296;
 const SIDEBAR_MIN = 220;
@@ -150,6 +151,7 @@ export default function App() {
   useTypeTokens();
   useTheme();
   useNetwork();
+  useCerts();
 
   useEffect(() => {
     useStore.getState().init();

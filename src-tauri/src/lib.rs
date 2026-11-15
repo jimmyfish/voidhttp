@@ -1,3 +1,4 @@
+mod certs;
 mod files;
 mod fonts;
 mod grpc;
@@ -130,6 +131,11 @@ pub fn run() {
             ws::ws_close,
             net::net_configure,
             net::net_test,
+            certs::certs_configure,
+            certs::certs_inspect_ca,
+            certs::certs_inspect_client,
+            certs::certs_set_passphrase,
+            certs::certs_has_passphrase,
             store::load_state,
             store::save_state,
             store::save_response,

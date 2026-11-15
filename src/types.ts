@@ -276,6 +276,34 @@ export interface Settings {
   autoUpdateCheck?: boolean;
   /** Settings > Network; missing fields take DEFAULT_NET (src/lib/net.ts): all off. */
   network?: NetSettings;
+  /** Settings > Certificates; missing = nothing added. */
+  certs?: CertSettings;
+}
+
+/** Settings > Certificates for every TLS connection (HTTP, WebSocket, gRPC). Files are kept by path;
+ * passphrases live in the macOS Keychain, never here. */
+export interface CertSettings {
+  /** Trust caFiles on top of the public CAs. */
+  caEnabled?: boolean;
+  /** PEM files with the certificate of a self-signed server or of a company / dev CA (mkcert). */
+  caFiles?: string[];
+  /** Client certificates for mutual TLS, picked by host and port. */
+  clients?: ClientCert[];
+}
+
+export interface ClientCert {
+  /** Stable id; also the Keychain account of its passphrase. */
+  id: string;
+  /** api.example.com, or *.example.com for its subdomains */
+  host: string;
+  /** missing: any port */
+  port?: number;
+  /** pem: certificate file + key file; pfx: one PKCS#12 file */
+  format: "pem" | "pfx";
+  cert?: string;
+  /** empty: the key is in the certificate file */
+  key?: string;
+  pfx?: string;
 }
 
 /** Secure DNS and proxy for every request (HTTP, WebSocket, gRPC). */

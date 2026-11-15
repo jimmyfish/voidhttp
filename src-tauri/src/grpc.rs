@@ -6,7 +6,7 @@
 use std::{
     collections::HashMap,
     path::PathBuf,
-    sync::{Arc, Mutex},
+    sync::Mutex,
     time::{Duration, Instant},
 };
 
@@ -621,8 +621,11 @@ async fn connect(target: &Target) -> Result<Channel, String> {
         let stream = crate::net::current().connect(&host, port).await?;
         Ok::<_, std::io::Error>(hyper_util::rt::TokioIo::new(stream))
     });
+    let host = authority.rsplit_once(':').map_or(authority.as_str(), |(h, _)| h).trim_matches(['[', ']']);
+    let port = authority.rsplit_once(':').and_then(|(_, p)| p.parse().ok()).unwrap_or(if tls { 443 } else { 80 });
+    let tls_config = crate::certs::tls_config(target.insecure, host, port)?;
     let connector = hyper_rustls::HttpsConnectorBuilder::new()
-        .with_tls_config(tls_config(target.insecure))
+        .with_tls_config(tls_config)
         .https_or_http()
         .enable_http2()
         .wrap_connector(tcp);
@@ -631,61 +634,6 @@ async fn connect(target: &Target) -> Result<Channel, String> {
         .connect_with_connector(connector)
         .await
         .map_err(|e| format!("Connection failed: {}", root_cause(&e)))
-}
-
-pub(crate) fn tls_config(insecure: bool) -> rustls::ClientConfig {
-    let provider = Arc::new(rustls::crypto::ring::default_provider());
-    let builder = rustls::ClientConfig::builder_with_provider(provider.clone())
-        .with_safe_default_protocol_versions()
-        .expect("ring supports the default protocol versions");
-    if insecure {
-        builder
-            .dangerous()
-            .with_custom_certificate_verifier(Arc::new(NoVerify(provider)))
-            .with_no_client_auth()
-    } else {
-        let roots = rustls::RootCertStore { roots: webpki_roots::TLS_SERVER_ROOTS.to_vec() };
-        builder.with_root_certificates(roots).with_no_client_auth()
-    }
-}
-
-/// "Skip TLS verification" from Settings: accepts any certificate, still checks signatures.
-#[derive(Debug)]
-struct NoVerify(Arc<rustls::crypto::CryptoProvider>);
-
-impl rustls::client::danger::ServerCertVerifier for NoVerify {
-    fn verify_server_cert(
-        &self,
-        _end_entity: &rustls::pki_types::CertificateDer<'_>,
-        _intermediates: &[rustls::pki_types::CertificateDer<'_>],
-        _server_name: &rustls::pki_types::ServerName<'_>,
-        _ocsp: &[u8],
-        _now: rustls::pki_types::UnixTime,
-    ) -> Result<rustls::client::danger::ServerCertVerified, rustls::Error> {
-        Ok(rustls::client::danger::ServerCertVerified::assertion())
-    }
-
-    fn verify_tls12_signature(
-        &self,
-        message: &[u8],
-        cert: &rustls::pki_types::CertificateDer<'_>,
-        dss: &rustls::DigitallySignedStruct,
-    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
-        rustls::crypto::verify_tls12_signature(message, cert, dss, &self.0.signature_verification_algorithms)
-    }
-
-    fn verify_tls13_signature(
-        &self,
-        message: &[u8],
-        cert: &rustls::pki_types::CertificateDer<'_>,
-        dss: &rustls::DigitallySignedStruct,
-    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
-        rustls::crypto::verify_tls13_signature(message, cert, dss, &self.0.signature_verification_algorithms)
-    }
-
-    fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
-        self.0.signature_verification_algorithms.supported_schemes()
-    }
 }
 
 // ---------- schema ----------
@@ -998,6 +946,7 @@ fn well_known_example(name: &str) -> Option<Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Arc;
 
     #[test]
     fn wire_names_are_camel_case() {

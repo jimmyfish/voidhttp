@@ -7,9 +7,10 @@ import { ExampleModal } from "./ExampleModal";
 import { ImportModal } from "./ImportModal";
 import { ExportModal } from "./ExportModal";
 import { KVEditor } from "./KVEditor";
-import { Ban, Check, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, Network, Plus, Send, Trash2, TriangleAlert, Type, ico } from "./Icon";
+import { Ban, Check, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, FileBadge, Network, Plus, Send, Trash2, TriangleAlert, Type, ico } from "./Icon";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useUpdates } from "../updates";
+import { CertificatesPane } from "./CertificatesPane";
 import { RELEASES_URL } from "../lib/updater";
 import { ago } from "../lib/time";
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
@@ -447,8 +448,8 @@ const MONO_FONTS = ["JetBrains Mono", "SF Mono", "Menlo", "Monaco", "Fira Code",
 const UI_SIZES = [12, 13, 14, 15, 16, 17, 18];
 const CODE_SIZES = [11, 12, 13, 14, 15, 16];
 
-/** The one app-wide settings dialog: appearance (theme, fonts), request defaults, network and updates. */
-function SettingsModal({ onClose, section: initial }: { onClose: () => void; section?: "appearance" | "requests" | "network" | "updates" }) {
+/** The one app-wide settings dialog: appearance (theme, fonts), request defaults, network, certificates and updates. */
+function SettingsModal({ onClose, section: initial }: { onClose: () => void; section?: "appearance" | "requests" | "network" | "certificates" | "updates" }) {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
   const [section, setSection] = useState(initial ?? "appearance");
@@ -484,6 +485,12 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
             <button type="button" aria-current={section === "network"} onClick={() => setSection("network")}>
               <Network {...ico} />
               Network
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current={section === "certificates"} onClick={() => setSection("certificates")}>
+              <FileBadge {...ico} />
+              Certificates
             </button>
           </li>
           <li>
@@ -590,6 +597,8 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
           <UpdatesPane />
         ) : section === "network" ? (
           <NetworkPane />
+        ) : section === "certificates" ? (
+          <CertificatesPane onOpenRequests={() => setSection("requests")} />
         ) : (
           <div className="set-pane">
             <h4>Requests</h4>
