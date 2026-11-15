@@ -55,6 +55,7 @@ webpki-roots = "1"
 http = "1"
 tower = "0.5"
 tokio-tungstenite = { version = "0.30", default-features = false, features = ["connect", "__rustls-tls"] }
+url = "2"
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 # Settings > Network: DNS over HTTPS (secure DNS), SOCKS5 for WebSocket and gRPC through a proxy,
 # and the TLS handshake of the connection check.

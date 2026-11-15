@@ -19,6 +19,8 @@ import { defaultGrpc, isGrpc, looksLikeGrpcurl, parseGrpcurl } from "../lib/grpc
 import { GrpcRequestPane } from "./GrpcPane";
 import { WsRequestPane } from "./WsPane";
 import { defaultWs, isWs } from "../lib/ws";
+import { SioRequestPane } from "./SioPane";
+import { defaultSio, isSio } from "../lib/sio";
 
 type Section = "params" | "headers" | "body" | "auth";
 
@@ -140,13 +142,15 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
     </>
   );
   const titlePath = ex ? `${exPath} · example` : saved ? [col!.name, ...folders].join(" / ") : "Not saved";
-  // the method menu, whichever pane shows it: gRPC and WebSocket bring their own settings and a message body
+  // the method menu, whichever pane shows it: gRPC, WebSocket and Socket.IO bring their own settings and a message body
   const pickMethod = (m: string) =>
     m === "GRPC"
       ? set({ method: "GRPC", grpc: req.grpc ?? defaultGrpc(req.url), body: { ...req.body, mode: "json" } })
       : m === "WS"
         ? set({ method: "WS", ws: req.ws ?? defaultWs(), body: { ...req.body, mode: req.body.mode === "text" ? "text" : "json" } })
-        : set({ method: m });
+        : m === "SIO"
+          ? set({ method: "SIO", sio: req.sio ?? defaultSio(), body: { ...req.body, mode: req.body.mode === "text" ? "text" : "json" } })
+          : set({ method: m });
 
   if (isGrpc(req))
     return (
@@ -164,6 +168,20 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
   if (isWs(req))
     return (
       <WsRequestPane
+        tab={tab}
+        grow={grow}
+        lookup={lookup}
+        missing={missing}
+        path={titlePath}
+        saveControls={saveControls}
+        authEditor={<AuthEditor auth={req.auth} onChange={(auth) => set({ auth })} />}
+        onKind={pickMethod}
+      />
+    );
+
+  if (isSio(req))
+    return (
+      <SioRequestPane
         tab={tab}
         grow={grow}
         lookup={lookup}

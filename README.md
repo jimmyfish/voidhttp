@@ -33,7 +33,11 @@ Pick gRPC in the method menu. Methods come from server reflection (v1, falling b
 
 ### WebSocket
 
-Pick WebSocket in the method menu and enter a `ws://` or `wss://` URL (`{{variables}}`, params, headers and auth apply to the upgrade request). Connect opens the socket; send text or JSON messages one by one while received ones stream into a live list (click a row to expand it; binary frames show as hex). Subprotocols and a keep-alive ping interval are under Settings. The Handshake tab shows the upgrade request and the server's answer; a refused upgrade shows its HTTP status and body. Sessions go to history with their messages. Socket.IO is not supported.
+Pick WebSocket in the method menu and enter a `ws://` or `wss://` URL (`{{variables}}`, params, headers and auth apply to the upgrade request). Connect opens the socket; send text or JSON messages one by one while received ones stream into a live list (click a row to expand it; binary frames show as hex). Subprotocols and a keep-alive ping interval are under Settings. The Handshake tab shows the upgrade request and the server's answer; a refused upgrade shows its HTTP status and body. Sessions go to history with their messages.
+
+### Socket.IO
+
+Pick Socket.IO in the method menu, enter the server URL and a namespace (left empty, the URL's path is the namespace, as socket.io-client reads it). Connect opens a WebSocket to the server's Engine.IO endpoint and joins the namespace; Socket.IO 3 and 4 (Engine.IO 4) and Socket.IO 2 (Engine.IO 3) are both supported, picked under Settings with the mount path and the handshake auth JSON (`{{variables}}` work there). Emit sends an event with one argument, text or JSON; turn on Wait for ack to see the server's ack threaded under the emit, or a note when it does not come in time. Received events show their name and every argument (binary attachments as base64), and a filter menu narrows the list by event name. The Handshake tab shows the Engine.IO open packet, the namespace join and the upgrade; a refused join shows the server's `connect_error` and its data. Only the WebSocket transport is used: a server or proxy that allows long-polling only refuses the upgrade, and the app says so.
 
 ### History and examples
 
@@ -68,7 +72,7 @@ On export, pick which environments go along (none, the active one, all). Secret 
 
 | Key | Action |
 | --- | --- |
-| `⌘/Ctrl + Enter` | Send, or Invoke a gRPC call; on an open client or bidi stream, send the next message; Connect a WebSocket, or send the message once it is open |
+| `⌘/Ctrl + Enter` | Send, or Invoke a gRPC call; on an open client or bidi stream, send the next message; Connect a WebSocket or Socket.IO server, or send (emit) once it is open |
 | `⌘/Ctrl + S` | Save to collection |
 | `⌘/Ctrl + T` | New tab |
 | `⌘/Ctrl + W` | Close the open dialog, otherwise the active tab |
@@ -114,12 +118,13 @@ The app is ad-hoc signed (no Apple Developer ID), so a first install needs `xatt
 src-tauri/src/http.rs     HTTP engine: reqwest, pooled clients, cancellation, multipart
 src-tauri/src/grpc.rs     gRPC engine: tonic, dynamic messages (prost-reflect), reflection, protox, streams
 src-tauri/src/ws.rs       WebSocket engine: tokio-tungstenite over rustls, one live socket per tab
+src-tauri/src/sio.rs      Socket.IO client on the WebSocket engine: Engine.IO 3/4, namespace join, emits, acks
 src-tauri/src/certs.rs    the one rustls setup: public + custom CAs, client certificates, Keychain passphrases
 src-tauri/src/store.rs    atomic JSON persistence in ~/.config/voidhttp and the app data dir
 src-tauri/src/files.rs    read and write import/export files (64 MB read limit, atomic writes)
 src-tauri/src/fonts.rs    installed system fonts for Settings
 src/store.ts              app state (zustand) and debounced persistence
-src/lib/                  vars, request preparation, gRPC calls and schemas, WebSocket, cURL, JSONPath, masking, themes
+src/lib/                  vars, request preparation, gRPC calls and schemas, WebSocket, Socket.IO, cURL, JSONPath, masking, themes
 src/lib/formats/          import and export: Postman, OpenAPI / Swagger, HAR, voidHTTP, pasted commands
 src/components/           UI
 ```
@@ -130,4 +135,4 @@ Per-device state stays in the app data dir (`~/Library/Application Support/dev.v
 
 ## Not yet
 
-These are not implemented yet: pre-request and test scripts, GraphQL, Socket.IO, gRPC-Web, OAuth 2 flows, collection runner, and code generation beyond cURL and grpcurl.
+These are not implemented yet: pre-request and test scripts, GraphQL, Socket.IO long-polling, gRPC-Web, OAuth 2 flows, collection runner, and code generation beyond cURL and grpcurl.

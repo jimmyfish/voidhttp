@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { Tab, WsClose, WsMessage, WsResult } from "../types";
+import type { SioSession, Tab, WsClose, WsMessage, WsResult } from "../types";
 import { formatBytes } from "../lib/model";
 import { highlightLines } from "../lib/highlight";
 import { CLOSE_NAMES, closeOk, hexDump, hexPreview } from "../lib/ws";
+import { argsPreview, refusedHint } from "../lib/sio";
 import { useStore } from "../store";
 import { RunBanner, RunsButton } from "./Runs";
-import { ArrowDown, ArrowUp, Copy, Plug, Trash2, TriangleAlert, ico, icoLg } from "./Icon";
+import { ArrowDown, ArrowUp, Check, ChevronDown, Clock, Copy, CornerDownLeft, ListFilter, Plug, Trash2, TriangleAlert, ico, icoLg } from "./Icon";
 
 type Sub = "messages" | "handshake";
 type Show = "all" | "in" | "out";
@@ -29,6 +30,18 @@ const pretty = (text: string): string | null => {
   }
 };
 const closeLabel = (c: Pick<WsClose, "code">) => `${c.code} ${CLOSE_NAMES[c.code] ?? ""}`.trim();
+
+/** Socket.IO's disconnect reasons, as the status line says them. */
+const SIO_ENDS: Record<string, string> = {
+  "io server disconnect": "Disconnected by server",
+  "io client disconnect": "Disconnected",
+  "transport close": "Connection closed",
+  "transport error": "Connection lost",
+  "ping timeout": "Ping timeout",
+  "parse error": "Parse error",
+  connect_error: "connect_error",
+};
+const sioOk = (c: WsClose) => c.reason === "io client disconnect";
 
 /** The response side of a WebSocket tab: the live message list, and the handshake. */
 export function WsResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
@@ -59,7 +72,11 @@ export function WsResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
         <div className="empty">
           <Plug {...icoLg} />
           <strong>Not connected</strong>
-          <span>Connect opens the socket. Messages show up here as they come and go.</span>
+          <span>
+            {tab.request.method === "SIO"
+              ? "Connect opens the socket and joins the namespace. Events show up here as they come and go."
+              : "Connect opens the socket. Messages show up here as they come and go."}
+          </span>
         </div>
       </>,
     );
@@ -78,7 +95,7 @@ export function WsResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
       {tab.fromHistory && <RunBanner tab={tab} hint="Connect to open it again" />}
       <nav className="subtabs" aria-label="Response">
         <button type="button" className="subtab" aria-pressed={sub === "messages"} onClick={() => setSub("messages")}>
-          Messages {count > 0 && <span className="n">{count}</span>}
+          {w.sio ? "Events" : "Messages"} {count > 0 && <span className="n">{count}</span>}
         </button>
         <button type="button" className="subtab" aria-pressed={sub === "handshake"} onClick={() => setSub("handshake")}>
           Handshake
@@ -86,7 +103,15 @@ export function WsResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
         <StatusLine w={w} live={live} />
         {!live && <RunsButton tab={tab} />}
       </nav>
-      {sub === "handshake" ? <Handshake w={w} /> : w.refused ? <Refused tab={tab} w={w} onHandshake={() => setSub("handshake")} /> : <MessageList tab={tab} w={w} live={live} />}
+      {sub === "handshake" ? (
+        <Handshake w={w} />
+      ) : w.refused ? (
+        <Refused tab={tab} w={w} onHandshake={() => setSub("handshake")} />
+      ) : w.sio?.error ? (
+        <NamespaceRefused sio={w.sio} onHandshake={() => setSub("handshake")} />
+      ) : (
+        <MessageList tab={tab} w={w} live={live} />
+      )}
     </>,
   );
 }
@@ -103,6 +128,31 @@ function StatusLine({ w, live }: { w: WsResult; live: boolean }) {
   const count = (w.dropped ?? 0) + w.messages.length;
   const size = w.messages.reduce((n, m) => n + m.size, 0);
   const openFor = w.close ? w.close.elapsedMs : Date.now() - w.startedAt - hs.elapsedMs;
+  if (w.sio) {
+    const sio = w.sio;
+    const ended = sio.error ? hs.elapsedMs : w.refused ? hs.elapsedMs : Math.max(0, openFor);
+    return (
+      <span className="meta">
+        {w.refused ? (
+          <span className="fail">
+            {hs.status} {hs.statusText}
+          </span>
+        ) : sio.error ? (
+          <span className="fail">connect_error</span>
+        ) : w.close ? (
+          <span className={sioOk(w.close) ? "ok" : "fail"}>{SIO_ENDS[w.close.reason] ?? w.close.reason}</span>
+        ) : (
+          <span className="live">
+            <span className="live-dot" aria-hidden="true" />
+            {sio.joinedMs === undefined ? "Joining" : "Connected"}
+          </span>
+        )}
+        {!w.refused && <span className="dim">{sio.namespace}</span>}
+        <span className="dim">{duration(ended)}</span>
+        {!w.refused && !sio.error && <span className="dim">{formatBytes(size)}</span>}
+      </span>
+    );
+  }
   return (
     <span className="meta">
       {w.refused ? (
@@ -142,17 +192,40 @@ function MessageList({ tab, w, live }: { tab: Tab; w: WsResult; live: boolean })
     if (el && stick.current) el.scrollTop = el.scrollHeight;
   }, [w.messages.length, w.close]);
 
-  const shown = w.messages.map((m, i) => ({ m, n: base + i + 1 })).filter(({ m }) => show === "all" || m.dir === show);
+  const sio = w.sio;
+  const [only, setOnly] = useState<Set<string> | null>(null);
+  const all = useMemo(() => w.messages.map((m, i) => ({ m, n: base + i + 1 })), [w.messages, base]);
+  const keep = ({ m }: { m: WsMessage }) => (show === "all" || m.dir === show) && (!only || m.kind === "ack" || only.has(m.event ?? ""));
+  const shown = all.filter(keep);
+  const rows: Row[] = sio ? threadAcks(shown, w, live) : shown.map((x) => ({ ...x, slot: "msg" }));
+  const waiting = rows.some((r) => r.slot === "wait");
+  const [, tick] = useState(0);
+  // the ack wait counts up
+  useEffect(() => {
+    if (!waiting) return;
+    const t = setInterval(() => tick((x) => x + 1), 200);
+    return () => clearInterval(t);
+  }, [waiting]);
 
   const copyAll = async () => {
     try {
-      const all = shown.map(({ m }) => ({
-        dir: m.dir === "in" ? "received" : "sent",
-        atMs: m.atMs,
-        ...(m.kind === "binary" ? { binary: m.data } : { data: m.data }),
-      }));
-      await navigator.clipboard.writeText(JSON.stringify(all, null, 2));
-      notify(all.length === 1 ? "1 message copied" : `${all.length} messages copied`);
+      const out = shown.map(({ m }) =>
+        sio
+          ? {
+              dir: m.dir === "in" ? "received" : "sent",
+              ...(m.kind === "ack" ? { ack: m.ackId } : { event: m.event, ...(m.ackId !== undefined && { ackId: m.ackId }) }),
+              args: parseArgs(m.data),
+              atMs: m.atMs,
+            }
+          : {
+              dir: m.dir === "in" ? "received" : "sent",
+              atMs: m.atMs,
+              ...(m.kind === "binary" ? { binary: m.data } : { data: m.data }),
+            },
+      );
+      await navigator.clipboard.writeText(JSON.stringify(out, null, 2));
+      const noun = sio ? "event" : "message";
+      notify(out.length === 1 ? `1 ${noun} copied` : `${out.length} ${noun}s copied`);
     } catch (e) {
       notify(`Copy failed: ${e}`);
     }
@@ -182,11 +255,26 @@ function MessageList({ tab, w, live }: { tab: Tab; w: WsResult; live: boolean })
             </button>
           ))}
         </div>
+        {sio && <EventFilter messages={w.messages} only={only} onChange={setOnly} />}
         <span style={{ marginLeft: "auto" }} />
-        <button type="button" className="icon-btn" title="Copy messages as JSON" aria-label="Copy messages" disabled={!shown.length} onClick={copyAll}>
+        <button
+          type="button"
+          className="icon-btn"
+          title={sio ? "Copy events as JSON" : "Copy messages as JSON"}
+          aria-label={sio ? "Copy events" : "Copy messages"}
+          disabled={!shown.length}
+          onClick={copyAll}
+        >
           <Copy {...ico} />
         </button>
-        <button type="button" className="icon-btn" title="Clear messages" aria-label="Clear messages" disabled={!w.messages.length} onClick={() => clear(tab.id)}>
+        <button
+          type="button"
+          className="icon-btn"
+          title={sio ? "Clear events" : "Clear messages"}
+          aria-label={sio ? "Clear events" : "Clear messages"}
+          disabled={!w.messages.length}
+          onClick={() => clear(tab.id)}
+        >
           <Trash2 {...ico} />
         </button>
       </div>
@@ -199,26 +287,56 @@ function MessageList({ tab, w, live }: { tab: Tab; w: WsResult; live: boolean })
             stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
           }}
         >
-          <div className="smsg-sys ok">
-            <Plug {...ico} />
-            <span className="t">{seconds(0)}</span>
-            <span className="s">
-              Connected to <b>{w.url}</b> · {hs.status} {hs.statusText}
-              {hs.protocol ? ` · ${hs.protocol}` : ""} · {hs.elapsedMs} ms
-            </span>
-          </div>
-          {base > 0 && <div className="smsg-wait">{base} earlier messages not kept</div>}
-          {shown.map(({ m, n }) => (
-            <MessageRow key={n} n={n} m={m} open={open.has(n)} onToggle={() => toggle(n)} />
-          ))}
+          {!sio ? (
+            <div className="smsg-sys ok">
+              <Plug {...ico} />
+              <span className="t">{seconds(0)}</span>
+              <span className="s">
+                Connected to <b>{w.url}</b> · {hs.status} {hs.statusText}
+                {hs.protocol ? ` · ${hs.protocol}` : ""} · {hs.elapsedMs} ms
+              </span>
+            </div>
+          ) : (
+            sio.joinedMs !== undefined && (
+              <div className="smsg-sys ok">
+                <Plug {...ico} />
+                <span className="t">{seconds(sio.joinedMs)}</span>
+                <span className="s">
+                  <span>
+                    Joined <b>{sio.namespace}</b>
+                  </span>
+                  {sio.sid && (
+                    <span>
+                      sid <code>{sio.sid}</code>
+                    </span>
+                  )}
+                  <span>websocket</span>
+                  <span>{hs.elapsedMs + sio.joinedMs} ms</span>
+                </span>
+              </div>
+            )
+          )}
+          {base > 0 && <div className="smsg-wait">{base} earlier {sio ? "events" : "messages"} not kept</div>}
+          {rows.map((r) =>
+            r.slot === "wait" ? (
+              <AckWait key={`w${r.n}`} m={r.m} w={w} />
+            ) : r.slot === "late" ? (
+              <div key={`l${r.n}`} className="smsg-wait ack-late">
+                <Clock {...ico} />
+                No ack within {r.m.ackMs} ms
+              </div>
+            ) : (
+              <MessageRow key={r.m.kind === "ack" ? `a${r.n}` : r.n} n={r.slot === "ack" ? r.emitN! : r.n} m={r.m} open={open.has(r.n)} onToggle={() => toggle(r.n)} />
+            ),
+          )}
           {live && (
             <div className="smsg-wait">
               <span className="spinner" />
-              Connected · waiting for messages
+              {!sio ? "Connected · waiting for messages" : sio.joinedMs === undefined ? `Joining ${sio.namespace}…` : "Connected, listening for events"}
             </div>
           )}
-          {w.close && <CloseRow close={w.close} onReconnect={tab.example || live ? undefined : () => reconnect(tab.id)} />}
-          {!live && !w.close && w.messages.length === 0 && <div className="smsg-wait">No messages</div>}
+          {w.close && !sio?.error && <CloseRow close={w.close} sio={!!sio} onReconnect={tab.example || live ? undefined : () => reconnect(tab.id)} />}
+          {!live && !w.close && w.messages.length === 0 && <div className="smsg-wait">{sio ? "No events" : "No messages"}</div>}
         </div>
       </div>
     </>
@@ -227,26 +345,40 @@ function MessageList({ tab, w, live }: { tab: Tab; w: WsResult; live: boolean })
 
 function MessageRow({ n, m, open, onToggle }: { n: number; m: WsMessage; open: boolean; onToggle: () => void }) {
   const binary = m.kind === "binary";
+  const sio = m.kind === "event" || m.kind === "ack";
   const body = useMemo(() => {
     if (!open) return null;
     if (binary) return { hex: hexDump(m.data) };
+    if (sio) {
+      // one argument shows as itself, several as their array; a string argument as plain text
+      const args = parseArgs(m.data);
+      const v = Array.isArray(args) && args.length === 1 ? args[0] : args;
+      return typeof v === "string" ? { text: v } : { html: highlightLines(JSON.stringify(v, null, 2) ?? "", true) };
+    }
     const p = pretty(m.data);
     return p ? { html: highlightLines(p, true) } : { text: m.data };
-  }, [open, binary, m.data]);
+  }, [open, binary, sio, m.data]);
+  const ack = m.kind === "ack";
   return (
     <>
       <button
         type="button"
-        className={`smsg ${m.dir}`}
+        className={`smsg ${ack ? "ack" : m.dir}`}
         aria-expanded={open}
-        aria-label={`${m.dir === "in" ? "Received" : "Sent"} message ${n}`}
+        aria-label={ack ? `Ack for event ${n}` : `${m.dir === "in" ? "Received" : "Sent"} ${sio ? "event" : "message"} ${n}`}
+        title={m.kind === "event" && m.dir === "in" && m.ackId !== undefined ? "The server asked for an ack" : undefined}
         onClick={onToggle}
       >
-        {m.dir === "in" ? <ArrowDown {...ico} /> : <ArrowUp {...ico} />}
+        {ack ? <CornerDownLeft {...ico} /> : m.dir === "in" ? <ArrowDown {...ico} /> : <ArrowUp {...ico} />}
         <span className="n">{n}</span>
         <span className="t">{seconds(m.atMs)}</span>
         <span className="p">
-          {binary ? (
+          {sio ? (
+            <>
+              {ack ? <span className="ack-tag">ack</span> : <span className="ev">{m.event}</span>}
+              {argsPreview(m)}
+            </>
+          ) : binary ? (
             <>
               <span className="bin">Binary · {formatBytes(m.size)}</span>
               {hexPreview(m.data)}
@@ -271,8 +403,31 @@ function MessageRow({ n, m, open, onToggle }: { n: number; m: WsMessage; open: b
   );
 }
 
-function CloseRow({ close, onReconnect }: { close: WsClose; onReconnect?: () => void }) {
+function CloseRow({ close, sio, onReconnect }: { close: WsClose; sio?: boolean; onReconnect?: () => void }) {
   const after = duration(close.elapsedMs);
+  if (sio) {
+    const text =
+      close.reason === "io server disconnect"
+        ? `The server disconnected the socket after ${after}`
+        : close.reason === "ping timeout"
+          ? `The server stopped answering pings; closed after ${after}`
+          : close.by === "server"
+            ? `The server closed the connection after ${after}`
+            : close.by === "client"
+              ? `You disconnected after ${after}`
+              : `Connection lost after ${after}`;
+    return (
+      <div className="smsg-end" role="status">
+        <span className={sioOk(close) ? "ok" : "fail"}>{close.reason}</span>
+        <span className="end-text">{text}</span>
+        {onReconnect && (
+          <button type="button" className="link" onClick={onReconnect}>
+            Reconnect
+          </button>
+        )}
+      </div>
+    );
+  }
   const text =
     close.by === "server"
       ? `Server closed the connection after ${after}`
@@ -307,11 +462,37 @@ function Handshake({ w }: { w: WsResult }) {
       return w.url;
     }
   })();
+  const sio = w.sio;
   return (
     <div className="res-body">
       <div className="hs">
+        {sio?.engine && (
+          <div>
+            <h4>Engine.IO open</h4>
+            <dl>
+              <Pair k="sid" v={sio.engine.sid} />
+              <Pair k="upgrades" v={JSON.stringify(sio.engine.upgrades)} />
+              <Pair k="pingInterval" v={String(sio.engine.pingInterval)} />
+              <Pair k="pingTimeout" v={String(sio.engine.pingTimeout)} />
+              {sio.engine.maxPayload !== undefined && <Pair k="maxPayload" v={String(sio.engine.maxPayload)} />}
+            </dl>
+          </div>
+        )}
+        {sio && !w.refused && (
+          <div>
+            <h4>
+              Namespace {sio.namespace}{" "}
+              {sio.error ? <span className="fail">refused</span> : sio.joinedMs !== undefined ? <span className="ok">joined</span> : null}
+            </h4>
+            <dl>
+              {sio.sid && <Pair k="sid" v={sio.sid} />}
+              <Pair k="auth sent" v={sio.eio === 3 ? "none (Socket.IO 2)" : (sio.auth ?? "none")} />
+              {sio.error && <Pair k="error" v={sio.error.message} />}
+            </dl>
+          </div>
+        )}
         <div>
-          <h4>Request</h4>
+          <h4>{sio ? "Upgrade request" : "Request"}</h4>
           <dl>
             <dt>GET</dt>
             <dd>{target} HTTP/1.1</dd>
@@ -360,19 +541,154 @@ function Refused({ tab, w, onHandshake }: { tab: Tab; w: WsResult; onHandshake: 
       <div className="ws-fail" role="alert">
         <strong>
           <TriangleAlert {...ico} />
-          The server refused the upgrade
+          {w.sio ? "The server refused the WebSocket upgrade" : "The server refused the upgrade"}
         </strong>
         <span className="msg">
           HTTP {hs.status} {hs.statusText} · expected 101 Switching Protocols
         </span>
         {hs.body && <span className="msg ws-fail-body">{hs.body}</span>}
         <div className="acts">
-          {auth && !tab.example && <span className="muted">Check the Auth tab.</span>}
+          {auth && !tab.example ? <span className="muted">Check the Auth tab.</span> : w.sio && <span className="muted">{refusedHint(hs.body)}</span>}
           <button type="button" className="link" onClick={onHandshake}>
             See handshake
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** The namespace refused the join: the server's connect_error stands in for the stream. */
+function NamespaceRefused({ sio, onHandshake }: { sio: SioSession; onHandshake: () => void }) {
+  return (
+    <div className="res-body">
+      <div className="ws-fail" role="alert">
+        <strong>
+          <TriangleAlert {...ico} />
+          The server refused namespace {sio.namespace}
+        </strong>
+        <span className="msg">connect_error: {sio.error!.message}</span>
+        {sio.error!.data && <span className="msg ws-fail-body">{sio.error!.data}</span>}
+        <div className="acts">
+          <span className="muted">The socket opened; the namespace middleware said no.</span>
+          <button type="button" className="link" onClick={onHandshake}>
+            See handshake
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Socket.IO ----------
+
+const parseArgs = (data: string): unknown => {
+  try {
+    return JSON.parse(data);
+  } catch {
+    return data;
+  }
+};
+
+type Row = { m: WsMessage; n: number; slot: "msg" | "ack" | "wait" | "late"; emitN?: number };
+
+/** Events in order, each ack moved under the emit it answers, with a wait or a late line while it has none. */
+function threadAcks(shown: { m: WsMessage; n: number }[], w: WsResult, live: boolean): Row[] {
+  const emits = new Set<number>();
+  for (const { m } of shown) if (m.dir === "out" && m.kind === "event" && m.ackId !== undefined) emits.add(m.ackId);
+  const acks = new Map<number, { m: WsMessage; n: number }>();
+  for (const x of shown) if (x.m.kind === "ack" && x.m.ackId !== undefined && emits.has(x.m.ackId)) acks.set(x.m.ackId, x);
+  const late = new Set(w.sio?.late ?? []);
+  const rows: Row[] = [];
+  for (const x of shown) {
+    if (x.m.kind === "ack" && x.m.ackId !== undefined && acks.get(x.m.ackId) === x) continue;
+    rows.push({ ...x, slot: "msg" });
+    if (x.m.dir !== "out" || x.m.ackId === undefined) continue;
+    const a = acks.get(x.m.ackId);
+    if (a) rows.push({ ...a, slot: "ack", emitN: x.n });
+    else if (late.has(x.m.ackId)) rows.push({ ...x, slot: "late" });
+    else if (live && !w.close) rows.push({ ...x, slot: "wait" });
+  }
+  return rows;
+}
+
+function AckWait({ m, w }: { m: WsMessage; w: WsResult }) {
+  const openedAt = w.startedAt + (w.handshake?.elapsedMs ?? 0);
+  const waited = Math.max(0, Date.now() - openedAt - m.atMs) / 1000;
+  return (
+    <div className="smsg-wait ack-wait" role="status">
+      <span className="spinner" />
+      Waiting for ack, {waited.toFixed(1)} s{m.ackMs ? ` of ${m.ackMs / 1000} s` : ""}
+    </div>
+  );
+}
+
+/** Which event names the list shows: a menu of the names seen so far, with counts. */
+function EventFilter({ messages, only, onChange }: { messages: WsMessage[]; only: Set<string> | null; onChange: (s: Set<string> | null) => void }) {
+  const [open, setOpen] = useState(false);
+  const wrap = useRef<HTMLDivElement>(null);
+  const names = useMemo(() => {
+    const m = new Map<string, { in: number; out: number }>();
+    for (const x of messages) {
+      if (x.kind !== "event" || x.event === undefined) continue;
+      const c = m.get(x.event) ?? { in: 0, out: 0 };
+      c[x.dir]++;
+      m.set(x.event, c);
+    }
+    return [...m.entries()];
+  }, [messages]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!wrap.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const shownCount = only ? names.filter(([n]) => only.has(n)).length : names.length;
+  const toggle = (name: string) => {
+    const next = new Set(only ?? names.map(([n]) => n));
+    if (next.has(name)) next.delete(name);
+    else next.add(name);
+    onChange(next.size === names.length && names.every(([n]) => next.has(n)) ? null : next);
+  };
+
+  return (
+    <div className="ev-filter-wrap" ref={wrap}>
+      <button type="button" className="ev-filter" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <ListFilter {...ico} />
+        {only ? <span className="on">Events: {shownCount} of {names.length}</span> : "Events: all"}
+        <ChevronDown {...ico} />
+      </button>
+      {open && (
+        <div className="menu ev-menu" role="menu" aria-label="Events to show">
+          {names.map(([name, c]) => {
+            const on = !only || only.has(name);
+            return (
+              <button key={name} type="button" role="menuitemcheckbox" aria-checked={on} onClick={() => toggle(name)}>
+                {on ? <Check {...ico} /> : <span className="tick-gap" />}
+                <code>{name}</code>
+                <span className="cnt">{c.in ? c.in : `${c.out} sent`}</span>
+              </button>
+            );
+          })}
+          {names.length > 0 && <hr />}
+          <button type="button" role="menuitem" disabled={!only} onClick={() => onChange(null)}>
+            <span className="tick-gap" />
+            Show all events
+          </button>
+          <p className="menu-note">Names appear as events arrive.</p>
+        </div>
+      )}
     </div>
   );
 }

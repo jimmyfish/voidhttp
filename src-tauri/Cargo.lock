@@ -6061,6 +6061,7 @@ dependencies = [
  "tonic-prost",
  "tonic-reflection",
  "tower",
+ "url",
  "webpki-roots 1.0.12",
  "x509-parser",
 ]

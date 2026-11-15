@@ -2,7 +2,8 @@
  * voidHTTP's own export: collections and environments exactly as stored, so nothing is lost
  * (gRPC calls, saved examples, environment colours). Ids are made fresh on import.
  */
-import type { Auth, Collection, Environment, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, TreeNode, WsDef } from "../../types";
+import type { Auth, Collection, Environment, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, SioDef, TreeNode, WsDef } from "../../types";
+import { defaultSio } from "../sio";
 import { cloneNode, uid } from "../model";
 import { newRequest } from "../model";
 import { dropFilePaths, requestsOf, type Any, type ImportPlan } from "./common";
@@ -53,6 +54,22 @@ function saneGrpc(g: Any): GrpcDef | undefined {
     source: g.source === "protos" ? "protos" : "reflection",
     protoFiles: list(g.protoFiles),
     importPaths: list(g.importPaths),
+  };
+}
+
+/** Socket.IO settings with every field of the type the app expects. */
+function saneSio(v: Any): SioDef | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const d = defaultSio();
+  const str = (x: unknown, fallback: string) => (typeof x === "string" ? x : fallback);
+  return {
+    namespace: str(v.namespace, d.namespace),
+    path: str(v.path, d.path),
+    eio: v.eio === 3 ? 3 : 4,
+    auth: str(v.auth, ""),
+    event: str(v.event, d.event),
+    ack: v.ack === true,
+    ackTimeoutMs: typeof v.ackTimeoutMs === "number" && Number.isFinite(v.ackTimeoutMs) && v.ackTimeoutMs >= 0 ? Math.floor(v.ackTimeoutMs) : d.ackTimeoutMs,
   };
 }
 
@@ -125,6 +142,7 @@ function sane(n: Any): TreeNode | null {
     auth: saneAuth(n.auth),
     grpc: saneGrpc(n.grpc),
     ws: saneWs(n.ws),
+    sio: saneSio(n.sio),
     examples: Array.isArray(n.examples)
       ? n.examples
           // an HTTP example has a response; a gRPC example has an ended call instead

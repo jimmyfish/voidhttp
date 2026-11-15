@@ -22,18 +22,36 @@ export interface RequestBody {
 export interface RequestDef {
   id: string;
   name: string;
-  /** An HTTP method, "GRPC" for a gRPC call (see `grpc`), or "WS" for a WebSocket (see `ws`). */
+  /** An HTTP method, "GRPC" for a gRPC call (see `grpc`), "WS" for a WebSocket (see `ws`) or "SIO" for Socket.IO (see `sio`). */
   method: string;
   /** The URL; for gRPC the server address, host:port; for WebSocket a ws:// or wss:// URL. */
   url: string;
   params: KV[];
   /** HTTP headers; for gRPC the request metadata. */
   headers: KV[];
-  /** For gRPC, `raw` holds the request message as JSON; for WebSocket, the next message to send. */
+  /** For gRPC, `raw` holds the request message as JSON; for WebSocket, the next message to send; for Socket.IO, the next emit's argument. */
   body: RequestBody;
   auth: Auth;
   grpc?: GrpcDef;
   ws?: WsDef;
+  sio?: SioDef;
+}
+
+export interface SioDef {
+  /** the namespace to join; empty or "/" takes the URL's path, as socket.io-client does */
+  namespace: string;
+  /** where the server mounts Socket.IO */
+  path: string;
+  /** Engine.IO version: 4 for Socket.IO 3 and 4, 3 for Socket.IO 2 */
+  eio: 3 | 4;
+  /** JSON sent as `auth` with the namespace CONNECT (Engine.IO 4); empty sends none */
+  auth: string;
+  /** the next emit's event name */
+  event: string;
+  /** emits ask for an ack */
+  ack: boolean;
+  /** how long to wait for it; 0 waits as long as the socket is open */
+  ackTimeoutMs: number;
 }
 
 export interface WsDef {
@@ -45,9 +63,18 @@ export interface WsDef {
 
 export interface WsMessage {
   dir: "in" | "out";
-  /** "binary" holds `data` in base64 */
-  kind: "text" | "binary";
+  /** "binary" holds `data` in base64; Socket.IO: "event", or "ack" answering emit `ackId` */
+  kind: "text" | "binary" | "event" | "ack";
+  /** the text, or base64 for binary; Socket.IO: the arguments as a JSON array */
   data: string;
+  /** Socket.IO: the event name */
+  event?: string;
+  /** Socket.IO: how many arguments `data` holds */
+  argc?: number;
+  /** Socket.IO: an event's ack id (its sender waits on it); an ack's emit */
+  ackId?: number;
+  /** Socket.IO: an emit waiting for an ack, how long; 0 for no limit */
+  ackMs?: number;
   size: number;
   /** ms since the socket opened */
   atMs: number;
@@ -87,6 +114,25 @@ export interface WsResult {
   /** older messages left out to keep a long session light */
   dropped?: number;
   close?: WsClose;
+  /** Socket.IO: the Engine.IO session and the namespace */
+  sio?: SioSession;
+}
+
+export interface SioSession {
+  eio: 3 | 4;
+  namespace: string;
+  /** the handshake auth as sent, its strings masked */
+  auth?: string;
+  /** Engine.IO's open packet */
+  engine?: { sid: string; upgrades: string[]; pingInterval: number; pingTimeout: number; maxPayload?: number };
+  /** the namespace's socket id, once joined */
+  sid?: string;
+  /** ms after the socket opened that the namespace was joined */
+  joinedMs?: number;
+  /** the namespace refused the join */
+  error?: { message: string; data?: string };
+  /** emits whose ack did not come in time */
+  late?: number[];
 }
 
 /** How a gRPC method streams: one message each way, or a stream from the server, the client, or both. */

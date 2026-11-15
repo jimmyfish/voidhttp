@@ -5,6 +5,7 @@ mod grpc;
 mod http;
 mod net;
 mod store;
+mod sio;
 mod ws;
 
 #[cfg(target_os = "macos")]
@@ -118,6 +119,7 @@ pub fn run() {
         .manage(http::HttpState::default())
         .manage(grpc::GrpcState::default())
         .manage(ws::WsState::default())
+        .manage(sio::SioState::default())
         .invoke_handler(tauri::generate_handler![
             http::send_request,
             http::cancel_request,
@@ -129,6 +131,9 @@ pub fn run() {
             ws::ws_connect,
             ws::ws_send,
             ws::ws_close,
+            sio::sio_connect,
+            sio::sio_emit,
+            sio::sio_close,
             net::net_configure,
             net::net_test,
             certs::certs_configure,

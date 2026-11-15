@@ -57,6 +57,8 @@
   --m-grpc: var(--tag-cyan);
   /* WebSocket, the same way: amethyst, the one tag hue no method label uses */
   --m-ws: var(--tag-amethyst);
+  /* Socket.IO: turquoise in every theme and scheme, by owner pick */
+  --m-sio: var(--tag-turquoise);
   /* the faint grey ring round every tag dot and swatch: keeps Clouds visible on light and Asphalt on dark */
   --tag-ring: rgb(128 128 128 / 0.35);
   /* switch knob: white in every theme, on the grey or accent track */

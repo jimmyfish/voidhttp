@@ -71,7 +71,7 @@ export function MethodMenu({
         type="button"
         className={className}
         title={title}
-        aria-label={`Method: ${current === "GRPC" ? "gRPC" : current === "WS" ? "WebSocket" : current}`}
+        aria-label={`Method: ${current === "GRPC" ? "gRPC" : current === "WS" ? "WebSocket" : current === "SIO" ? "Socket.IO" : current}`}
         aria-haspopup="menu"
         aria-expanded={open}
         disabled={disabled}
@@ -85,6 +85,7 @@ export function MethodMenu({
           <hr />
           {item("GRPC", "gRPC")}
           {item("WS", "WebSocket")}
+          {item("SIO", "Socket.IO")}
         </div>
       )}
     </div>

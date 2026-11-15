@@ -57,8 +57,10 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
   const reqs = requestsOf(collection.children);
   const grpc = reqs.filter((r) => r.method === "GRPC").length;
   const ws = reqs.filter((r) => r.method === "WS").length;
-  const left = grpc + ws;
-  const leftLabel = [grpc && plural(grpc, "gRPC call"), ws && plural(ws, "WebSocket")].filter(Boolean).join(" and ");
+  const sio = reqs.filter((r) => r.method === "SIO").length;
+  const left = grpc + ws + sio;
+  const leftParts = [grpc && plural(grpc, "gRPC call"), ws && plural(ws, "WebSocket"), sio && plural(sio, "Socket.IO request")].filter(Boolean) as string[];
+  const leftLabel = leftParts.length > 1 ? `${leftParts.slice(0, -1).join(", ")} and ${leftParts[leftParts.length - 1]}` : leftParts.join("");
   const exampleCount = reqs.reduce((n, r) => n + (r.examples?.length ?? 0), 0);
   const fmt = FORMATS.find((f) => f.id === format)!;
   const fileName = fileStem(collection.name) + fmt.suffix;

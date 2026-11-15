@@ -5,13 +5,13 @@ import { useStore } from "../store";
 import { isGrpc } from "../lib/grpc";
 import { GrpcResponsePane } from "./GrpcResponse";
 import { WsResponsePane } from "./WsResponse";
-import { isWs } from "../lib/ws";
+import { isSocket } from "../lib/sio";
 import { BodyViewer, ExampleBanner, PairsTable, useTabExample } from "./ResponseBody";
 import { RunBanner, RunsButton } from "./Runs";
 import { BookmarkPlus, Copy, ico } from "./Icon";
 
 export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
-  if (isWs(tab.request)) return <WsResponsePane tab={tab} grow={grow} />;
+  if (isSocket(tab.request)) return <WsResponsePane tab={tab} grow={grow} />;
   return isGrpc(tab.request) ? <GrpcResponsePane tab={tab} grow={grow} /> : <HttpResponsePane tab={tab} grow={grow} />;
 }
 

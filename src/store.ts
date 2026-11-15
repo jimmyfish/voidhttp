@@ -50,6 +50,7 @@ import {
   type GrpcEvent,
 } from "./lib/grpc";
 import { connectWs, isWs, prepareWs, wsClose, wsMessageText, wsSend, type WsEvent } from "./lib/ws";
+import { connectSio, isSio, isSocket, maskAuth, prepareSio, sioClose, sioEmit, sioEmitOf, type PreparedSio, type SioEvent } from "./lib/sio";
 
 const HISTORY_LIMIT = 200;
 /** A gRPC stream keeps this many messages on screen; older ones are counted, not kept. */
@@ -125,9 +126,9 @@ interface State extends ProjectData {
   /** gRPC: no more messages from the client; replies keep coming */
   endGrpcSending(tabId: string): void;
   clearGrpcMessages(tabId: string): void;
-  /** WebSocket: open the socket (Connect) */
+  /** WebSocket or Socket.IO: open the socket (Connect) */
   openSocket(tabId: string): Promise<void>;
-  /** WebSocket: send the editor's message on the open socket */
+  /** WebSocket: send the editor's message; Socket.IO: emit the event */
   sendSocketMessage(tabId: string): Promise<void>;
   /** WebSocket: close the socket (1000), or stop a handshake still running */
   closeSocket(tabId: string): void;
@@ -250,9 +251,9 @@ function keepWs(id: string, result: WsResult, settings: Settings): HistoryEntry[
 /** The history entry each tab is loading with showRun, so an older pick that lands late is dropped. */
 const loadingRun = new Map<string, string>();
 
-/** Stops whatever a tab has in flight: an HTTP request, a gRPC call or a WebSocket. */
+/** Stops whatever a tab has in flight: an HTTP request, a gRPC call, a WebSocket or a Socket.IO connection. */
 function stopInflight(t: Tab) {
-  if (t.inflightId) (isGrpc(t.request) ? grpcCancel : isWs(t.request) ? wsClose : cancel)(t.inflightId).catch(() => undefined);
+  if (t.inflightId) (isGrpc(t.request) ? grpcCancel : isWs(t.request) ? wsClose : isSio(t.request) ? sioClose : cancel)(t.inflightId).catch(() => undefined);
 }
 
 /** Session tabs come back without responses; example tabs get theirs from the collection, or close when it is gone. */
@@ -506,8 +507,8 @@ export const useStore = create<State>((set, get) => {
     async sendTab(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
       if (tab && isGrpc(tab.request)) return get().callGrpc(tabId);
-      // ⌘Enter on a WebSocket: Connect, or send the message once it is open
-      if (tab && isWs(tab.request)) return tab.inflightId ? get().sendSocketMessage(tabId) : get().openSocket(tabId);
+      // ⌘Enter on a WebSocket or Socket.IO tab: Connect, or send (emit) once it is open
+      if (tab && isSocket(tab.request)) return tab.inflightId ? get().sendSocketMessage(tabId) : get().openSocket(tabId);
       if (!tab || tab.inflightId || tab.example) return;
       // the response lands in this project even if another one is open by the time it arrives
       const pid = get().currentProjectId;
@@ -694,15 +695,27 @@ export const useStore = create<State>((set, get) => {
       const connId = uid();
       const settings = get().settings;
       const request = structuredClone(tab.request);
-      const prepared = prepareWs(request, get().scopeFor(tabId), settings);
+      const sio = isSio(request);
+      let prepared: ReturnType<typeof prepareWs> | PreparedSio;
+      try {
+        prepared = sio ? prepareSio(request, get().scopeFor(tabId), settings) : prepareWs(request, get().scopeFor(tabId), settings);
+      } catch (e) {
+        return get().notify((e as Error).message);
+      }
       loadingRun.delete(tabId);
-      const fresh: WsResult = { connId, startedAt: Date.now(), url: prepared.url, messages: [] };
+      const fresh: WsResult = {
+        connId,
+        startedAt: Date.now(),
+        url: prepared.url,
+        messages: [],
+        ...("eio" in prepared && { sio: { eio: prepared.eio, namespace: prepared.namespace || "/", auth: maskAuth(prepared.auth) } }),
+      };
       set((s) => ({
         tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, inflightId: connId, error: undefined, response: undefined, grpc: undefined, fromHistory: undefined, ws: fresh })),
       }));
 
       // events land in batches: one state update per frame, however fast the server sends
-      let queue: WsEvent[] = [];
+      let queue: (WsEvent | SioEvent)[] = [];
       let timer: ReturnType<typeof setTimeout> | undefined;
       let latest = fresh;
       let finished = false;
@@ -738,7 +751,15 @@ export const useStore = create<State>((set, get) => {
                   w.refused = true;
                   ended = true;
                 }
-              } else if (e.type === "message") incoming.push({ dir: e.dir, kind: e.kind, data: e.data, size: e.size, atMs: e.atMs });
+              } else if (e.type === "message") {
+                const { type: _, ...m } = e;
+                incoming.push(m);
+              } else if (e.type === "engine") {
+                const { type: _, atMs: __, ...engine } = e;
+                w.sio = { ...w.sio!, engine };
+              } else if (e.type === "joined") w.sio = { ...w.sio!, namespace: e.namespace, sid: e.sid, joinedMs: e.atMs };
+              else if (e.type === "connectError") w.sio = { ...w.sio!, namespace: e.namespace, error: { message: e.message, data: e.data } };
+              else if (e.type === "ackTimeout") w.sio = { ...w.sio!, late: [...(w.sio?.late ?? []), e.ackId] };
               else {
                 const close: WsClose = { code: e.code, reason: e.reason, by: e.by, elapsedMs: e.elapsedMs };
                 w.close = close;
@@ -757,7 +778,7 @@ export const useStore = create<State>((set, get) => {
         }));
         if (ended) finish();
       };
-      const onEvent = (e: WsEvent) => {
+      const onEvent = (e: WsEvent | SioEvent) => {
         queue.push(e);
         if (e.type === "close" || e.type === "refused") {
           clearTimeout(timer);
@@ -766,7 +787,7 @@ export const useStore = create<State>((set, get) => {
       };
 
       try {
-        await connectWs(connId, prepared, onEvent);
+        await ("eio" in prepared ? connectSio(connId, prepared, onEvent) : connectWs(connId, prepared, onEvent));
         // the close event comes first; should it ever not, end the session rather than spin forever
         setTimeout(() => {
           flush();
@@ -788,6 +809,18 @@ export const useStore = create<State>((set, get) => {
     async sendSocketMessage(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
       if (!tab?.inflightId || !tab.ws?.handshake || tab.ws.close) return;
+      if (isSio(tab.request)) {
+        if (tab.ws.sio?.joinedMs === undefined) return;
+        const def = tab.request.sio;
+        try {
+          const { event, args } = sioEmitOf(tab.request, get().scopeFor(tabId));
+          if (!event) return get().notify("Enter an event name");
+          await sioEmit(tab.inflightId, event, args, def?.ack ? Math.max(0, Math.floor(def.ackTimeoutMs || 0)) : null);
+        } catch (e) {
+          get().notify(e instanceof Error ? e.message : String(e));
+        }
+        return;
+      }
       const text = wsMessageText(tab.request, get().scopeFor(tabId));
       if (!text.trim()) return get().notify("The message is empty");
       try {
@@ -799,7 +832,7 @@ export const useStore = create<State>((set, get) => {
 
     closeSocket(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
-      if (tab?.inflightId) wsClose(tab.inflightId).catch((e) => get().notify(String(e)));
+      if (tab?.inflightId) (isSio(tab.request) ? sioClose : wsClose)(tab.inflightId).catch((e) => get().notify(String(e)));
     },
 
     clearSocketMessages(tabId) {
@@ -830,8 +863,8 @@ export const useStore = create<State>((set, get) => {
       const fromHistory = { at: entry.at, bodyDropped: entry.kept === "meta", entryId };
       // a gRPC entry keeps its call (messages, status, metadata) in the same file
       const grpc = isGrpc(entry.request) ? (response as unknown as GrpcResult) : undefined;
-      // a WebSocket entry keeps its session (handshake, messages, close) the same way
-      const ws = isWs(entry.request) ? (response as unknown as WsResult) : undefined;
+      // a WebSocket or Socket.IO entry keeps its session (handshake, messages, close) the same way
+      const ws = isSocket(entry.request) ? (response as unknown as WsResult) : undefined;
       // the tab may have been sent (or closed) while the file was read
       applyToProject(pid, (d) => ({
         tabs: patchTab(d.tabs, tabId, (t) =>
@@ -859,7 +892,7 @@ export const useStore = create<State>((set, get) => {
       if (!response) return get().notify("The saved response is missing");
       const fromHistory = { at: entry.at, bodyDropped: entry.kept === "meta", entryId };
       const grpc = isGrpc(entry.request) ? (response as unknown as GrpcResult) : undefined;
-      const ws = isWs(entry.request) ? (response as unknown as WsResult) : undefined;
+      const ws = isSocket(entry.request) ? (response as unknown as WsResult) : undefined;
       applyToProject(pid, (d) => ({
         tabs: patchTab(d.tabs, tabId, (t) =>
           t.inflightId

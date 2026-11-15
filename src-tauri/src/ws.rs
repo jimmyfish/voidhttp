@@ -30,7 +30,7 @@ use crate::http::Kv;
 
 const USER_AGENT: &str = concat!("voidHTTP/", env!("CARGO_PKG_VERSION"));
 /// How long a close we started waits for the server's close before the socket is dropped.
-const CLOSE_GRACE: Duration = Duration::from_secs(3);
+pub(crate) const CLOSE_GRACE: Duration = Duration::from_secs(3);
 /// A refused handshake's body is shown, not kept whole.
 const MAX_REFUSED_BODY: usize = 64 * 1024;
 
@@ -58,28 +58,30 @@ pub struct WsRequest {
     pub timeout_ms: u64,
 }
 
+/// The upgrade request and the server's answer: 101, or the plain HTTP it refused with.
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Handshake {
+    pub status: u16,
+    pub status_text: String,
+    pub request_headers: Vec<Kv>,
+    pub response_headers: Vec<Kv>,
+    /// the subprotocol the server picked
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub protocol: Option<String>,
+    /// a refused upgrade's body, cut to MAX_REFUSED_BODY
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub body: Option<String>,
+    pub elapsed_ms: u64,
+}
+
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase", rename_all_fields = "camelCase", tag = "type")]
 pub enum WsEvent {
     /// the handshake succeeded (101)
-    Open {
-        status: u16,
-        status_text: String,
-        request_headers: Vec<Kv>,
-        response_headers: Vec<Kv>,
-        /// the subprotocol the server picked
-        protocol: Option<String>,
-        elapsed_ms: u64,
-    },
+    Open(Handshake),
     /// the server answered the upgrade with plain HTTP; the connection ends here
-    Refused {
-        status: u16,
-        status_text: String,
-        request_headers: Vec<Kv>,
-        response_headers: Vec<Kv>,
-        body: String,
-        elapsed_ms: u64,
-    },
+    Refused(Handshake),
     Message {
         /// "in" from the server, "out" to it
         dir: &'static str,
@@ -107,23 +109,46 @@ enum Cmd {
     Close,
 }
 
-#[derive(Default)]
-pub struct WsState {
-    conns: Mutex<HashMap<String, mpsc::Sender<Cmd>>>,
+/// Running connections by client id, each reached through its command queue.
+pub(crate) struct Conns<C> {
+    map: Mutex<HashMap<String, mpsc::Sender<C>>>,
 }
 
-/// Removes the connection when it ends, however it ends.
-struct ConnGuard<'a> {
-    state: &'a WsState,
+impl<C> Default for Conns<C> {
+    fn default() -> Self {
+        Self { map: Mutex::new(HashMap::new()) }
+    }
+}
+
+impl<C> Conns<C> {
+    /// Registers a connection; it is removed when the guard drops, however the connection ends.
+    pub(crate) fn open(&self, id: &str) -> Result<(mpsc::Receiver<C>, ConnGuard<'_, C>), String> {
+        let (tx, rx) = mpsc::channel::<C>(64);
+        self.map.lock().map_err(|e| e.to_string())?.insert(id.to_string(), tx);
+        Ok((rx, ConnGuard { conns: self, id: id.to_string() }))
+    }
+
+    pub(crate) fn get(&self, id: &str) -> Option<mpsc::Sender<C>> {
+        self.map.lock().ok()?.get(id).cloned()
+    }
+}
+
+pub(crate) struct ConnGuard<'a, C> {
+    conns: &'a Conns<C>,
     id: String,
 }
 
-impl Drop for ConnGuard<'_> {
+impl<C> Drop for ConnGuard<'_, C> {
     fn drop(&mut self) {
-        if let Ok(mut conns) = self.state.conns.lock() {
-            conns.remove(&self.id);
+        if let Ok(mut map) = self.conns.map.lock() {
+            map.remove(&self.id);
         }
     }
+}
+
+#[derive(Default)]
+pub struct WsState {
+    conns: Conns<Cmd>,
 }
 
 // ---------- commands ----------
@@ -132,7 +157,32 @@ impl Drop for ConnGuard<'_> {
 /// bad URL or header, no connection, TLS failure, timeout, or cancelled while connecting.
 #[tauri::command]
 pub async fn ws_connect(state: State<'_, WsState>, request: WsRequest, on_event: IpcChannel<WsEvent>) -> Result<(), String> {
-    let req = build_request(&request)?;
+    let (mut rx, _guard) = state.conns.open(&request.id)?;
+    // Disconnect while the handshake runs stops it; a send before the socket is open has nowhere to go
+    let cancelled = async {
+        loop {
+            match rx.recv().await {
+                Some(Cmd::Close) | None => return,
+                Some(Cmd::Send(_)) => {}
+            }
+        }
+    };
+    let (socket, handshake) = upgrade(&request, cancelled).await?;
+    let Some(socket) = socket else {
+        let _ = on_event.send(WsEvent::Refused(handshake));
+        return Ok(());
+    };
+    let _ = on_event.send(WsEvent::Open(handshake));
+    run(socket, rx, &on_event, request.ping_sec).await;
+    Ok(())
+}
+
+pub(crate) type Socket = tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
+
+/// Connects and runs the upgrade. The socket is None when the server refused it with plain HTTP.
+/// Err when it never got that far: bad URL or header, no connection, TLS failure, timeout, or `cancelled`.
+pub(crate) async fn upgrade(request: &WsRequest, cancelled: impl std::future::Future<Output = ()>) -> Result<(Option<Socket>, Handshake), String> {
+    let req = build_request(request)?;
     let request_headers = header_list(req.headers());
     let secure = req.uri().scheme_str() == Some("wss");
     let host = req.uri().host().unwrap_or_default().trim_matches(['[', ']']).to_string();
@@ -143,94 +193,73 @@ pub async fn ws_connect(state: State<'_, WsState>, request: WsRequest, on_event:
         Connector::Plain
     };
 
-    let (tx, mut rx) = mpsc::channel::<Cmd>(64);
-    state.conns.lock().map_err(|e| e.to_string())?.insert(request.id.clone(), tx);
-    let _guard = ConnGuard { state: &state, id: request.id.clone() };
-
     let started = Instant::now();
     // the socket comes from Settings > Network (secure DNS, proxy); tungstenite does TLS and the upgrade
     let connect = async move {
         let stream = crate::net::current().connect(&host, port).await.map_err(tungstenite::Error::Io)?;
         client_async_tls_with_config(req, stream, None, Some(connector)).await
     };
+    let timeout_ms = request.timeout_ms;
     let timeout = async {
-        if request.timeout_ms > 0 {
-            tokio::time::sleep(Duration::from_millis(request.timeout_ms)).await
+        if timeout_ms > 0 {
+            tokio::time::sleep(Duration::from_millis(timeout_ms)).await
         } else {
             pending::<()>().await
         }
     };
-    // Disconnect while the handshake runs stops it; a send before the socket is open has nowhere to go
-    let cancelled = async {
-        loop {
-            match rx.recv().await {
-                Some(Cmd::Close) | None => return,
-                Some(Cmd::Send(_)) => {}
-            }
-        }
-    };
     let elapsed = || started.elapsed().as_millis() as u64;
 
-    let (socket, response) = tokio::select! {
+    tokio::select! {
         res = connect => match res {
-            Ok(ok) => ok,
+            Ok((socket, response)) => {
+                let protocol = response
+                    .headers()
+                    .get("sec-websocket-protocol")
+                    .and_then(|v| v.to_str().ok())
+                    .map(str::to_string);
+                Ok((Some(socket), Handshake {
+                    status: response.status().as_u16(),
+                    status_text: response.status().canonical_reason().unwrap_or("").to_string(),
+                    request_headers,
+                    response_headers: header_list(response.headers()),
+                    protocol,
+                    body: None,
+                    elapsed_ms: elapsed(),
+                }))
+            }
             Err(tungstenite::Error::Http(res)) => {
                 let body = res.body().as_deref().map(|b| {
                     let cut = &b[..b.len().min(MAX_REFUSED_BODY)];
                     String::from_utf8_lossy(cut).into_owned()
                 });
-                let _ = on_event.send(WsEvent::Refused {
+                Ok((None, Handshake {
                     status: res.status().as_u16(),
                     status_text: res.status().canonical_reason().unwrap_or("").to_string(),
                     request_headers,
                     response_headers: header_list(res.headers()),
-                    body: body.unwrap_or_default(),
+                    protocol: None,
+                    body: Some(body.unwrap_or_default()),
                     elapsed_ms: elapsed(),
-                });
-                return Ok(());
+                }))
             }
-            Err(e) => return Err(connect_error(&e)),
+            Err(e) => Err(connect_error(&e)),
         },
-        _ = timeout => return Err(format!("Timed out after {} ms waiting for the handshake", request.timeout_ms)),
-        _ = cancelled => return Err("Connection cancelled".into()),
-    };
-
-    let protocol = response
-        .headers()
-        .get("sec-websocket-protocol")
-        .and_then(|v| v.to_str().ok())
-        .map(str::to_string);
-    let _ = on_event.send(WsEvent::Open {
-        status: response.status().as_u16(),
-        status_text: response.status().canonical_reason().unwrap_or("").to_string(),
-        request_headers,
-        response_headers: header_list(response.headers()),
-        protocol,
-        elapsed_ms: elapsed(),
-    });
-
-    run(socket, rx, &on_event, request.ping_sec).await;
-    Ok(())
+        _ = timeout => Err(format!("Timed out after {timeout_ms} ms waiting for the handshake")),
+        _ = cancelled => Err("Connection cancelled".into()),
+    }
 }
 
 /// Sends one text message on an open socket.
 #[tauri::command]
 pub async fn ws_send(state: State<'_, WsState>, id: String, message: String) -> Result<(), String> {
-    let tx = state
-        .conns
-        .lock()
-        .map_err(|e| e.to_string())?
-        .get(&id)
-        .cloned()
-        .ok_or("The connection is closed")?;
+    let tx = state.conns.get(&id).ok_or("The connection is closed")?;
     tx.send(Cmd::Send(message)).await.map_err(|_| "The connection is closed".to_string())
 }
 
 /// Starts a normal close (1000), or stops a handshake still running.
 #[tauri::command]
 pub async fn ws_close(state: State<'_, WsState>, id: String) -> Result<(), String> {
-    let tx = state.conns.lock().map_err(|e| e.to_string())?.get(&id).cloned();
-    if let Some(tx) = tx {
+    if let Some(tx) = state.conns.get(&id) {
         let _ = tx.send(Cmd::Close).await;
     }
     Ok(())
@@ -320,11 +349,11 @@ where
     let _ = events.send(WsEvent::Close { code, reason, by, elapsed_ms: at() });
 }
 
-fn lost(e: &tungstenite::Error) -> (u16, String, &'static str) {
+pub(crate) fn lost(e: &tungstenite::Error) -> (u16, String, &'static str) {
     (1006, crate::http::root_cause(e), "lost")
 }
 
-async fn tick(ping: &mut Option<Interval>) {
+pub(crate) async fn tick(ping: &mut Option<Interval>) {
     match ping {
         Some(i) => {
             i.tick().await;
@@ -333,7 +362,7 @@ async fn tick(ping: &mut Option<Interval>) {
     }
 }
 
-async fn until(deadline: Option<tokio::time::Instant>) {
+pub(crate) async fn until(deadline: Option<tokio::time::Instant>) {
     match deadline {
         Some(d) => tokio::time::sleep_until(d).await,
         None => pending().await,
@@ -374,7 +403,7 @@ fn is_handshake_header(name: &HeaderName) -> bool {
 }
 
 /// ws:// and wss:// as typed; http(s):// read as ws(s)://; no scheme: ws:// for this machine, wss:// otherwise.
-fn normalize_url(raw: &str) -> Result<String, String> {
+pub(crate) fn normalize_url(raw: &str) -> Result<String, String> {
     let s = raw.trim();
     if s.is_empty() {
         return Err("Enter a ws:// or wss:// URL".into());
