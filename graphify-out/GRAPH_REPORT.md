@@ -1,7 +1,7 @@
 # Graph Report - voidHTTP  (2026-11-16)
 
 ## Corpus Check
-- 105 files · ~185,405 words
+- 105 files · ~185,452 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 24 file(s) not represented in the graph (top: .css 15, (none) 5, .lock 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `17ca5c43`
+- Built from commit: `62a2e035`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -437,7 +437,7 @@ Nodes (6): build_multipart(), MultipartField, RequestBody, FormUrlEncoded, Multi
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `prepare()` connect `ws.ts` to `RequestPane.tsx`, `ImportModal.tsx`, `stripJsonComments`, `ExportModal.tsx`, `har.ts`, `Architecture`, `GqlPane.tsx`, `GrpcPane.tsx`?**
-  _High betweenness centrality (0.061) - this node is a cross-community bridge._
+  _High betweenness centrality (0.060) - this node is a cross-community bridge._
 - **What connects `#root Mount Element`, `voidHTTP App Icon`, `voidhttp` to the rest of the system?**
   _28 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Rust HTTP Engine` be split into smaller, more focused modules?**

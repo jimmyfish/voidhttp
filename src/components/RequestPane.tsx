@@ -61,6 +61,8 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
 
   // where a {{name}} in the address bar gets its value; the environment overrides the collection
   const env = environments.find((e) => e.id === activeEnvId);
+  // an example tab has no savedRef: its variables come from the collection that holds the example
+  const varCol = col || exCol || undefined;
   // once per name per render: the address bar asks for every {{token}}, and a URL may repeat one many times
   const looked = new Map<string, VarInfo>();
   const byName = (vars: { enabled: boolean; key: string; value: string }[] | undefined) => {
@@ -79,14 +81,14 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
   };
   const lookupOnce = (name: string): VarInfo => {
     envVars ??= byName(env?.variables);
-    colVars ??= byName(col?.variables);
+    colVars ??= byName(varCol?.variables);
     const hit = envVars.get(name);
     const colHit = colVars.get(name);
     const v = hit ?? colHit;
     // a tooltip shows the value: a small budget keeps a variable that grows on expansion cheap
-    if (v) return { kind: "value", value: resolve(v.value, scope, 0, 1 << 12), source: hit ? env!.name : `Collection · ${col && col.name}`, secret: isSecretKey(name) };
+    if (v) return { kind: "value", value: resolve(v.value, scope, 0, 1 << 12), source: hit ? env!.name : `Collection · ${varCol?.name}`, secret: isSecretKey(name) };
     if (DYNAMIC.includes(name)) return { kind: "dynamic" };
-    const target = env ?? (col || undefined);
+    const target = env ?? varCol;
     return {
       kind: "missing",
       addLabel: target ? `Add to ${target.name}` : "Open Variables",

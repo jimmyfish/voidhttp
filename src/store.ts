@@ -514,7 +514,9 @@ export const useStore = create<State>((set, get) => {
     scopeFor(tabId) {
       const s = get();
       const tab = s.tabs.find((t) => t.id === tabId);
-      const col = tab?.savedRef && s.collections.find((c) => c.id === tab.savedRef!.collectionId);
+      // an example tab has no savedRef, but its variables still come from the collection that holds it
+      const colId = tab?.savedRef?.collectionId ?? tab?.example?.collectionId;
+      const col = colId ? s.collections.find((c) => c.id === colId) : undefined;
       const env = s.environments.find((e) => e.id === s.activeEnvironmentId);
       return buildScope(col?.variables, env?.variables);
     },
