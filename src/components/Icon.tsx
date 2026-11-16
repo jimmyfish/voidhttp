@@ -53,6 +53,8 @@ export {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
+  Pause,
+  Play,
   Plug,
   Paperclip,
   Pencil,

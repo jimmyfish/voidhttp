@@ -59,6 +59,8 @@
   --m-ws: var(--tag-amethyst);
   /* Socket.IO: turquoise in every theme and scheme, by owner pick */
   --m-sio: var(--tag-turquoise);
+  /* Kafka: its own black and white, the one label with no hue: asphalt here, clouds in dark themes (themes.ts too). Owner pick */
+  --m-kafka: var(--tag-asphalt);
   /* GraphQL: its own rhodamine pink, not a scheme colour; darkened to read as text here, lifted in dark themes (themes.ts too) */
   --m-gql: #c4007f;
   /* the faint grey ring round every tag dot and swatch: keeps Clouds visible on light and Asphalt on dark */
@@ -92,6 +94,8 @@
     --color-hit: rgb(245 184 75 / 0.22); --color-hit-cur: rgb(245 184 75 / 0.5); --color-hit-edge: #f5b84b;
     --color-overlay: rgb(0 0 0 / 0.55); --color-shadow: rgb(0 0 0 / 0.3);
     --m-gql: #ff4fb8;
+  --m-kafka: var(--tag-clouds);
+    --m-kafka: var(--tag-clouds);
     --m-get: #01bf71; --m-post: #ff7a33; --m-put: #38b6f0; --m-patch: #a78bfa; --m-delete: #ff5c5c; --m-head: #e5c07b; --m-options: #ff7aa8; --m-other: #8a9bb8;
     --j-key: #ff7b72; --j-str: #79b8ff; --j-num: #ffab70; --j-bool: #b392f0; --j-punct: #8a9bb8;
     color-scheme: dark;

@@ -69,6 +69,10 @@ tokio-rustls = { version = "0.26", default-features = false, features = ["ring",
 x509-parser = "0.18"
 p12-keystore = "0.4"
 pkcs8 = { version = "0.11", features = ["encryption", "pem", "std"] }
+# Kafka: rskafka's wire protocol (messages, record batches, compression, SASL) over our own broker
+# connections, so Settings > Network and Settings > Certificates apply (src/kafka.rs). The protocol
+# layer sits behind "unstable-fuzzing", so the version is pinned exactly.
+rskafka = { version = "=0.6.0", default-features = false, features = ["unstable-fuzzing", "compression-gzip", "compression-lz4", "compression-snappy", "compression-zstd"] }
 # Pre-request and post-response scripts: QuickJS, run in its own sandbox per script (src/script.rs).
 rquickjs = "0.14.0"
 

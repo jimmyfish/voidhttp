@@ -76,7 +76,7 @@ function fuzzy(text: string, q: string): { score: number; hits: number[] } | nul
 /** A method typed as a word ("post login") filters by method instead of matching text. */
 const METHOD_WORDS: Record<string, string> = {
   get: "GET", post: "POST", put: "PUT", patch: "PATCH", delete: "DELETE", del: "DELETE", head: "HEAD", options: "OPTIONS",
-  grpc: "GRPC", ws: "WS", websocket: "WS", sio: "SIO", gql: "GQL", graphql: "GQL",
+  grpc: "GRPC", ws: "WS", websocket: "WS", sio: "SIO", kafka: "KAFKA", gql: "GQL", graphql: "GQL",
 };
 
 interface Fields {

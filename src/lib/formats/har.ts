@@ -282,7 +282,7 @@ const harHeaders = (rows: { key: string; value: string }[]) => rows.map((h) => (
 export function exportHar(c: Collection, scope: VarScope, version: string): { text: string; skipped: number } {
   let skipped = 0;
   const entries = requestsOf(c.children).flatMap((n) => {
-    if (n.method === "GRPC" || n.method === "WS" || n.method === "SIO") {
+    if (n.method === "GRPC" || n.method === "WS" || n.method === "SIO" || n.method === "KAFKA") {
       skipped++;
       return [];
     }

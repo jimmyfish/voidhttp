@@ -2,8 +2,9 @@
  * voidHTTP's own export: collections and environments exactly as stored, so nothing is lost
  * (gRPC calls, saved examples, environment colours). Ids are made fresh on import.
  */
-import type { Auth, Collection, Environment, GqlDef, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, RequestScripts, SioDef, TreeNode, WsDef } from "../../types";
+import type { Auth, Collection, Environment, GqlDef, GrpcDef, GrpcResult, KafkaDef, KV, MultipartField, RequestNode, RequestScripts, SioDef, TreeNode, WsDef } from "../../types";
 import { defaultSio } from "../sio";
+import { defaultKafka } from "../kafka";
 import { cloneNode, uid } from "../model";
 import { newRequest } from "../model";
 import { dropFilePaths, requestsOf, type Any, type ImportPlan } from "./common";
@@ -57,7 +58,7 @@ function saneGrpc(g: Any): GrpcDef | undefined {
   };
 }
 
-/** Socket.IO settings with every field of the type the app expects. */
+/** GraphQL settings with every field of the type the app expects. */
 function saneGql(v: Any): GqlDef | undefined {
   if (!v || typeof v !== "object") return undefined;
   return {
@@ -67,6 +68,30 @@ function saneGql(v: Any): GqlDef | undefined {
   };
 }
 
+/** Kafka settings with every field of the type the app expects. */
+function saneKafka(v: Any): KafkaDef | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const d = defaultKafka();
+  const str = (x: unknown, fallback: string) => (typeof x === "string" ? x : fallback);
+  const pick = <T extends string>(x: unknown, all: readonly T[], fallback: T): T => (all.includes(x as T) ? (x as T) : fallback);
+  return {
+    topic: str(v.topic, d.topic),
+    key: str(v.key, d.key),
+    keyType: pick(v.keyType, ["string", "json", "base64", "hex"] as const, d.keyType),
+    partition: typeof v.partition === "number" && Number.isInteger(v.partition) && v.partition >= 0 ? v.partition : null,
+    sasl: pick(v.sasl, ["none", "plain", "scram-sha-256", "scram-sha-512"] as const, d.sasl),
+    username: str(v.username, ""),
+    password: str(v.password, ""),
+    tls: v.tls === true,
+    clientId: str(v.clientId, d.clientId),
+    from: v.from === "earliest" ? "earliest" : "latest",
+    acks: v.acks === 0 || v.acks === 1 ? v.acks : -1,
+    compression: pick(v.compression, ["none", "gzip", "lz4", "snappy", "zstd"] as const, d.compression),
+    keep: typeof v.keep === "number" && Number.isFinite(v.keep) && v.keep > 0 ? Math.floor(v.keep) : d.keep,
+  };
+}
+
+/** Socket.IO settings with every field of the type the app expects. */
 function saneSio(v: Any): SioDef | undefined {
   if (!v || typeof v !== "object") return undefined;
   const d = defaultSio();
@@ -159,6 +184,7 @@ function sane(n: Any): TreeNode | null {
     grpc: saneGrpc(n.grpc),
     ws: saneWs(n.ws),
     sio: saneSio(n.sio),
+    kafka: saneKafka(n.kafka),
     gql: saneGql(n.gql),
     scripts: saneScripts(n.scripts),
     examples: Array.isArray(n.examples)

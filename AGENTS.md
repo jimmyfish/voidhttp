@@ -5,7 +5,6 @@
 This repo has a graphify knowledge graph in `graphify-out/`. Read it before you explore the code.
 
 1. At the start of every task, read `graphify-out/GRAPH_REPORT.md`. It lists the communities, the most connected nodes ("god nodes"), the links between modules, and the group relationships.
-2. To answer a question about structure, ownership, call flow or data flow, query the graph before you grep or open files:
    - `graphify query "<question>"`: broad context (BFS)
    - `graphify query "<question>" --dfs`: follow one specific path
    - `graphify path "A" "B"`: shortest path between two nodes

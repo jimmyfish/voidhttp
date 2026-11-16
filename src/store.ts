@@ -21,6 +21,7 @@ import type {
   WorkspaceV2,
   WsClose,
   WsResult,
+  KafkaSeek,
 } from "./types";
 import {
   cloneNode,
@@ -54,6 +55,7 @@ import {
 import { connectWs, isWs, prepareWs, wsClose, wsMessageText, wsSend, type WsEvent } from "./lib/ws";
 import { gqlAsHttp } from "./lib/graphql";
 import { connectSio, isSio, isSocket, maskAuth, prepareSio, sioClose, sioEmit, sioEmitOf, type PreparedSio, type SioEvent } from "./lib/sio";
+import { connectKafka, defaultKafka, isKafka, kafkaClose, kafkaPause, kafkaProduce, kafkaRefresh, kafkaSeek, prepareKafka, produceOf, type KafkaEvent } from "./lib/kafka";
 
 const HISTORY_LIMIT = 200;
 /** A gRPC stream keeps this many messages on screen; older ones are counted, not kept. */
@@ -140,10 +142,18 @@ interface State extends ProjectData {
   /** gRPC: no more messages from the client; replies keep coming */
   endGrpcSending(tabId: string): void;
   clearGrpcMessages(tabId: string): void;
-  /** WebSocket or Socket.IO: open the socket (Connect) */
+  /** WebSocket or Socket.IO: open the socket (Connect); Kafka: connect and read the topic */
   openSocket(tabId: string): Promise<void>;
-  /** WebSocket: send the editor's message; Socket.IO: emit the event */
+  /** Kafka's Connect, reached through openSocket */
+  openKafka(tabId: string): Promise<void>;
+  /** WebSocket: send the editor's message; Socket.IO: emit the event; Kafka: produce the record */
   sendSocketMessage(tabId: string): Promise<void>;
+  /** Kafka: read again from somewhere else (the list starts over) */
+  seekKafka(tabId: string, from: KafkaSeek): void;
+  /** Kafka: stop or resume reading */
+  pauseKafka(tabId: string, paused: boolean): void;
+  /** Kafka: fetch the topic's partitions and offsets again */
+  refreshKafka(tabId: string): void;
   /** WebSocket: close the socket (1000), or stop a handshake still running */
   closeSocket(tabId: string): void;
   clearSocketMessages(tabId: string): void;
@@ -262,6 +272,9 @@ function keepWs(id: string, result: WsResult, settings: Settings): HistoryEntry[
   return over ? "meta" : "full";
 }
 
+/** Kafka produces are numbered so each ack finds its record. */
+let produceSeq = 0;
+
 /** The history entry each tab is loading with showRun, so an older pick that lands late is dropped. */
 const loadingRun = new Map<string, string>();
 
@@ -270,7 +283,10 @@ const loadingRun = new Map<string, string>();
 const inScript = new Set<string>();
 
 function stopInflight(t: Tab) {
-  if (t.inflightId) (isGrpc(t.request) ? grpcCancel : isWs(t.request) ? wsClose : isSio(t.request) ? sioClose : cancel)(t.inflightId).catch(() => undefined);
+  if (t.inflightId)
+    (isGrpc(t.request) ? grpcCancel : isWs(t.request) ? wsClose : isSio(t.request) ? sioClose : isKafka(t.request) ? kafkaClose : cancel)(t.inflightId).catch(
+      () => undefined,
+    );
 }
 
 /** Closed tabs per project, newest last, for ⇧⌘T. Runtime only: a restart starts empty. */
@@ -576,7 +592,7 @@ export const useStore = create<State>((set, get) => {
       const tab = get().tabs.find((t) => t.id === tabId);
       if (tab && isGrpc(tab.request)) return get().callGrpc(tabId);
       // ⌘Enter on a WebSocket or Socket.IO tab: Connect, or send (emit) once it is open
-      if (tab && isSocket(tab.request)) return tab.inflightId ? get().sendSocketMessage(tabId) : get().openSocket(tabId);
+      if (tab && (isSocket(tab.request) || isKafka(tab.request))) return tab.inflightId ? get().sendSocketMessage(tabId) : get().openSocket(tabId);
       if (!tab || tab.inflightId || tab.example) return;
       // the response lands in this project even if another one is open by the time it arrives
       const pid = get().currentProjectId;
@@ -836,6 +852,7 @@ export const useStore = create<State>((set, get) => {
     async openSocket(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
       if (!tab || tab.example || tab.inflightId) return;
+      if (isKafka(tab.request)) return get().openKafka(tabId);
       const pid = get().currentProjectId;
       const connId = uid();
       const settings = get().settings;
@@ -951,8 +968,155 @@ export const useStore = create<State>((set, get) => {
       }
     },
 
+    async openKafka(tabId) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab || tab.example || tab.inflightId) return;
+      const pid = get().currentProjectId;
+      const connId = uid();
+      const request = structuredClone(tab.request);
+      const def = request.kafka ?? defaultKafka();
+      const keep = Math.min(100_000, Math.max(50, Math.floor(def.keep || 1000)));
+      const prepared = prepareKafka(request, get().scopeFor(tabId), get().settings);
+      if (!prepared.brokers) return get().notify("Enter the bootstrap brokers, host:port");
+      if (!prepared.topic) return get().notify("Enter a topic");
+      loadingRun.delete(tabId);
+      const fresh: WsResult = { connId, startedAt: Date.now(), url: prepared.brokers, messages: [], kafka: { topic: prepared.topic, from: prepared.from } };
+      set((s) => ({
+        tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, inflightId: connId, error: undefined, response: undefined, grpc: undefined, fromHistory: undefined, ws: fresh })),
+      }));
+
+      // events land in batches: one state update per frame, however fast records arrive
+      let queue: KafkaEvent[] = [];
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let latest = fresh;
+      let finished = false;
+      const ref = tab.savedRef?.nodeId;
+      const record = (entry: Omit<HistoryEntry, "id" | "at" | "request">, kept?: (id: string) => HistoryEntry["kept"]) => {
+        const id = uid();
+        applyToProject(pid, (d) => ({ history: [{ id, at: Date.now(), request, ref, ...entry, kept: kept?.(id) }, ...d.history].slice(0, HISTORY_LIMIT) }));
+      };
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        const size = latest.messages.reduce((n, m) => n + (m.dir === "in" ? m.size : 0), 0);
+        const ok = !!latest.kafka?.cluster && !latest.kafka.failed;
+        record({ status: ok ? 0 : undefined, elapsedMs: latest.close?.elapsedMs ?? latest.kafka?.failed?.elapsedMs, size }, (id) => keepWs(id, latest, get().settings));
+      };
+      const flush = () => {
+        timer = undefined;
+        const batch = queue;
+        queue = [];
+        if (!batch.length) return;
+        let ended = false;
+        const notices: string[] = [];
+        applyToProject(pid, (d) => ({
+          tabs: patchTab(d.tabs, tabId, (t) => {
+            if (t.ws?.connId !== connId) return t;
+            const w: WsResult = { ...t.ws, kafka: { ...t.ws.kafka! } };
+            const k = w.kafka!;
+            let incoming = [];
+            for (const e of batch) {
+              if (e.type === "connected") {
+                k.cluster = e.cluster;
+                k.from = e.from;
+                k.connectedMs = e.elapsedMs;
+              } else if (e.type === "topic") k.cluster = e.cluster;
+              else if (e.type === "message") {
+                const { type: _, ...m } = e;
+                incoming.push(m);
+              } else if (e.type === "seeked") {
+                // reading starts over: so does the list
+                w.messages = [];
+                w.dropped = 0;
+                incoming = [];
+                k.from = e.from;
+                k.paused = false;
+                k.waiting = undefined;
+              } else if (e.type === "paused") {
+                k.paused = e.paused;
+                k.waiting = undefined;
+              } else if (e.type === "waiting") k.waiting = e.count;
+              else if (e.type === "notice") notices.push(e.message);
+              else if (e.type === "failed") {
+                const { type: _, ...f } = e;
+                k.failed = f;
+                ended = true;
+              } else {
+                const close: WsClose = { code: 0, reason: e.reason, by: e.by, elapsedMs: e.elapsedMs };
+                w.close = close;
+                ended = true;
+              }
+            }
+            if (incoming.length) {
+              const all = [...w.messages, ...incoming];
+              const over = Math.max(0, all.length - keep);
+              w.messages = over ? all.slice(over) : all;
+              if (over) w.dropped = (w.dropped ?? 0) + over;
+            }
+            latest = w;
+            return ended ? { ...t, ws: w, inflightId: undefined } : { ...t, ws: w };
+          }),
+        }));
+        for (const n of notices) get().notify(n);
+        if (ended) finish();
+      };
+      const onEvent = (e: KafkaEvent) => {
+        queue.push(e);
+        if (e.type === "close" || e.type === "failed" || e.type === "connected" || e.type === "seeked") {
+          clearTimeout(timer);
+          flush();
+        } else if (!timer) timer = setTimeout(flush, 16);
+      };
+
+      try {
+        await connectKafka(connId, prepared, onEvent);
+        // the close event comes first; should it ever not, end the session rather than spin forever
+        setTimeout(() => {
+          flush();
+          if (!finished) onEvent({ type: "close", by: "lost", reason: "The connection ended without a close", elapsedMs: Date.now() - fresh.startedAt });
+        }, 1500);
+      } catch (e) {
+        clearTimeout(timer);
+        flush();
+        if (finished) return;
+        finished = true;
+        const error = String(e);
+        applyToProject(pid, (d) => ({
+          tabs: patchTab(d.tabs, tabId, (t) => (t.ws?.connId === connId ? { ...t, inflightId: undefined, ws: undefined, error } : t)),
+        }));
+        record({});
+      }
+    },
+
+    seekKafka(tabId, from) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab?.inflightId || !tab.ws?.kafka?.cluster) return;
+      kafkaSeek(tab.inflightId, from).catch((e) => get().notify(String(e)));
+    },
+
+    pauseKafka(tabId, paused) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab?.inflightId || !tab.ws?.kafka?.cluster) return;
+      kafkaPause(tab.inflightId, paused).catch((e) => get().notify(String(e)));
+    },
+
+    refreshKafka(tabId) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab?.inflightId || !tab.ws?.kafka?.cluster) return;
+      kafkaRefresh(tab.inflightId).catch((e) => get().notify(String(e)));
+    },
+
     async sendSocketMessage(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
+      if (tab && isKafka(tab.request)) {
+        if (!tab.inflightId || !tab.ws?.kafka?.cluster || tab.ws.close) return;
+        try {
+          await kafkaProduce(tab.inflightId, produceOf(tab.request, get().scopeFor(tabId), ++produceSeq));
+        } catch (e) {
+          get().notify(e instanceof Error ? e.message : String(e));
+        }
+        return;
+      }
       if (!tab?.inflightId || !tab.ws?.handshake || tab.ws.close) return;
       if (isSio(tab.request)) {
         if (tab.ws.sio?.joinedMs === undefined) return;
@@ -977,7 +1141,7 @@ export const useStore = create<State>((set, get) => {
 
     closeSocket(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
-      if (tab?.inflightId) (isSio(tab.request) ? sioClose : wsClose)(tab.inflightId).catch((e) => get().notify(String(e)));
+      if (tab?.inflightId) (isKafka(tab.request) ? kafkaClose : isSio(tab.request) ? sioClose : wsClose)(tab.inflightId).catch((e) => get().notify(String(e)));
     },
 
     clearSocketMessages(tabId) {
@@ -1009,7 +1173,7 @@ export const useStore = create<State>((set, get) => {
       // a gRPC entry keeps its call (messages, status, metadata) in the same file
       const grpc = isGrpc(entry.request) ? (response as unknown as GrpcResult) : undefined;
       // a WebSocket or Socket.IO entry keeps its session (handshake, messages, close) the same way
-      const ws = isSocket(entry.request) ? (response as unknown as WsResult) : undefined;
+      const ws = isSocket(entry.request) || isKafka(entry.request) ? (response as unknown as WsResult) : undefined;
       // the tab may have been sent (or closed) while the file was read
       applyToProject(pid, (d) => ({
         tabs: patchTab(d.tabs, tabId, (t) =>
@@ -1037,7 +1201,7 @@ export const useStore = create<State>((set, get) => {
       if (!response) return get().notify("The saved response is missing");
       const fromHistory = { at: entry.at, bodyDropped: entry.kept === "meta", entryId };
       const grpc = isGrpc(entry.request) ? (response as unknown as GrpcResult) : undefined;
-      const ws = isSocket(entry.request) ? (response as unknown as WsResult) : undefined;
+      const ws = isSocket(entry.request) || isKafka(entry.request) ? (response as unknown as WsResult) : undefined;
       applyToProject(pid, (d) => ({
         tabs: patchTab(d.tabs, tabId, (t) =>
           t.inflightId

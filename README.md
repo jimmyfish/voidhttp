@@ -135,6 +135,19 @@ Pick **Socket.IO**, enter the server URL and a namespace (leave it empty and the
 - The Handshake tab shows the Engine.IO open packet, the namespace join and the upgrade. A refused join shows the server's `connect_error` and its data.
 - WebSocket transport only. If a server or proxy only allows long-polling, the upgrade fails and the app tells you so.
 
+### <img src="docs/assets/icons/radio-tower.svg" width="20" height="20" align="top" alt="" /> Kafka
+
+Pick **Kafka**, enter the bootstrap brokers (`host:port`, comma-separated, `{{variables}}` welcome) and a topic, and hit Connect.
+
+- **Reads without a consumer group.** Every partition is read straight from its leader and no offset is ever committed, so your services keep every record and nobody triggers a rebalance.
+- Start from the latest or earliest record, the last 100 per partition, a point in time, or one partition at an offset. Change it any time from the list's **From** menu.
+- **Produce** a record with a key, headers and a Text or JSON value. The key can be a String, JSON, Base64 or Hex (so Java `LongSerializer` keys work too). Partition is Auto by default and hashes the key with murmur2, like the Java client, or you pick one.
+- The broker's answer shows under each produce: the partition and offset it was stored at, or why it wasn't. Acks (none, leader, all) and compression (gzip, lz4, snappy, zstd) are under Settings.
+- Filter the list by partition or by text in the key or value, pause it while records keep arriving, and copy records as JSON. Binary keys and values show as hex.
+- The **Topic** tab shows the cluster, its brokers and controller, and every partition's leader, replicas, in-sync replicas and offsets. Under-replicated partitions are flagged.
+- **Auth:** SASL PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512, plus TLS. Network and certificate settings below apply to every broker.
+- When something breaks, it says what: a refused login, a missing topic (with the topics that do exist), or a broker that advertises an address your Mac can't reach (the classic Docker and private-VPC trap).
+
 ### <img src="docs/assets/icons/history.svg" width="20" height="20" align="top" alt="" /> History and examples
 
 - **History** keeps the last 200 requests per project, each response stored on disk exactly as it arrived. Bodies over the size limit (1 MB by default) keep just status and headers.
@@ -183,7 +196,7 @@ Someone sent you a collection? Cool. voidHTTP still doesn't trust it:
 
 <br />
 
-All of these work for HTTP, WebSocket, Socket.IO and gRPC alike, and all are off by default.
+All of these work for HTTP, WebSocket, Socket.IO, Kafka and gRPC alike, and all are off by default.
 
 - **Secure DNS (DNS over HTTPS)** via Cloudflare, Google, Quad9, AdGuard, or your own DoH URL. Optionally fall back to the system resolver when DoH draws a blank (hello, intranet names on a VPN), and list domains that should always use the system resolver.
 - **Proxy:** SOCKS5 or HTTP, with optional `user:pass@`, plus a skip list. `localhost`, `127.0.0.1` and `::1` always go direct.
@@ -203,7 +216,7 @@ Every shortcut is also listed in **Settings › Shortcuts** (`⌘/Ctrl + /`). Th
 | --- | --- |
 | `⌘/Ctrl + P` | Quick open: fuzzy-search requests, examples and open tabs in the current project by name, folder or URL (`post login` filters by method) |
 | `⌘/Ctrl + Shift + P` | Run an action (or type `>` in quick open): send, save as, zoom, theme, import, settings… each with its shortcut |
-| `⌘/Ctrl + Enter` | Send (or Invoke a gRPC call). On an open client or bidi stream, send the next message. Connect a WebSocket or Socket.IO server, or send/emit once it's open |
+| `⌘/Ctrl + Enter` | Send (or Invoke a gRPC call). On an open client or bidi stream, send the next message. Connect a WebSocket, Socket.IO or Kafka server, or send/emit/produce once it's open |
 | `⌘/Ctrl + .` | Cancel the request in flight |
 | `⌘/Ctrl + S` | Save to collection |
 | `⌘/Ctrl + Shift + S` | Save as a new request |
@@ -261,13 +274,14 @@ src-tauri/src/http.rs     HTTP engine: reqwest, pooled clients, cancellation, mu
 src-tauri/src/grpc.rs     gRPC engine: tonic, dynamic messages (prost-reflect), reflection, protox, streams
 src-tauri/src/ws.rs       WebSocket engine: tokio-tungstenite over rustls, one live socket per tab
 src-tauri/src/sio.rs      Socket.IO client on the WebSocket engine: Engine.IO 3/4, namespace join, emits, acks
+src-tauri/src/kafka.rs    Kafka client: rskafka's wire protocol over our own connections, reads without a consumer group, produce
 src-tauri/src/certs.rs    the one rustls setup: public + custom CAs, client certificates, Keychain passphrases
 src-tauri/src/net.rs      secure DNS (hickory, DoH), SOCKS5 / HTTP proxy, connection check
 src-tauri/src/store.rs    atomic JSON persistence in ~/.config/voidhttp and the app data dir
 src-tauri/src/files.rs    read and write import/export files (64 MB read limit, atomic writes)
 src-tauri/src/fonts.rs    installed system fonts for Settings
 src/store.ts              app state (zustand) and debounced persistence
-src/lib/                  vars, request preparation, GraphQL (wire body, introspection), gRPC calls and schemas, WebSocket, Socket.IO, network settings, cURL, JSONPath, masking, themes
+src/lib/                  vars, request preparation, GraphQL (wire body, introspection), gRPC calls and schemas, WebSocket, Socket.IO, Kafka, network settings, cURL, JSONPath, masking, themes
 src/lib/formats/          import and export: Postman, OpenAPI / Swagger, HAR, voidHTTP, pasted commands
 src/components/           UI
 ```
@@ -278,7 +292,7 @@ The longer story is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## <img src="docs/assets/icons/lightbulb.svg" width="24" height="24" align="top" alt="" /> On the wishlist
 
-Not built yet, but on the radar: folder and collection scripts, `pm.sendRequest`, GraphQL subscriptions and autocomplete, Socket.IO long-polling, gRPC-Web, OAuth 2 flows, a collection runner, and code generation beyond cURL and grpcurl.
+Not built yet, but on the radar: folder and collection scripts, `pm.sendRequest`, GraphQL subscriptions and autocomplete, Socket.IO long-polling, Kafka consumer groups and Schema Registry (Avro / Protobuf), AWS IAM for MSK, gRPC-Web, OAuth 2 flows, a collection runner, and code generation beyond cURL and grpcurl.
 
 Want one of these sooner? Open an issue and make some noise.
 

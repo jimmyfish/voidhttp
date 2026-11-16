@@ -132,6 +132,8 @@ export function schemeTokens(s: Scheme): Record<string, string> {
     "--m-other": muted,
     // GraphQL keeps its own pink in every scheme: only its lightness follows the background
     "--m-gql": dark ? "#ff4fb8" : "#c4007f",
+    // Kafka keeps its black and white in every scheme: asphalt on light backgrounds, clouds on dark
+    "--m-kafka": dark ? "var(--tag-clouds)" : "var(--tag-asphalt)",
     "--j-key": txt(red),
     "--j-str": txt(green),
     "--j-num": txt(orange),

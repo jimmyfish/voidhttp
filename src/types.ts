@@ -22,19 +22,20 @@ export interface RequestBody {
 export interface RequestDef {
   id: string;
   name: string;
-  /** An HTTP method, "GQL" for GraphQL over HTTP (see `gql`), "GRPC" for a gRPC call (see `grpc`), "WS" for a WebSocket (see `ws`) or "SIO" for Socket.IO (see `sio`). */
+  /** An HTTP method, "GQL" for GraphQL over HTTP (see `gql`), "GRPC" for a gRPC call (see `grpc`), "WS" for a WebSocket (see `ws`), "SIO" for Socket.IO (see `sio`) or "KAFKA" for a Kafka topic (see `kafka`). */
   method: string;
-  /** The URL; for gRPC the server address, host:port; for WebSocket a ws:// or wss:// URL. */
+  /** The URL; for gRPC the server address, host:port; for WebSocket a ws:// or wss:// URL; for Kafka the bootstrap brokers. */
   url: string;
   params: KV[];
-  /** HTTP headers; for gRPC the request metadata. */
+  /** HTTP headers; for gRPC the request metadata; for Kafka the produced record's headers. */
   headers: KV[];
-  /** For gRPC, `raw` holds the request message as JSON; for WebSocket, the next message to send; for Socket.IO, the next emit's argument. */
+  /** For gRPC, `raw` holds the request message as JSON; for WebSocket, the next message to send; for Socket.IO, the next emit's argument; for Kafka, the next produced record's value. */
   body: RequestBody;
   auth: Auth;
   grpc?: GrpcDef;
   ws?: WsDef;
   sio?: SioDef;
+  kafka?: KafkaDef;
   gql?: GqlDef;
   /** Postman-style JavaScript run around an HTTP send: `pre` before it, `post` once the response arrives. */
   scripts?: RequestScripts;
@@ -98,6 +99,38 @@ export interface SioDef {
   ackTimeoutMs: number;
 }
 
+/** How the Key field's text becomes the record key's bytes. */
+export type KafkaKeyType = "string" | "json" | "base64" | "hex";
+
+/** Where reading starts. `time` is ms since the epoch. */
+export type KafkaSeek =
+  | { kind: "latest" }
+  | { kind: "earliest" }
+  | { kind: "last"; n: number }
+  | { kind: "time"; ms: number }
+  | { kind: "offset"; partition: number; offset: number };
+
+export interface KafkaDef {
+  topic: string;
+  /** the next produced record's key; empty sends none */
+  key: string;
+  keyType: KafkaKeyType;
+  /** the partition to produce to; null lets the key pick (murmur2), round robin without a key */
+  partition: number | null;
+  sasl: "none" | "plain" | "scram-sha-256" | "scram-sha-512";
+  username: string;
+  password: string;
+  tls: boolean;
+  clientId: string;
+  /** where reading starts on Connect */
+  from: "latest" | "earliest";
+  /** 0 none, 1 the leader, -1 all in-sync replicas */
+  acks: 0 | 1 | -1;
+  compression: "none" | "gzip" | "lz4" | "snappy" | "zstd";
+  /** records the list keeps; older ones drop off */
+  keep: number;
+}
+
 export interface WsDef {
   /** offered in Sec-WebSocket-Protocol */
   subprotocols: string[];
@@ -107,8 +140,8 @@ export interface WsDef {
 
 export interface WsMessage {
   dir: "in" | "out";
-  /** "binary" holds `data` in base64; Socket.IO: "event", or "ack" answering emit `ackId` */
-  kind: "text" | "binary" | "event" | "ack";
+  /** "binary" holds `data` in base64; Socket.IO: "event", or "ack" answering emit `ackId`; Kafka: "record", or "ack" answering produce `ackId` */
+  kind: "text" | "binary" | "event" | "ack" | "record";
   /** the text, or base64 for binary; Socket.IO: the arguments as a JSON array */
   data: string;
   /** Socket.IO: the event name */
@@ -117,8 +150,26 @@ export interface WsMessage {
   argc?: number;
   /** Socket.IO: an event's ack id (its sender waits on it); an ack's emit */
   ackId?: number;
-  /** Socket.IO: an emit waiting for an ack, how long; 0 for no limit */
+  /** Socket.IO: an emit waiting for an ack, how long; 0 for no limit. Kafka: an ack, how long the broker took */
   ackMs?: number;
+  /** Kafka: the record's partition (an ack's too) */
+  partition?: number;
+  /** Kafka: the record's offset; an ack's is where the broker stored the record */
+  offset?: number;
+  /** Kafka: the record's time, ms since the epoch */
+  ts?: number;
+  /** Kafka: the key as text, or base64 when `keyBin`; absent for a record without a key */
+  key?: string;
+  keyBin?: boolean;
+  /** Kafka: `data` holds the value in base64 */
+  valueBin?: boolean;
+  /** Kafka: a tombstone, a record with no value */
+  valueNull?: boolean;
+  headers?: { key: string; value: string; bin?: boolean }[];
+  /** Kafka ack: the acks setting it was produced with */
+  acks?: number;
+  /** Kafka ack: why the produce failed */
+  error?: string;
   size: number;
   /** ms since the socket opened */
   atMs: number;
@@ -160,6 +211,54 @@ export interface WsResult {
   close?: WsClose;
   /** Socket.IO: the Engine.IO session and the namespace */
   sio?: SioSession;
+  /** Kafka: the cluster, the topic and where reading stands */
+  kafka?: KafkaSession;
+}
+
+export interface KafkaBroker {
+  id: number;
+  host: string;
+  port: number;
+  rack?: string;
+}
+
+export interface KafkaPartition {
+  partition: number;
+  leader: number;
+  replicas: number[];
+  isr: number[];
+  earliest?: number;
+  latest?: number;
+  error?: string;
+}
+
+export interface KafkaCluster {
+  clusterId?: string;
+  controllerId?: number;
+  brokers: KafkaBroker[];
+  topic: string;
+  partitions: KafkaPartition[];
+  /** every topic on the cluster */
+  topics: string[];
+  /** the bootstrap broker that answered */
+  bootstrap: string;
+  sasl?: string;
+  tls: boolean;
+}
+
+export interface KafkaSession {
+  topic: string;
+  /** set once the cluster answered and the topic was found */
+  cluster?: KafkaCluster;
+  /** ms from Connect until then */
+  connectedMs?: number;
+  /** where the current reading started */
+  from: KafkaSeek;
+  paused?: boolean;
+  /** while paused: records on the topic past where reading stopped */
+  waiting?: number;
+  /** the connection never got to reading */
+  failed?: { stage: "connect" | "tls" | "sasl" | "broker" | "topic"; broker?: string; message: string; hint?: string; topics?: string[]; elapsedMs: number };
 }
 
 export interface SioSession {

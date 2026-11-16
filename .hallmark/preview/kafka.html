@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voidHTTP Kafka preview</title>
+<meta name="description" content="Design preview of Kafka requests in voidHTTP: produce, read a topic, see its partitions, before it is applied to the app.">
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./preview.css">
+<link rel="stylesheet" href="./grpc.css">
+<link rel="stylesheet" href="./websocket.css">
+<link rel="stylesheet" href="./socketio.css">
+<link rel="stylesheet" href="./graphql.css">
+<link rel="stylesheet" href="./kafka.css">
+</head>
+<body>
+<!-- icons: Lucide v0.460.0 (ISC), inlined from lucide-react -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+  <symbol id="i-braces" viewBox="0 0 24 24"> <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1" /> <path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1" /></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"> <path d="M20 6 9 17l-5-5" /></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"> <path d="m6 9 6 6 6-6" /></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"> <path d="m9 18 6-6-6-6" /></symbol>
+  <symbol id="i-circle-check" viewBox="0 0 24 24"> <circle cx="12" cy="12" r="10" /> <path d="m9 12 2 2 4-4" /></symbol>
+  <symbol id="i-columns-2" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"> <rect width="14" height="14" x="8" y="8" rx="2" ry="2" /> <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></symbol>
+  <symbol id="i-corner-down-left" viewBox="0 0 24 24"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></symbol>
+  <symbol id="i-ellipsis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /></symbol>
+  <symbol id="i-house" viewBox="0 0 24 24"> <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /> <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24"> <path d="M12 3v12" /> <path d="m8 11 4 4 4-4" /> <path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4" /></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"> <line x1="3" x2="21" y1="22" y2="22" /> <line x1="6" x2="6" y1="18" y2="11" /> <line x1="10" x2="10" y1="18" y2="11" /> <line x1="14" x2="14" y1="18" y2="11" /> <line x1="18" x2="18" y1="18" y2="11" /> <polygon points="12 2 20 7 4 7" /></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"> <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" /> <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" /> <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" /></symbol>
+  <symbol id="i-list-filter" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"> <line x1="4" x2="20" y1="12" y2="12" /> <line x1="4" x2="20" y1="6" y2="6" /> <line x1="4" x2="20" y1="18" y2="18" /></symbol>
+  <symbol id="i-panel-left-close" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"> <path d="M5 12h14" /> <path d="M12 5v14" /></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"> <circle cx="11" cy="11" r="8" /> <path d="m21 21-4.3-4.3" /></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"> <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /> <circle cx="12" cy="12" r="3" /></symbol>
+  <symbol id="i-trash-2" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol>
+  <symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-unplug" viewBox="0 0 24 24"><path d="m19 5 3-3"/><path d="m2 22 3-3"/><path d="M6.3 20.3a2.4 2.4 0 0 0 3.4 0L12 18l-6-6-2.3 2.3a2.4 2.4 0 0 0 0 3.4Z"/><path d="M7.5 13.5 10 11"/><path d="M10.5 16.5 13 14"/><path d="m12 6 6 6 2.3-2.3a2.4 2.4 0 0 0 0-3.4l-2.6-2.6a2.4 2.4 0 0 0-3.4 0Z"/></symbol>
+  <symbol id="i-wand-sparkles" viewBox="0 0 24 24"> <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" /> <path d="m14 7 3 3" /> <path d="M5 6v4" /> <path d="M19 14v4" /> <path d="M10 2v2" /> <path d="M7 8H3" /> <path d="M21 16h-4" /> <path d="M11 3H9" /></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"> <path d="M18 6 6 18" /> <path d="m6 6 12 12" /></symbol>
+</svg>
+
+<header class="pv-bar">
+  <strong>voidHTTP preview · Kafka</strong>
+  <nav class="pv-screens" aria-label="Screens">
+    <a class="btn btn--quiet" href="./index.html" style="min-height:var(--control)">← Base</a>
+  </nav>
+  <div class="pv-theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<div class="pv-stage">
+<div class="app">
+  <div class="app-strip" data-tauri-drag-region>
+    <nav class="ptabs" aria-label="Projects">
+      <button type="button" class="ptab"><svg aria-hidden="true" class="ico"><use href="#i-house"/></svg>Home</button>
+      <span class="ptab-sep" aria-hidden="true"></span>
+      <div class="ptab ptab--project" aria-current="page">
+        <button type="button" class="ptab-main"><span class="proj-tile proj-tile--sm" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>Acme Bank</button>
+        <button type="button" class="icon-btn ptab-close" aria-label="Close Acme Bank"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
+      </div>
+    </nav>
+    <button type="button" class="icon-btn strip-settings" title="Settings  ⌘," aria-label="Settings"><svg aria-hidden="true" class="ico"><use href="#i-settings"/></svg></button>
+  </div>
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-mark" aria-hidden="true">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke-width="2" style="stroke: var(--color-accent)"/><circle cx="8" cy="8" r="2.25" fill="none" stroke-width="1.5" style="stroke: var(--color-ok)"/></svg>
+    </div>
+    <button type="button" class="rail-item" aria-label="Collections" title="Collections" aria-current="page"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-layers"/></svg></button>
+    <button type="button" class="rail-item" aria-label="History" title="History"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-history"/></svg></button>
+    <button type="button" class="rail-item" aria-label="Variables" title="Variables"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-braces"/></svg></button>
+  </nav>
+
+  <div class="panel">
+    <!-- ===== sidebar: Kafka requests live in collections beside HTTP, gRPC, WebSocket and Socket.IO ===== -->
+    <aside class="sidebar">
+      <div class="side-resize" role="separator" aria-orientation="vertical" aria-label="Resize sidebar"></div>
+      <div class="side-head"><h2>Collections</h2></div>
+      <div class="side-tools">
+        <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search collections"></div>
+        <button type="button" class="icon-btn icon-btn--outline" title="Import" aria-label="Import"><svg aria-hidden="true" class="ico"><use href="#i-import"/></svg></button>
+        <button type="button" class="icon-btn icon-btn--filled" title="New collection" aria-label="New collection"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+      </div>
+      <div class="tree">
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><span class="name">transfer-service</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for transfer-service" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px" aria-current="page"><button type="button" class="row-main"><span class="m m-KAFKA">KAFKA</span><span class="name">Transfer events</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Transfer events" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-KAFKA">KAFKA</span><span class="name">Ledger dead letters</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Ledger dead letters" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">Create transfer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Create transfer" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-GRPC">gRPC</span><span class="name">GetTransfer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for GetTransfer" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-SIO">SIO</span><span class="name">Transfer status room</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Transfer status room" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">notification-service</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for notification-service" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+      </div>
+    </aside>
+
+    <!-- ===== work area ===== -->
+    <main class="work">
+      <div class="tabsbar">
+        <button type="button" class="icon-btn side-toggle" aria-label="Hide sidebar" title="Hide sidebar  ⌘\"><svg aria-hidden="true" class="ico"><use href="#i-panel-left-close"/></svg></button>
+        <div class="tabs">
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-POST">POST</span><span class="name">Create transfer</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab" aria-current="page"><button type="button" class="tab-main"><span class="m m-KAFKA">KAFKA</span><span class="name">Transfer events</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-KAFKA">KAFKA</span><span class="name">Ledger dead letters</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <button type="button" class="icon-btn tab-add" aria-label="New tab"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+        </div>
+        <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
+        <div class="joined env-group">
+          <button type="button" class="env-picker" aria-label="Environment" style="--env-c: var(--tag-cyan)"><span class="env-dot" aria-hidden="true"></span><span class="env-name">Staging</span><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          <button type="button" class="btn joined-tail" aria-label="Environment menu" title="Manage environments"><svg aria-hidden="true" class="ico"><use href="#i-menu"/></svg></button>
+        </div>
+      </div>
+
+      <!-- request line: KAFKA in the method menu · bootstrap brokers · topic · Connect -->
+      <div class="request-line">
+        <div class="url-field kafka-field" data-screen="menu idle auth settings refused listeners">
+          <div class="method-wrap">
+            <button type="button" class="method-btn m-KAFKA" aria-label="Method: Kafka" aria-haspopup="menu" aria-expanded="false">KAFKA</button>
+            <div class="menu method-menu" role="menu" aria-label="Method" data-screen="menu"><button type="button" role="menuitemradio" class="m-GET" aria-checked="false">GET</button><button type="button" role="menuitemradio" class="m-POST" aria-checked="false">POST</button><button type="button" role="menuitemradio" class="m-PUT" aria-checked="false">PUT</button><button type="button" role="menuitemradio" class="m-PATCH" aria-checked="false">PATCH</button><button type="button" role="menuitemradio" class="m-DELETE" aria-checked="false">DELETE</button><button type="button" role="menuitemradio" class="m-HEAD" aria-checked="false">HEAD</button><button type="button" role="menuitemradio" class="m-OPTIONS" aria-checked="false">OPTIONS</button><hr><button type="button" role="menuitemradio" class="m-GQL" aria-checked="false">GraphQL</button><button type="button" role="menuitemradio" class="m-GRPC" aria-checked="false">gRPC</button><button type="button" role="menuitemradio" class="m-WS" aria-checked="false">WebSocket</button><button type="button" role="menuitemradio" class="m-SIO" aria-checked="false">Socket.IO</button><button type="button" role="menuitemradio" class="m-KAFKA" aria-checked="true">Kafka</button></div>
+          </div>
+          <div class="url-input">
+            <div class="url-hl" aria-hidden="true"><span class="url-hl-in"><span class="tok-var"><i>{{</i>kafkaBrokers<i>}}</i></span> </span></div>
+            <input aria-label="Bootstrap brokers" value="{{kafkaBrokers}}" spellcheck="false" placeholder="broker-1:9092, broker-2:9092">
+          </div>
+          <span class="gf-sep" aria-hidden="true"></span>
+          <label class="ns-seg"><span class="ns-lbl">Topic</span><input aria-label="Topic" value="transfer.events" spellcheck="false" list="topics"></label>
+          <datalist id="topics"><option value="transfer.events"><option value="transfer.events.dlq"><option value="ledger.postings"></datalist>
+        </div>
+        <div class="url-field kafka-field is-live" data-screen="live seek paused topic">
+          <div class="method-wrap">
+            <button type="button" class="method-btn m-KAFKA" aria-label="Method: Kafka" disabled title="Disconnect to change the method">KAFKA</button>
+          </div>
+          <div class="url-input">
+            <div class="url-hl" aria-hidden="true"><span class="url-hl-in"><span class="tok-var"><i>{{</i>kafkaBrokers<i>}}</i></span> </span></div>
+            <input aria-label="Bootstrap brokers" value="{{kafkaBrokers}}" spellcheck="false" readonly title="Disconnect to change the brokers">
+          </div>
+          <span class="gf-sep" aria-hidden="true"></span>
+          <label class="ns-seg"><span class="ns-lbl">Topic</span><input aria-label="Topic" value="transfer.events" spellcheck="false" readonly title="Disconnect to change the topic"></label>
+        </div>
+
+        <button type="button" class="btn btn--primary ws-connect" data-screen="menu idle auth settings refused listeners"><svg aria-hidden="true" class="ico"><use href="#i-plug"/></svg>Connect</button>
+        <button type="button" class="btn ws-disconnect" data-screen="live seek paused topic"><svg aria-hidden="true" class="ico"><use href="#i-unplug"/></svg>Disconnect</button>
+
+        <div class="joined">
+          <button type="button" class="btn">Save</button>
+          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
+        </div>
+      </div>
+      <div class="req-title">
+        <span class="name">Transfer events</span>
+        <span class="path">transfer-service</span>
+      </div>
+
+      <nav class="subtabs" aria-label="Request">
+        <button type="button" class="subtab" aria-pressed="true" data-screen="menu idle live seek paused topic refused listeners">Message</button>
+        <button type="button" class="subtab" aria-pressed="false" data-screen="auth settings">Message</button>
+        <button type="button" class="subtab" aria-pressed="false">Headers <span class="n">2</span></button>
+        <button type="button" class="subtab" aria-pressed="false" data-screen="menu idle live seek paused topic refused listeners settings">Auth</button>
+        <button type="button" class="subtab" aria-pressed="true" data-screen="auth">Auth</button>
+        <button type="button" class="subtab" aria-pressed="false" data-screen="menu idle live seek paused topic refused listeners auth">Settings</button>
+        <button type="button" class="subtab" aria-pressed="true" data-screen="settings">Settings</button>
+      </nav>
+
+      <!-- message: key, partition, value; Produce only while connected. Record headers live in the Headers tab -->
+      <div class="section" style="flex:1" data-screen="menu idle live seek paused topic refused listeners">
+        <div class="emit-head">
+          <span class="lbl">Key</span>
+          <div class="kkey"><input class="kkey-input" aria-label="Record key" value="acc_19c2a7" spellcheck="false" placeholder="no key"><div class="kkey-type-wrap"><button type="button" class="kkey-type" aria-haspopup="menu" aria-expanded="false" title="How the key becomes bytes">String<svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button></div></div>
+          <span class="lbl gap">Partition</span>
+          <button type="button" class="kpart-btn" aria-haspopup="menu" aria-expanded="false" title="Auto: the broker picks a partition from the key">Auto<svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          <div class="seg" role="group" aria-label="Format"><button type="button" aria-pressed="false">Text</button><button type="button" aria-pressed="true">JSON</button></div>
+        </div>
+        <div class="editor">
+          <div class="editor-bar"><button type="button" class="btn btn--quiet"><svg aria-hidden="true" class="ico"><use href="#i-wand-sparkles"/></svg>Beautify</button></div>
+          <pre class="code" aria-label="Record value" data-json='{"transfer_id":"trf_77a0c3","status":"RETRY","reason":"bank_timeout","amount":250000,"currency":"IDR"}'></pre>
+        </div>
+        <div class="composer-bar">
+          <button type="button" class="btn btn--primary" data-screen="live seek paused topic"><svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Produce</button>
+          <button type="button" class="btn btn--primary" disabled data-screen="menu idle refused listeners"><svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Produce</button>
+          <span class="hint-text push" data-screen="live seek paused topic"><kbd>⌘</kbd> <kbd>Enter</kbd> produces to <code>transfer.events</code></span>
+          <span class="hint-text push" data-screen="menu idle refused listeners">Connect first, then produce records one by one.</span>
+        </div>
+      </div>
+
+      <!-- auth: SASL login + TLS; certificates come from Settings › Certificates -->
+      <div class="section" style="flex:1" data-screen="auth">
+        <div class="set-list sio-settings kafka-settings">
+          <div class="set-item">
+            <div class="set-text">
+              <span class="set-label" id="k-mech">SASL mechanism</span>
+              <span class="desc">How the brokers check who you are. Ask the cluster owner if unsure; Amazon MSK with passwords uses SCRAM-SHA-512.</span>
+            </div>
+            <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="k-mech"><button type="button" aria-pressed="false">None</button><button type="button" aria-pressed="false">PLAIN</button><button type="button" aria-pressed="false">SCRAM-SHA-256</button><button type="button" aria-pressed="true">SCRAM-SHA-512</button></div></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="k-user">Username</label></div>
+            <div class="set-ctl"><input id="k-user" class="field mono" value="{{kafkaUser}}" spellcheck="false"></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="k-pass">Password</label><span class="desc">Use a variable so the password stays out of exports.</span></div>
+            <div class="set-ctl"><input id="k-pass" class="field mono" value="{{kafkaPassword}}" spellcheck="false"></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text">
+              <span class="set-label">TLS</span>
+              <span class="desc">Encrypt the connection. CA and client certificates come from Settings › Certificates.</span>
+            </div>
+            <div class="set-ctl"><input type="checkbox" class="switch" role="switch" checked aria-label="TLS"></div>
+          </div>
+        </div>
+        <p class="k-foot">Not built yet: AWS IAM for MSK, OAUTHBEARER, Kerberos.</p>
+      </div>
+
+      <!-- settings: client id, where reading starts, how produced records are stored -->
+      <div class="section" style="flex:1" data-screen="settings">
+        <div class="set-list sio-settings kafka-settings">
+          <div class="set-item">
+            <div class="set-text">
+              <label class="set-label" for="k-cid">Client ID</label>
+              <span class="desc">Shows up in broker logs and quotas.</span>
+            </div>
+            <div class="set-ctl"><input id="k-cid" class="field mono" value="voidhttp" spellcheck="false"></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text">
+              <span class="set-label" id="k-from">Read from</span>
+              <span class="desc">Where reading starts when you connect. Change it any time from the Messages toolbar.</span>
+            </div>
+            <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="k-from"><button type="button" aria-pressed="true">Latest</button><button type="button" aria-pressed="false">Earliest</button></div></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text">
+              <span class="set-label" id="k-acks">Acks</span>
+              <span class="desc">How many replicas must store a produced record before the broker answers.</span>
+            </div>
+            <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="k-acks"><button type="button" aria-pressed="false">None</button><button type="button" aria-pressed="false">Leader</button><button type="button" aria-pressed="true">All</button></div></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text">
+              <span class="set-label" id="k-comp">Compression</span>
+              <span class="desc">For produced records. Reading handles every codec on its own.</span>
+            </div>
+            <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="k-comp"><button type="button" aria-pressed="true">None</button><button type="button" aria-pressed="false">gzip</button><button type="button" aria-pressed="false">lz4</button><button type="button" aria-pressed="false">snappy</button><button type="button" aria-pressed="false">zstd</button></div></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text">
+              <label class="set-label" for="k-keep">Keep in the list</label>
+              <span class="desc">Older records drop off the list. Nothing changes on the topic.</span>
+            </div>
+            <div class="set-ctl"><input id="k-keep" class="field mono narrow" value="1000" inputmode="numeric"><span class="unit">records</span></div>
+          </div>
+        </div>
+        <p class="k-foot">Not built yet: Avro and Protobuf values through a Schema Registry.</p>
+      </div>
+
+      <div class="divider" role="separator" aria-orientation="horizontal" aria-label="Resize panes"></div>
+
+      <!-- ===== response ===== -->
+      <section class="response" aria-label="Response">
+        <nav class="subtabs" aria-label="Response">
+          <button type="button" class="subtab" aria-pressed="true" data-screen="menu idle auth settings live seek paused refused listeners">Messages <span class="n" data-screen="live seek">6</span><span class="n" data-screen="paused">6</span></button>
+          <button type="button" class="subtab" aria-pressed="false" data-screen="topic">Messages <span class="n">6</span></button>
+          <button type="button" class="subtab" aria-pressed="false" data-screen="menu idle auth settings live seek paused refused listeners">Topic</button>
+          <button type="button" class="subtab" aria-pressed="true" data-screen="topic">Topic</button>
+
+          <span class="push meta" data-screen="live seek topic"><span class="live"><span class="live-dot" aria-hidden="true"></span>Reading</span><span class="dim">6 partitions</span><span class="dim">2m 14s</span><span class="dim">3.1&nbsp;KB</span></span>
+          <span class="push meta" data-screen="paused"><span class="redir">Paused</span><span class="dim">6 partitions</span><span class="dim">2m 40s</span><span class="dim">3.1&nbsp;KB</span></span>
+          <span class="push meta" data-screen="refused"><span class="fail">SASL login failed</span><span class="dim">640 ms</span></span>
+          <span class="push meta" data-screen="listeners"><span class="fail">Broker unreachable</span><span class="dim">10.0 s</span></span>
+          <span class="push" data-screen="menu idle auth settings"></span>
+        </nav>
+
+        <!-- not connected yet -->
+        <div class="empty" data-screen="menu idle auth settings">
+          <svg aria-hidden="true" class="ico ico-lg"><use href="#i-plug"/></svg>
+          <strong>Not connected</strong>
+          <span>Connect reads the topic. Records you read and records you produce show up here.</span>
+          <span class="why">voidHTTP reads without a consumer group and never commits offsets, so your services keep every record.</span>
+        </div>
+
+        <!-- toolbar: direction, where reading starts, partitions, search, pause -->
+        <div class="res-tools" data-screen="live seek paused">
+          <div class="seg" role="group" aria-label="Show"><button type="button" aria-pressed="true">All</button><button type="button" aria-pressed="false">Read</button><button type="button" aria-pressed="false">Produced</button></div>
+          <div class="ev-filter-wrap">
+            <button type="button" class="ev-filter" aria-haspopup="menu" aria-expanded="false" data-screen="live paused"><svg aria-hidden="true" class="ico"><use href="#i-history"/></svg>From: latest<svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+            <button type="button" class="ev-filter" aria-haspopup="menu" aria-expanded="true" data-screen="seek"><svg aria-hidden="true" class="ico"><use href="#i-history"/></svg>From: latest<svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+            <div class="menu ev-menu seek-menu" role="menu" aria-label="Read from" data-screen="seek">
+              <button type="button" role="menuitemradio" aria-checked="true"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg><span>Latest</span><span class="sub">new records only</span></button>
+              <button type="button" role="menuitemradio" aria-checked="false"><span class="tick-gap"></span><span>Earliest</span><span class="sub">all the topic keeps</span></button>
+              <button type="button" role="menuitemradio" aria-checked="false"><span class="tick-gap"></span><span>Last 100</span><span class="sub">per partition</span></button>
+              <button type="button" role="menuitemradio" aria-checked="false"><span class="tick-gap"></span><span>From a time…</span><span class="sub">e.g. 10:00 today</span></button>
+              <button type="button" role="menuitemradio" aria-checked="false"><span class="tick-gap"></span><span>From an offset…</span><span class="sub">one partition</span></button>
+              <p class="menu-note">Changing this clears the list and reads again.</p>
+            </div>
+          </div>
+          <div class="ev-filter-wrap">
+            <button type="button" class="ev-filter" aria-haspopup="menu" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-list-filter"/></svg>Partitions: all<svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          </div>
+          <label class="res-search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input placeholder="Key or value contains" aria-label="Filter by key or value"></label>
+          <span style="margin-left:auto"></span>
+          <button type="button" class="icon-btn" title="Pause the list" aria-label="Pause" data-screen="live seek"><svg aria-hidden="true" class="ico"><use href="#i-pause"/></svg></button>
+          <button type="button" class="icon-btn" title="Resume" aria-label="Resume" data-screen="paused"><svg aria-hidden="true" class="ico"><use href="#i-play"/></svg></button>
+          <button type="button" class="icon-btn" title="Copy records as JSON" aria-label="Copy records"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
+          <button type="button" class="icon-btn" title="Clear the list" aria-label="Clear the list"><svg aria-hidden="true" class="ico"><use href="#i-trash-2"/></svg></button>
+        </div>
+
+        <!-- connected: records, newest last; a produce shows its ack (partition · offset) under it, then comes back as a read -->
+        <div class="res-body" data-screen="live seek paused">
+          <div class="stream">
+            <div class="smsg-sys ok"><svg aria-hidden="true" class="ico"><use href="#i-plug"/></svg><span class="t">0.00s</span><span class="s"><span>Connected to <b>3 brokers</b></span><span><code>transfer.events</code>, 6 partitions</span><span>from latest</span><span>SCRAM-SHA-512 · TLS</span><span>214 ms</span></span></div>
+
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">1</span><span class="t">3.12s</span><span class="p"><span class="kp">2 · 18342</span><span class="ev">acc_19c2a7</span>{"transfer_id":"trf_2b91e0","status":"PROCESSING","amount":250000,"currency":"IDR"}</span></button>
+            <button type="button" class="smsg in" aria-expanded="true"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">2</span><span class="t">4.30s</span><span class="p"><span class="kp">4 · 9917</span><span class="ev">acc_5d1e08</span>{"transfer_id":"trf_c40a19","status":"COMPLETED","amount":1200000,"currency":"IDR"}</span></button>
+            <div class="smsg-open">
+              <dl class="kdetail">
+                <dt>Partition</dt><dd>4</dd>
+                <dt>Offset</dt><dd>9917</dd>
+                <dt>Time</dt><dd>2026-11-16 10:14:07.312 +07:00 <span class="dim">CreateTime</span></dd>
+                <dt>Key</dt><dd>acc_5d1e08</dd>
+                <dt>Headers</dt><dd><span class="hk">trace-id:</span> 4bf92f3577b34da6a3ce929d0e0e4736<br><span class="hk">source:</span> transfer-service</dd>
+              </dl>
+              <p class="kvalue-h">Value</p>
+              <pre class="code" data-json='{"transfer_id":"trf_c40a19","status":"COMPLETED","amount":1200000,"currency":"IDR","at":"2026-11-16T03:14:07Z"}'></pre>
+            </div>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">3</span><span class="t">4.31s</span><span class="p"><span class="kp">0 · 20117</span><span class="ev nokey">no key</span>{"type":"heartbeat","node":"transfer-worker-2"}</span></button>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">4</span><span class="t">9.86s</span><span class="p"><span class="kp">2 · 18343</span><span class="ev">acc_19c2a7</span>{"transfer_id":"trf_2b91e0","status":"COMPLETED","amount":250000,"currency":"IDR"}</span></button>
+
+            <button type="button" class="smsg out" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-up"/></svg><span class="n">5</span><span class="t">61.20s</span><span class="p"><span class="ev">acc_19c2a7</span>{"transfer_id":"trf_77a0c3","status":"RETRY","reason":"bank_timeout","amount":250000,"currency":"IDR"}</span></button>
+            <button type="button" class="smsg ack" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-corner-down-left"/></svg><span class="n">5</span><span class="t">61.23s</span><span class="p"><span class="ack-tag">stored</span>partition <b>2</b> · offset <b>18350</b> · acks all · 31 ms</span></button>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">6</span><span class="t">61.25s</span><span class="p"><span class="kp">2 · 18350</span><span class="ev">acc_19c2a7</span>{"transfer_id":"trf_77a0c3","status":"RETRY","reason":"bank_timeout","amount":250000,"currency":"IDR"}</span></button>
+
+            <div class="smsg-wait" data-screen="live seek"><span class="spinner"></span>Reading, waiting for new records</div>
+            <div class="smsg-wait paused" data-screen="paused"><svg aria-hidden="true" class="ico"><use href="#i-pause"/></svg>Paused. 37 new records on the topic since then; Resume shows them.</div>
+          </div>
+        </div>
+
+        <!-- topic: cluster facts, then each partition's leader, replicas and offsets -->
+        <div class="res-body" data-screen="topic">
+          <div class="hs">
+            <div>
+              <h4>Cluster</h4>
+              <dl>
+                <dt>Cluster ID</dt><dd>Lq3vT8RkS0eQ2nA0v8Rk3e</dd>
+                <dt>Controller</dt><dd>broker 2 · b-2.kafka-staging.internal:9096</dd>
+                <dt>Brokers</dt><dd>1 · b-1.kafka-staging.internal:9096<br>2 · b-2.kafka-staging.internal:9096<br>3 · b-3.kafka-staging.internal:9096</dd>
+              </dl>
+            </div>
+            <div>
+              <h4>transfer.events <span class="dim">6 partitions · replication 3</span></h4>
+              <table class="ktable">
+                <thead><tr><th>Partition</th><th>Leader</th><th>Replicas</th><th>In sync</th><th class="num">Earliest</th><th class="num">Latest</th><th class="num">Records</th></tr></thead>
+                <tbody>
+                  <tr><td>0</td><td>1</td><td>1, 2, 3</td><td>1, 2, 3</td><td class="num">11 204</td><td class="num">20 118</td><td class="num">8 914</td></tr>
+                  <tr><td>1</td><td>2</td><td>2, 3, 1</td><td>2, 3, 1</td><td class="num">10 877</td><td class="num">19 640</td><td class="num">8 763</td></tr>
+                  <tr><td>2</td><td>3</td><td>3, 1, 2</td><td>3, 1, 2</td><td class="num">9 512</td><td class="num">18 351</td><td class="num">8 839</td></tr>
+                  <tr><td>3</td><td>1</td><td>1, 3, 2</td><td class="warn">1, 3</td><td class="num">10 060</td><td class="num">18 995</td><td class="num">8 935</td></tr>
+                  <tr><td>4</td><td>2</td><td>2, 1, 3</td><td>2, 1, 3</td><td class="num">1 340</td><td class="num">9 918</td><td class="num">8 578</td></tr>
+                  <tr><td>5</td><td>3</td><td>3, 2, 1</td><td>3, 2, 1</td><td class="num">10 431</td><td class="num">19 297</td><td class="num">8 866</td></tr>
+                </tbody>
+              </table>
+              <p class="hs-note"><span class="warn">Partition 3 is under-replicated:</span> broker 2 has fallen behind. Records = latest − earliest; a compacted topic may hold fewer.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SASL refused: the TCP + TLS part worked, the login did not -->
+        <div class="res-body" data-screen="refused">
+          <div class="ws-fail" role="alert">
+            <strong><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg>b-1.kafka-staging.internal:9096 refused the login</strong>
+            <span class="msg">SaslAuthenticationFailed: Authentication failed during authentication due to invalid credentials with SASL mechanism SCRAM-SHA-512</span>
+            <span class="why">The connection and TLS worked; the username or password did not. Check <code>{{kafkaUser}}</code> and <code>{{kafkaPassword}}</code> in the Staging environment.</span>
+            <div class="acts"><button type="button" class="link">Open Auth</button><button type="button" class="link">Open Staging variables</button></div>
+          </div>
+        </div>
+
+        <!-- advertised listener: the bootstrap broker answered, then pointed at a host this Mac cannot reach -->
+        <div class="res-body" data-screen="listeners">
+          <div class="ws-fail" role="alert">
+            <strong><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg>Reached the cluster, but not broker 2</strong>
+            <span class="msg">ip-10-0-3-17.ap-southeast-3.compute.internal:9092: no address found</span>
+            <span class="why">Kafka clients talk to each broker at the address the broker advertises, not the one you typed. Broker 2 advertises a private AWS name. Connect over the VPN, or add the domain to <b>Always use system DNS for</b> if Secure DNS is on.</span>
+            <div class="acts"><button type="button" class="link">Open Network settings</button><button type="button" class="link">See topic</button></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</div>
+
+<script>
+  // JSON → the same line/indent/token spans the app's code view uses
+  const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const TOK = /("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(true|false)|(null)|([{}\[\],:])/g;
+  const line = (s) => {
+    const ind = s.match(/^ */)[0];
+    const body = s.slice(ind.length).replace(TOK, (m, str, colon, num, bool, nul, p) =>
+      str ? (colon ? `<span class="j-key">${esc(str)}</span><span class="j-p">:</span>` : `<span class="j-str">${esc(str)}</span>`)
+      : num ? `<span class="j-num">${m}</span>` : bool ? `<span class="j-bool">${m}</span>` : nul ? `<span class="j-null">${m}</span>` : `<span class="j-p">${esc(p)}</span>`);
+    return `<span class="l">${ind ? `<span class="ind">${ind}</span>` : ""}${body}</span>`;
+  };
+  const pretty = (json) => JSON.stringify(JSON.parse(json), null, 2);
+  document.querySelectorAll("pre[data-json]").forEach((pre) => { pre.innerHTML = pretty(pre.dataset.json).split("\n").map(line).join(""); });
+
+  const setTheme = (t) => {
+    document.documentElement.dataset.theme = t;
+    document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.themeSet === t)));
+  };
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.themeSet)));
+  setTheme(new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light");
+</script>
+<script>
+  // screens: one at a time, kept in the URL hash. An element can belong to several screens.
+  {
+    const all = () => document.querySelectorAll("[data-screen]");
+    const go = (s) => {
+      all().forEach((el) => { el.hidden = !el.dataset.screen.split(" ").includes(s); });
+      document.querySelectorAll("[data-show]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.show === s)));
+      document.querySelectorAll(".method-btn").forEach((b) => b.setAttribute("aria-expanded", String(s === "menu")));
+      history.replaceState(null, "", "#" + s);
+    };
+    document.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-show]");
+      if (t) { e.preventDefault(); go(t.dataset.show); }
+    });
+    const start = location.hash.slice(1);
+    go(document.querySelector(`[data-show="${start}"]`) ? start : "live");
+  }
+</script>
+</body>
+</html>

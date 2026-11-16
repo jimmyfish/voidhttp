@@ -3,6 +3,7 @@ mod files;
 mod fonts;
 mod grpc;
 mod http;
+mod kafka;
 mod net;
 mod script;
 mod store;
@@ -121,6 +122,7 @@ pub fn run() {
         .manage(grpc::GrpcState::default())
         .manage(ws::WsState::default())
         .manage(sio::SioState::default())
+        .manage(kafka::KafkaState::default())
         .invoke_handler(tauri::generate_handler![
             script::run_script,
             http::send_request,
@@ -136,6 +138,12 @@ pub fn run() {
             sio::sio_connect,
             sio::sio_emit,
             sio::sio_close,
+            kafka::kafka_connect,
+            kafka::kafka_produce,
+            kafka::kafka_seek,
+            kafka::kafka_pause,
+            kafka::kafka_refresh,
+            kafka::kafka_close,
             net::net_configure,
             net::net_test,
             certs::certs_configure,
