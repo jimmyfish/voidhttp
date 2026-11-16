@@ -11,7 +11,7 @@ All notable changes to voidHTTP are listed here. The format follows [Keep a Chan
 - **Settings > Shortcuts** lists every keyboard shortcut, with a search box. ⌘/ opens it (inside a code editor ⌘/ still comments lines). Shortcuts can't be changed.
 - **More shortcuts:** ⌘. cancel the request, ⇧⌘S save as, ⌘L jump to the URL, ⇧⌘T reopen the last closed tab, ⇧⌘] / ⇧⌘[ and ⌃Tab / ⌃⇧Tab next and previous tab, ⌘1–⌘8 go to a tab and ⌘9 to the last, ⇧⌘F search the sidebar, ⌥E switch environment, ⌘O import, ⌘+ / ⌘− / ⌘0 zoom (remembered between launches).
 - **Sidebar keyboard:** ↑ / ↓ move between items (↓ from the search box enters the list), Enter opens, → / ← expand or collapse (⌥ for all), F2 renames, ⌘D duplicates and ⌘⌫ deletes the focused item.
-- **Dev build tag.** `bun tauri dev` shows an amber `DEV <commit>` pill left of the Settings gear (a `+` after the commit means uncommitted changes). About and Settings > Updates show the branch and `git describe` version, and update checks are off, so a dev build is never mistaken for, or replaced by, the release from GitHub. Release builds look as before.
+- **Dev build tag.** `bun tauri dev` and `bun tauri build --debug` show an amber `DEV <commit>` pill left of the Settings gear (a `+` after the commit means uncommitted changes). About and Settings > Updates show the branch and `git describe` version, and update checks are off, so a dev build is never mistaken for, or replaced by, the release from GitHub. Release builds look as before.
 
 ## [0.1.6] - 2026-11-16
 

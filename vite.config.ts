@@ -13,10 +13,11 @@ const git = (args: string) => {
 };
 
 /**
- * Where a dev build (`bun tauri dev`) comes from, shown in its title-strip pill, About and Settings > Updates.
- * Read once when the dev server starts. Release builds get null: they show nothing and stay as they are.
+ * Where a dev build comes from, shown in its title-strip pill, About and Settings > Updates.
+ * A dev build is `bun tauri dev` (read once when the dev server starts) or `bun tauri build --debug`
+ * (Tauri sets TAURI_ENV_DEBUG for beforeBuildCommand). Release builds get null: they show nothing.
  */
-const devBuild = () => {
+const devBuild = (serve: boolean) => {
   const tag = git("describe --tags --abbrev=0");
   // "+" marks changes to tracked files (untracked files don't count), the same rule as `git describe --dirty`
   const describe = git("describe --tags --always --dirty=+");
@@ -27,14 +28,17 @@ const devBuild = () => {
     describe,
     tag,
     ahead: tag ? Number(git(`rev-list --count refs/tags/${tag}..HEAD`)) || 0 : 0,
-    startedAt: Date.now(),
+    serve,
+    at: Date.now(),
   };
 };
 
 // https://v2.tauri.app/start/frontend/vite/
 export default defineConfig(({ command }) => ({
   plugins: [react()],
-  define: { __DEV_BUILD__: JSON.stringify(command === "serve" ? devBuild() : null) },
+  define: {
+    __DEV_BUILD__: JSON.stringify(command === "serve" || process.env.TAURI_ENV_DEBUG === "true" ? devBuild(command === "serve") : null),
+  },
   clearScreen: false,
   server: {
     port: 1420,

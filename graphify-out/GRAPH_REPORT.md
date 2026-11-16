@@ -1,7 +1,7 @@
 # Graph Report - voidHTTP  (2026-11-16)
 
 ## Corpus Check
-- 111 files · ~211,366 words
+- 111 files · ~211,457 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 27 file(s) not represented in the graph (top: .css 18, (none) 5, .lock 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `8b686a87`
+- Built from commit: `971ab5d2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -121,8 +121,8 @@
   README.md → src-tauri/src/script/prelude.js
 
 ## Import Cycles
-- 1-file cycle: `src-tauri/src/store.rs -> src-tauri/src/store.rs`
 - 1-file cycle: `src-tauri/src/files.rs -> src-tauri/src/files.rs`
+- 1-file cycle: `src-tauri/src/store.rs -> src-tauri/src/store.rs`
 
 ## Communities (92 total, 19 thin omitted)
 
@@ -419,7 +419,7 @@ Cohesion: 0.40
 Nodes (5): scripts, build, dev, tauri, typecheck
 
 ## Knowledge Gaps
-- **28 isolated node(s):** `voidHTTP App Icon`, `#root Mount Element`, `FormUrlEncoded`, `Multipart`, `Text` (+23 more)
+- **28 isolated node(s):** `#root Mount Element`, `voidHTTP App Icon`, `FormUrlEncoded`, `Multipart`, `Text` (+23 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 557 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **19 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -427,16 +427,16 @@ Nodes (5): scripts, build, dev, tauri, typecheck
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `prepare()` connect `store.ts` to `ImportModal.tsx`, `gqlSchema.ts`, `ExportModal.tsx`, `types.ts`, `Architecture`, `GrpcPane.tsx`, `RequestPane.tsx`?**
-  _High betweenness centrality (0.070) - this node is a cross-community bridge._
-- **What connects `voidHTTP App Icon`, `#root Mount Element`, `FormUrlEncoded` to the rest of the system?**
+  _High betweenness centrality (0.051) - this node is a cross-community bridge._
+- **What connects `#root Mount Element`, `voidHTTP App Icon`, `FormUrlEncoded` to the rest of the system?**
   _28 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Rust HTTP Engine` be split into smaller, more focused modules?**
   _Cohesion score 0.07641196013289037 - nodes in this community are weakly interconnected._
 - **Why does `Sending an HTTP request` connect `Architecture` to `store.ts`?**
-  _High betweenness centrality (0.068) - this node is a cross-community bridge._
+  _High betweenness centrality (0.050) - this node is a cross-community bridge._
 - **Should `Changelog` be split into smaller, more focused modules?**
   _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
 - **Why does `Architecture` connect `Architecture` to `CONTRIBUTING.md`?**
-  _High betweenness centrality (0.068) - this node is a cross-community bridge._
+  _High betweenness centrality (0.049) - this node is a cross-community bridge._
 - **Should `net.rs` be split into smaller, more focused modules?**
   _Cohesion score 0.061072261072261075 - nodes in this community are weakly interconnected._

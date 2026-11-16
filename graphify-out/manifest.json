@@ -156,9 +156,9 @@
     "semantic_hash": "9e4190b46478adca8daef746afc1cf16"
   },
   "vite.config.ts": {
-    "mtime": 1794817494.6935678,
-    "seen": 1794817499.8964741,
-    "ast_hash": "b8e8e53eb51cc7a8ab8c64179e50f861",
+    "mtime": 1794817684.364153,
+    "seen": 1794817693.150903,
+    "ast_hash": "c757ecb2632d169616e3e1c63ea1a3eb",
     "semantic_hash": ""
   },
   "README.md": {
@@ -684,9 +684,9 @@
     "semantic_hash": ""
   },
   "CHANGELOG.md": {
-    "mtime": 1794813226.9144304,
-    "seen": 1794813230.896768,
-    "ast_hash": "ee5073aa6f50e72d162c12d309ef67ec",
+    "mtime": 1794817691.904316,
+    "seen": 1794817693.150916,
+    "ast_hash": "ec71a51b0fbd9835dfad01a3047bc141",
     "semantic_hash": ""
   },
   "CODE_OF_CONDUCT.md": {
@@ -732,9 +732,9 @@
     "semantic_hash": ""
   },
   "src/components/AboutModal.tsx": {
-    "mtime": 1794817479.704067,
-    "seen": 1794817499.89643,
-    "ast_hash": "ba280ba444a3e17e711c80cb17232572",
+    "mtime": 1794817684.36434,
+    "seen": 1794817693.15086,
+    "ast_hash": "6995d09703e804552196331e823a736c",
     "semantic_hash": ""
   },
   ".hallmark/preview/about.html": {
@@ -1020,9 +1020,9 @@
     "semantic_hash": ""
   },
   "src/build.ts": {
-    "mtime": 1794817414.771535,
-    "seen": 1794817499.896428,
-    "ast_hash": "a4dcf1661278dd0b4d179ca46fe6586d",
+    "mtime": 1794817684.3642416,
+    "seen": 1794817693.150859,
+    "ast_hash": "9ad0ef26db41cd71e60fb9641d3c7311",
     "semantic_hash": ""
   },
   "src/components/BuildTag.tsx": {

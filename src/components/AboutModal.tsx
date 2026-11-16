@@ -127,7 +127,7 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
 
 /** A dev build in place of the update card, drawn as a response like the licence: where it comes from, and that updates are off. */
 function BuildCard({ b }: { b: DevBuild }) {
-  const started = new Date(b.startedAt).toLocaleString(undefined, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const at = new Date(b.at).toLocaleString(undefined, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   return (
     <div className="about-res" aria-label="Build">
       <Line path="/build" status={<span className="status">200 OK</span>} />
@@ -163,8 +163,8 @@ function BuildCard({ b }: { b: DevBuild }) {
             </dd>
           </>
         )}
-        <dt>Started</dt>
-        <dd>{started}</dd>
+        <dt>{b.serve ? "Started" : "Built"}</dt>
+        <dd>{at}</dd>
         <dt>Updates</dt>
         <dd className="warn">off in dev builds</dd>
       </dl>
