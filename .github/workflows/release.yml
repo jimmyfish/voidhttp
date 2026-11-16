@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       id: ${{ steps.release.outputs.result }}
+      body: ${{ steps.release.outputs.body }}
     steps:
       # CHANGELOG.md is read for the release notes
       - uses: actions/checkout@v5
@@ -36,8 +37,9 @@ jobs:
             const tag = context.ref.replace("refs/tags/", "");
             const version = tag.replace(/^v/, "");
             // The notes are this version's section of CHANGELOG.md: from "## [x.y.z]" up to the
-            // next "## " heading or the "[x.y.z]: url" links at the end. tauri-action copies the release body into latest.json, which is
-            // where the app's update chip and About dialog read them from.
+            // next "## " heading or the "[x.y.z]: url" links at the end. It is the release body
+            // here and, through the build jobs, "notes" in latest.json, which the app's update
+            // chip and About dialog show.
             const esc = version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
             const changelog = fs.existsSync("CHANGELOG.md") ? fs.readFileSync("CHANGELOG.md", "utf8") : "";
             const m = changelog.match(new RegExp(`^## \\[${esc}\\]([^\\n]*)\\n([\\s\\S]*?)(?=^## |^\\[[^\\]]+\\]: |(?![\\s\\S]))`, "m"));
@@ -55,6 +57,9 @@ jobs:
               draft: true,
               prerelease: false,
             });
+            // tauri-action does not read the body of a release it did not create: the build
+            // jobs pass this to it as releaseBody, which becomes "notes" in latest.json
+            core.setOutput("body", body);
             return data.id;
 
   # A separate build per architecture instead of one universal app, so each Mac downloads
@@ -98,4 +103,5 @@ jobs:
           tauriScript: bun tauri
           args: --target ${{ matrix.target }}
           releaseId: ${{ needs.create-release.outputs.id }}
+          releaseBody: ${{ needs.create-release.outputs.body }}
           includeUpdaterJson: true
