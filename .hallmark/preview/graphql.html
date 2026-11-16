@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voidHTTP GraphQL preview</title>
+<meta name="description" content="Design preview of GraphQL requests in voidHTTP, before it is applied to the app.">
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./preview.css">
+<link rel="stylesheet" href="./grpc.css">
+<link rel="stylesheet" href="./websocket.css">
+<link rel="stylesheet" href="./socketio.css">
+<link rel="stylesheet" href="./scripts.css">
+<link rel="stylesheet" href="./graphql.css">
+</head>
+<body>
+<!-- icons: Lucide v0.460.0 (ISC), inlined from lucide-react -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-bookmark-plus" viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/><line x1="12" x2="12" y1="7" y2="13"/><line x1="15" x2="9" y1="10" y2="10"/></symbol>
+  <symbol id="i-braces" viewBox="0 0 24 24"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-circle-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
+  <symbol id="i-code-xml" viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></symbol>
+  <symbol id="i-columns-2" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-ellipsis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-file-json" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1 1 1 0 0 1 1 1v1a1 1 0 0 0 1 1"/><path d="M14 18a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1 1 1 0 0 1-1-1v-1a1 1 0 0 0-1-1"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+  <symbol id="i-house" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4"/></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></symbol>
+  <symbol id="i-network" viewBox="0 0 24 24"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></symbol>
+  <symbol id="i-panel-left-close" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-refresh-cw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-shield-off" viewBox="0 0 24 24"><path d="m2 2 20 20"/><path d="M5 5a1 1 0 0 0-1 1v7c0 5 3.5 7.5 7.67 8.94a1 1 0 0 0 .67.01c2.35-.82 4.48-1.97 5.9-3.71"/><path d="M9.309 3.652A12.252 12.252 0 0 0 11.24 2.28a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1v7a9.784 9.784 0 0 1-.08 1.264"/></symbol>
+  <symbol id="i-wand-sparkles" viewBox="0 0 24 24"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+</svg>
+
+<header class="pv-bar">
+  <strong>voidHTTP preview · GraphQL</strong>
+  <nav class="pv-screens" aria-label="Screens">
+    <a class="btn btn--quiet" href="./index.html" style="min-height:var(--control)">← Base</a>
+    <button type="button" data-show="query">Query</button>
+    <button type="button" data-show="menu">Method menu</button>
+    <button type="button" data-show="ops">Operations</button>
+    <button type="button" data-show="docs">Docs</button>
+    <button type="button" data-show="docs-type">Docs · type</button>
+    <button type="button" data-show="noschema">No schema</button>
+    <button type="button" data-show="nointro">Introspection off</button>
+    <button type="button" data-show="errors">GraphQL errors</button>
+  </nav>
+  <div class="pv-theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<div class="pv-stage">
+<div class="app">
+  <div class="app-strip" data-tauri-drag-region>
+    <nav class="ptabs" aria-label="Projects">
+      <button type="button" class="ptab"><svg aria-hidden="true" class="ico"><use href="#i-house"/></svg>Home</button>
+      <span class="ptab-sep" aria-hidden="true"></span>
+      <div class="ptab ptab--project" aria-current="page">
+        <button type="button" class="ptab-main"><span class="proj-tile proj-tile--sm" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>Amarbank</button>
+        <button type="button" class="icon-btn ptab-close" aria-label="Close Amarbank"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
+      </div>
+    </nav>
+    <button type="button" class="icon-btn strip-settings" title="Settings  ⌘," aria-label="Settings"><svg aria-hidden="true" class="ico"><use href="#i-settings"/></svg></button>
+  </div>
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-mark" aria-hidden="true">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke-width="2" style="stroke: var(--color-accent)"/><circle cx="8" cy="8" r="2.25" fill="none" stroke-width="1.5" style="stroke: var(--color-ok)"/></svg>
+    </div>
+    <button type="button" class="rail-item" aria-label="Collections" title="Collections" aria-current="page"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-layers"/></svg></button>
+    <button type="button" class="rail-item" aria-label="History" title="History"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-history"/></svg></button>
+    <button type="button" class="rail-item" aria-label="Variables" title="Variables"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-braces"/></svg></button>
+  </nav>
+
+  <div class="panel">
+    <aside class="sidebar">
+      <div class="side-resize" role="separator" aria-orientation="vertical" aria-label="Resize sidebar"></div>
+      <div class="side-head"><h2>Collections</h2></div>
+      <div class="side-tools">
+        <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search collections"></div>
+        <button type="button" class="icon-btn icon-btn--outline" title="Import" aria-label="Import"><svg aria-hidden="true" class="ico"><use href="#i-import"/></svg></button>
+        <button type="button" class="icon-btn icon-btn--filled" title="New collection" aria-label="New collection"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+      </div>
+      <div class="tree">
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">trx-service</span><span class="count">(6)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for trx-service" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><span class="name">customer-graph</span><span class="count">(4)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for customer-graph" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px" aria-current="page"><button type="button" class="row-main"><span class="m m-GQL">GQL</span><span class="name">Get customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Get customer" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-GQL">GQL</span><span class="name">Create transfer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Create transfer" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-GQL">GQL</span><span class="name">Search accounts</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Search accounts" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">Login</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Login" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">Centralized Login</span><span class="count">(4)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Centralized Login" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+      </div>
+    </aside>
+
+    <main class="work">
+      <div class="tabsbar">
+        <button type="button" class="icon-btn side-toggle" aria-label="Hide sidebar" title="Hide sidebar  ⌘\"><svg aria-hidden="true" class="ico"><use href="#i-panel-left-close"/></svg></button>
+        <div class="tabs">
+          <div class="tab" aria-current="page"><button type="button" class="tab-main"><span class="m m-GQL">GQL</span><span class="name">Get customer</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-POST">POST</span><span class="name">Login</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <button type="button" class="icon-btn tab-add" aria-label="New tab"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+        </div>
+        <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
+        <div class="joined env-group">
+          <button type="button" class="env-picker" aria-label="Environment" style="--env-c: var(--tag-sunflower)"><span class="env-dot" aria-hidden="true"></span><span class="env-name">Staging</span><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          <button type="button" class="btn joined-tail" aria-label="Environment menu" title="Manage environments"><svg aria-hidden="true" class="ico"><use href="#i-menu"/></svg></button>
+        </div>
+      </div>
+
+      <!-- GraphQL is an HTTP request: Send (not Invoke/Connect), always POST application/json on the wire -->
+      <div class="request-line">
+        <div class="url-field">
+          <div class="method-wrap">
+            <button type="button" class="method-btn m-GQL" aria-label="Method: GraphQL" aria-haspopup="menu" aria-expanded="false">GQL</button>
+            <div class="menu method-menu" role="menu" aria-label="Method" data-screen="menu"><button type="button" role="menuitemradio" class="m-GET" aria-checked="false">GET</button><button type="button" role="menuitemradio" class="m-POST" aria-checked="false">POST</button><button type="button" role="menuitemradio" class="m-PUT" aria-checked="false">PUT</button><button type="button" role="menuitemradio" class="m-PATCH" aria-checked="false">PATCH</button><button type="button" role="menuitemradio" class="m-DELETE" aria-checked="false">DELETE</button><button type="button" role="menuitemradio" class="m-HEAD" aria-checked="false">HEAD</button><button type="button" role="menuitemradio" class="m-OPTIONS" aria-checked="false">OPTIONS</button><hr><button type="button" role="menuitemradio" class="m-GQL" aria-checked="true">GraphQL</button><button type="button" role="menuitemradio" class="m-GRPC" aria-checked="false">gRPC</button><button type="button" role="menuitemradio" class="m-WS" aria-checked="false">WebSocket</button><button type="button" role="menuitemradio" class="m-SIO" aria-checked="false">Socket.IO</button></div>
+          </div>
+          <div class="url-input">
+            <div class="url-hl" aria-hidden="true"><span class="url-hl-in"><span class="tok-var"><i>{{</i>baseUrl<i>}}</i></span>/graphql </span></div>
+            <input aria-label="URL" value="{{baseUrl}}/graphql" spellcheck="false">
+          </div>
+        </div>
+        <div class="joined send-group">
+          <button type="button" class="btn btn--primary">Send</button>
+          <button type="button" class="btn btn--primary joined-tail" aria-label="More send options"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+        </div>
+        <div class="joined">
+          <button type="button" class="btn">Save</button>
+          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
+        </div>
+      </div>
+      <div class="req-title">
+        <span class="name">Get customer</span>
+        <span class="path">customer-graph</span>
+      </div>
+
+      <!-- Query replaces Body; Params stays (GET-style servers, persisted-query keys); Scripts as for HTTP -->
+      <nav class="subtabs" aria-label="Request">
+        <button type="button" class="subtab" aria-pressed="true">Query</button>
+        <button type="button" class="subtab" aria-pressed="false">Params</button>
+        <button type="button" class="subtab" aria-pressed="false">Headers <span class="n">1</span></button>
+        <button type="button" class="subtab" aria-pressed="false">Auth</button>
+        <button type="button" class="subtab" aria-pressed="false">Scripts</button>
+        <button type="button" class="icon-btn push" title="Copy as cURL" aria-label="Copy as cURL"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg></button>
+      </nav>
+
+      <div class="section" style="flex:1">
+        <div class="gql-split">
+          <!-- left: the query document -->
+          <div class="gql-col">
+            <div class="gql-head">
+              <span class="lbl">Operation</span>
+              <!-- one named operation: shown, not a menu -->
+              <div class="op-wrap" data-screen="query menu docs docs-type noschema nointro errors">
+                <button type="button" class="op-btn" disabled title="The document holds one operation"><span class="kind">query</span>GetCustomer</button>
+              </div>
+              <!-- several: Send runs the one picked here -->
+              <div class="op-wrap" data-screen="ops">
+                <button type="button" class="op-btn" aria-haspopup="menu" aria-expanded="true"><span class="kind">mutation</span>CreateTransfer<svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+                <div class="menu op-menu" role="menu" aria-label="Operation to send">
+                  <button type="button" role="menuitemradio" aria-checked="false"><span class="tick-gap"></span><span class="kind">query</span><span class="name">GetCustomer</span></button>
+                  <button type="button" role="menuitemradio" aria-checked="true"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg><span class="kind">mutation</span><span class="name">CreateTransfer</span></button>
+                </div>
+              </div>
+            </div>
+            <div class="editor">
+              <div class="editor-bar"><button type="button" class="btn btn--quiet"><svg aria-hidden="true" class="ico"><use href="#i-wand-sparkles"/></svg>Beautify</button></div>
+              <pre class="code" aria-label="Query" data-gql="one" data-screen="query menu docs docs-type noschema nointro"></pre>
+              <pre class="code" aria-label="Query" data-gql="many" data-screen="ops"></pre>
+              <pre class="code" aria-label="Query" data-gql="one" data-err-line="2" data-screen="errors"></pre>
+            </div>
+          </div>
+
+          <!-- right: Variables or Docs -->
+          <div class="gql-col">
+            <div class="gql-head">
+              <div class="seg" role="group" aria-label="Side panel">
+                <button type="button" data-screen="query menu ops errors" aria-pressed="true">Variables</button>
+                <button type="button" data-screen="docs docs-type noschema nointro" aria-pressed="false">Variables</button>
+                <button type="button" data-screen="query menu ops errors" aria-pressed="false">Docs</button>
+                <button type="button" data-screen="docs docs-type noschema nointro" aria-pressed="true">Docs</button>
+              </div>
+              <span class="schema-state push" data-screen="query menu ops errors docs docs-type"><span class="dot" aria-hidden="true"></span>Schema · 2 min ago<button type="button" class="icon-btn" title="Fetch the schema again" aria-label="Fetch the schema again"><svg aria-hidden="true" class="ico"><use href="#i-refresh-cw"/></svg></button></span>
+              <span class="schema-state none push" data-screen="noschema"><span class="dot" aria-hidden="true"></span>No schema</span>
+              <span class="schema-state fail push" data-screen="nointro"><span class="dot" aria-hidden="true"></span>Introspection refused</span>
+            </div>
+
+            <!-- variables: JSON, {{env}} allowed; required ones the query declares but this misses are not invented -->
+            <div class="editor" data-screen="query menu errors">
+              <pre class="code" aria-label="Variables" data-json='{"id":"{{customerId}}","first":5}'></pre>
+            </div>
+            <div class="editor" data-screen="ops">
+              <pre class="code" aria-label="Variables" data-json='{"id":"{{customerId}}","input":{"from":"0012-8841-20","to":"0098-1102-77","amount":"250000.00","currency":"IDR"}}'></pre>
+            </div>
+
+            <!-- docs: root -->
+            <div class="gdoc" data-screen="docs">
+              <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search types and fields" aria-label="Search the schema"></div>
+              <div class="gdoc-body">
+                <div class="gdoc-grp">Root types</div>
+                <button type="button" class="gdoc-row"><span class="f">query</span><span class="p">: </span><span class="t">Query</span><span class="d">7 fields</span></button>
+                <button type="button" class="gdoc-row"><span class="f">mutation</span><span class="p">: </span><span class="t">Mutation</span><span class="d">4 fields</span></button>
+                <div class="gdoc-grp">Query</div>
+                <button type="button" class="gdoc-row"><span class="f">customer</span><span class="p">(</span><span class="a">id</span><span class="p">: </span><span class="t">ID</span><span class="p">!): </span><span class="t">Customer</span><span class="d">One customer by id; null when there is none.</span></button>
+                <button type="button" class="gdoc-row"><span class="f">customers</span><span class="p">(</span><span class="a">first</span><span class="p">: </span><span class="t">Int</span><span class="p">, </span><span class="a">after</span><span class="p">: </span><span class="t">String</span><span class="p">): </span><span class="t">CustomerConnection</span><span class="p">!</span></button>
+                <button type="button" class="gdoc-row"><span class="f">account</span><span class="p">(</span><span class="a">number</span><span class="p">: </span><span class="t">String</span><span class="p">!): </span><span class="t">Account</span></button>
+                <button type="button" class="gdoc-row"><span class="f">searchAccounts</span><span class="p">(</span><span class="a">q</span><span class="p">: </span><span class="t">String</span><span class="p">!): [</span><span class="t">Account</span><span class="p">!]!</span></button>
+                <button type="button" class="gdoc-row"><span class="f">transfer</span><span class="p">(</span><span class="a">id</span><span class="p">: </span><span class="t">ID</span><span class="p">!): </span><span class="t">Transfer</span></button>
+                <button type="button" class="gdoc-row dep"><span class="f">customerByEmail</span><span class="p">(</span><span class="a">email</span><span class="p">: </span><span class="t">String</span><span class="p">!): </span><span class="t">Customer</span><span class="dep-tag">deprecated</span><span class="d">Use customers(filter:) instead.</span></button>
+              </div>
+            </div>
+
+            <!-- docs: a type, reached by clicking Customer -->
+            <div class="gdoc" data-screen="docs-type">
+              <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search types and fields" aria-label="Search the schema"></div>
+              <nav class="gdoc-crumbs" aria-label="Schema path"><button type="button">Schema</button><svg aria-hidden="true" class="ico"><use href="#i-chevron-right"/></svg><button type="button">Query</button><svg aria-hidden="true" class="ico"><use href="#i-chevron-right"/></svg><span class="here">Customer</span></nav>
+              <div class="gdoc-body">
+                <div class="gdoc-title"><strong>Customer</strong><span class="gdoc-kind">type</span></div>
+                <p class="gdoc-desc">A person or company holding one or more accounts.</p>
+                <div class="gdoc-grp">Fields</div>
+                <button type="button" class="gdoc-row"><span class="f">id</span><span class="p">: </span><span class="t">ID</span><span class="p">!</span></button>
+                <button type="button" class="gdoc-row"><span class="f">name</span><span class="p">: </span><span class="t">String</span><span class="p">!</span></button>
+                <button type="button" class="gdoc-row"><span class="f">email</span><span class="p">: </span><span class="t">String</span></button>
+                <button type="button" class="gdoc-row"><span class="f">segment</span><span class="p">: </span><span class="t">Segment</span><span class="p">!</span><span class="d">RETAIL · SME · CORPORATE</span></button>
+                <button type="button" class="gdoc-row"><span class="f">accounts</span><span class="p">: [</span><span class="t">Account</span><span class="p">!]!</span></button>
+                <button type="button" class="gdoc-row"><span class="f">transfers</span><span class="p">(</span><span class="a">first</span><span class="p">: </span><span class="t">Int</span><span class="p"> = 20, </span><span class="a">status</span><span class="p">: </span><span class="t">TransferStatus</span><span class="p">): </span><span class="t">TransferConnection</span><span class="p">!</span><span class="d">Newest first.</span></button>
+                <button type="button" class="gdoc-row"><span class="f">createdAt</span><span class="p">: </span><span class="t">DateTime</span><span class="p">!</span></button>
+                <div class="gdoc-grp">Used by</div>
+                <div class="gdoc-enum"><code>Query.customer</code><code>Query.customers</code><code>Transfer.sender</code></div>
+              </div>
+            </div>
+
+            <!-- no schema fetched yet -->
+            <div class="gdoc" data-screen="noschema">
+              <div class="empty">
+                <svg aria-hidden="true" class="ico ico-lg"><use href="#i-network"/></svg>
+                <strong>No schema yet</strong>
+                <span>Ask <code>{{baseUrl}}/graphql</code> for its schema with an introspection query. Headers and Auth from this request go along.</span>
+                <button type="button" class="btn btn--primary"><svg aria-hidden="true" class="ico"><use href="#i-refresh-cw"/></svg>Fetch schema</button>
+                <button type="button" class="link">Load an introspection JSON file</button>
+              </div>
+            </div>
+
+            <!-- introspection off (common in production) -->
+            <div class="gdoc" data-screen="nointro">
+              <div class="empty fail">
+                <svg aria-hidden="true" class="ico ico-lg"><use href="#i-shield-off"/></svg>
+                <strong>The server refused introspection</strong>
+                <span><code>GraphQL introspection is not allowed</code>. Production servers often turn it off; queries still send.</span>
+                <button type="button" class="btn"><svg aria-hidden="true" class="ico"><use href="#i-refresh-cw"/></svg>Try again</button>
+                <button type="button" class="link">Load an introspection JSON file</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider" role="separator" aria-orientation="horizontal" aria-label="Resize panes"></div>
+
+      <section class="response" aria-label="Response">
+        <nav class="subtabs" aria-label="Response">
+          <button type="button" class="subtab" aria-pressed="true">Body</button>
+          <button type="button" class="subtab" aria-pressed="false">Headers <span class="n">8</span></button>
+          <button type="button" class="subtab" aria-pressed="false">Tests</button>
+          <button type="button" class="subtab" aria-pressed="false">Console</button>
+          <span class="push meta" data-screen="query menu ops docs docs-type noschema nointro"><span class="ok">200 OK</span><span class="dim">96 ms</span><span class="dim">388&nbsp;B</span><span class="dim">HTTP/2</span></span>
+          <span class="push meta" data-screen="errors"><span class="ok">200 OK</span><span class="gql-err">1 error</span><span class="dim">41 ms</span><span class="dim">214&nbsp;B</span><span class="dim">HTTP/2</span></span>
+        </nav>
+
+        <!-- GraphQL errors: one row each, above the body; "Line 2" jumps into the query -->
+        <div class="gql-errors" data-screen="errors">
+          <div class="gql-erow"><svg aria-hidden="true" class="ico"><use href="#i-circle-x"/></svg><span><span class="msg">Customer cus_0000 not found</span><span class="path">customer</span><span class="code-tag">NOT_FOUND</span></span><button type="button" class="link">Line 2</button></div>
+        </div>
+
+        <div class="res-tools">
+          <div class="seg" role="group" aria-label="View"><button type="button" aria-pressed="true">Pretty</button><button type="button" aria-pressed="false">Raw</button></div>
+          <button type="button" class="icon-btn" style="margin-left:auto" title="Save as example" aria-label="Save as example"><svg aria-hidden="true" class="ico"><use href="#i-bookmark-plus"/></svg></button>
+          <button type="button" class="icon-btn" title="Copy response" aria-label="Copy response"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
+        </div>
+        <div class="res-body" data-screen="query menu ops docs docs-type noschema nointro">
+          <pre class="code" aria-label="Response body" data-json='{"data":{"customer":{"id":"cus_8f2c41","name":"Ada Lovelace","email":"ada@example.com","accounts":[{"number":"0012-8841-20","balance":{"amount":"12500000.00","currency":"IDR"}}],"transfers":{"edges":[{"node":{"id":"trf_19a4","amount":"250000.00","createdAt":"2026-11-15T09:12:00Z"}}]}}}}'></pre>
+        </div>
+        <div class="res-body" data-screen="errors">
+          <pre class="code" aria-label="Response body" data-json='{"data":{"customer":null},"errors":[{"message":"Customer cus_0000 not found","locations":[{"line":2,"column":3}],"path":["customer"],"extensions":{"code":"NOT_FOUND"}}]}'></pre>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</div>
+
+<script>
+  const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  // JSON → the same line/indent/token spans the app's code view uses
+  const TOK = /("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(true|false)|(null)|([{}\[\],:])/g;
+  const jline = (s) => {
+    const ind = s.match(/^ */)[0];
+    const body = s.slice(ind.length).replace(TOK, (m, str, colon, num, bool, nul, p) =>
+      str ? (colon ? `<span class="j-key">${esc(str)}</span><span class="j-p">:</span>` : `<span class="j-str">${esc(str)}</span>`)
+      : num ? `<span class="j-num">${m}</span>` : bool ? `<span class="j-bool">${m}</span>` : nul ? `<span class="j-null">${m}</span>` : `<span class="j-p">${esc(p)}</span>`);
+    return `<span class="l">${ind ? `<span class="ind">${ind}</span>` : ""}${body}</span>`;
+  };
+  document.querySelectorAll("pre[data-json]").forEach((pre) => { pre.innerHTML = JSON.stringify(JSON.parse(pre.dataset.json), null, 2).split("\n").map(jline).join(""); });
+
+  // GraphQL → line spans; the same small tokenizer ports into src/lib/highlight.ts
+  const GKW = /^(query|mutation|subscription|fragment|on|true|false|null)$/;
+  const GQ = /(#.*$)|("(?:[^"\\]|\\.)*")|(\$[A-Za-z_]\w*)|(-?\d+(?:\.\d+)?)|(\.\.\.)|([A-Za-z_]\w*)(?=\s*:)|([A-Za-z_]\w*)|([{}()[\],:!=@|]+)/gm;
+  const gline = (s) => {
+    const ind = s.match(/^ */)[0];
+    const body = s.slice(ind.length).replace(GQ, (m, com, str, v, num, spread, arg, id, p) =>
+      com ? `<span class="j-com">${esc(com)}</span>` : str ? `<span class="j-str">${esc(str)}</span>` : v ? `<span class="g-var">${v}</span>`
+      : num ? `<span class="j-num">${m}</span>` : spread ? `<span class="j-p">...</span>` : arg ? `<span class="g-arg">${arg}</span>`
+      : id ? (GKW.test(id) ? `<span class="j-kw">${id}</span>` : /^(?!ID$)[A-Z][A-Z0-9_]+$/.test(id) ? `<span class="g-enum">${id}</span>` : /^[A-Z]/.test(id) ? `<span class="g-type">${id}</span>` : id)
+      : `<span class="j-p">${esc(p)}</span>`);
+    return `<span class="l">${ind ? `<span class="ind">${ind}</span>` : ""}${body || " "}</span>`;
+  };
+  const GET_CUSTOMER = `query GetCustomer($id: ID!, $first: Int = 5) {
+  customer(id: $id) {
+    id
+    name
+    email
+    accounts {
+      number
+      balance { amount currency }
+    }
+    transfers(first: $first, status: COMPLETED) {
+      edges { node { id amount createdAt } }
+    }
+  }
+}`;
+  const SRC = {
+    one: GET_CUSTOMER,
+    many: `${GET_CUSTOMER}
+
+# Send runs the operation picked above
+mutation CreateTransfer($input: TransferInput!) {
+  createTransfer(input: $input) {
+    id
+    status
+    ...TransferMoney
+  }
+}
+
+fragment TransferMoney on Transfer {
+  amount
+  currency
+}`,
+  };
+  document.querySelectorAll("pre[data-gql]").forEach((pre) => {
+    pre.innerHTML = SRC[pre.dataset.gql].split("\n").map(gline).join("");
+    const bad = Number(pre.dataset.errLine);
+    if (bad) pre.querySelectorAll(".l")[bad - 1]?.classList.add("err-line");
+  });
+
+  const setTheme = (t) => {
+    document.documentElement.dataset.theme = t;
+    document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.themeSet === t)));
+  };
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.themeSet)));
+  setTheme(new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light");
+</script>
+<script>
+  // screens: one at a time, kept in the URL hash. An element can belong to several screens.
+  {
+    const all = () => document.querySelectorAll("[data-screen]");
+    const go = (s) => {
+      all().forEach((el) => { el.hidden = !el.dataset.screen.split(" ").includes(s); });
+      document.querySelectorAll("[data-show]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.show === s)));
+      document.querySelector(".method-btn").setAttribute("aria-expanded", String(s === "menu"));
+      history.replaceState(null, "", `#${s}`);
+    };
+    document.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-show]");
+      if (t) { e.preventDefault(); go(t.dataset.show); }
+    });
+    go(location.hash.slice(1) || "query");
+  }
+</script>
+</body>
+</html>

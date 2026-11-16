@@ -78,14 +78,51 @@ function jsLines(src: string): string[] {
   return lines;
 }
 
+const GQL_KEYWORDS = new Set(["query", "mutation", "subscription", "fragment", "on", "true", "false", "null"]);
+// comment | string | $variable | number | spread | name followed by ":" (argument, alias) | name
+const GQL_TOKEN = /(#.*)|("(?:[^"\\]|\\.)*"?)|(\$[A-Za-z_]\w*)|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(\.\.\.)|([A-Za-z_]\w*)(?=\s*:)|([A-Za-z_]\w*)/g;
+
+/** One line of GraphQL: keywords, types (Capitalised), enum values (ALL_CAPS), arguments, variables, strings, comments. */
+export function highlightGraphql(src: string): string {
+  let out = "";
+  let last = 0;
+  for (const m of src.matchAll(GQL_TOKEN)) {
+    const i = m.index ?? 0;
+    out += esc(src.slice(last, i));
+    const id = m[7];
+    const cls = m[1]
+      ? "j-com"
+      : m[2]
+        ? "j-str"
+        : m[3]
+          ? "g-var"
+          : m[4]
+            ? "j-num"
+            : m[5]
+              ? "j-p"
+              : m[6]
+                ? GQL_KEYWORDS.has(m[6]) ? "j-kw" : "g-arg"
+                : GQL_KEYWORDS.has(id)
+                  ? "j-kw"
+                  : /^(?!ID$)[A-Z][A-Z0-9_]+$/.test(id)
+                    ? "g-enum"
+                    : /^[A-Z]/.test(id)
+                      ? "g-type"
+                      : "";
+    out += cls ? `<span class="${cls}">${esc(m[0])}</span>` : esc(m[0]);
+    last = i + m[0].length;
+  }
+  return out + esc(src.slice(last));
+}
+
 const line = (lead: string, body: string, cls = "l") => `<span class="${cls}">${lead ? `<span class="ind">${lead}</span>` : ""}${body}</span>`;
 
 /**
  * One `.l` block per line, leading indentation wrapped in `.ind` (indent guides),
- * tokens coloured for JSON (`true` or "json") or JavaScript ("js"). `mark` (1-based) flags one line, e.g. where a script failed.
+ * tokens coloured for JSON (`true` or "json"), JavaScript ("js") or GraphQL ("graphql"). `mark` (1-based) flags one line, e.g. where a script failed.
  * Line numbers come from CSS counters.
  */
-export function highlightLines(src: string, lang: boolean | "json" | "js", mark?: number): string {
+export function highlightLines(src: string, lang: boolean | "json" | "js" | "graphql", mark?: number): string {
   const cls = (i: number) => (i + 1 === mark ? "l err-line" : "l");
   if (lang === "js") {
     // indentation is plain text at the start of a line: peel it off the rendered line
@@ -103,7 +140,7 @@ export function highlightLines(src: string, lang: boolean | "json" | "js", mark?
       const m = /^ +/.exec(text);
       const lead = m ? m[0] : "";
       const rest = text.slice(lead.length);
-      return line(lead, json ? highlightJson(rest) : esc(rest), cls(i));
+      return line(lead, json ? highlightJson(rest) : lang === "graphql" ? highlightGraphql(rest) : esc(rest), cls(i));
     })
     .join("");
 }

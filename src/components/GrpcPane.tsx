@@ -1,4 +1,5 @@
 import { defaultSio } from "../lib/sio";
+import { defaultGql } from "../lib/graphql";
 import { RENDER_GROWTH } from "../lib/vars";
 import { TitleName } from "./InlineRename";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -140,6 +141,7 @@ export function GrpcRequestPane({ tab, grow, lookup, missing, path, saveControls
   const switchKind = (method: string) => {
     if (method === "WS") update(tab.id, { method, ws: req.ws ?? { subprotocols: [], pingSec: 0 } });
     else if (method === "SIO") update(tab.id, { method, sio: req.sio ?? defaultSio() });
+    else if (method === "GQL") update(tab.id, { method, gql: req.gql ?? defaultGql() });
     else if (method !== "GRPC") update(tab.id, { method });
   };
 

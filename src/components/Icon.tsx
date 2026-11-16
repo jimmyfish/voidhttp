@@ -62,6 +62,7 @@ export {
   Search,
   Send,
   SendHorizontal,
+  ShieldOff,
   Server,
   Settings,
   SlidersHorizontal,

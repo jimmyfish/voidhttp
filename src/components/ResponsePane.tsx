@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ScriptRun, Tab } from "../types";
 import { formatBytes } from "../lib/model";
 import { useStore } from "../store";
@@ -10,6 +10,8 @@ import { BodyViewer, ExampleBanner, PairsTable, useTabExample } from "./Response
 import { RunBanner, RunsButton } from "./Runs";
 import { BookmarkPlus, CircleCheck, CircleX, Copy, Trash2, TriangleAlert, ico } from "./Icon";
 import { OPEN_SCRIPT, hasScript, type OpenScript } from "../lib/script";
+import { gqlErrors, isGql, type GqlError } from "../lib/graphql";
+import { OPEN_GQL_LINE, type OpenGqlLine } from "./GqlPane";
 
 export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   if (isSocket(tab.request)) return <WsResponsePane tab={tab} grow={grow} />;
@@ -25,6 +27,9 @@ function HttpResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   const example = useTabExample(tab);
   const res = tab.response;
   const run = tab.scripts;
+  // GraphQL errors ride on 200 OK: counted beside the status, listed above the body
+  const gql = isGql(tab.request);
+  const errors = useMemo(() => (gql && res && res.bodyEncoding === "utf8" ? gqlErrors(res.body) : []), [gql, res]);
   // Tests and Console show for a request with scripts, or after a send that ran some
   const scripted = !!run || hasScript(tab.request.scripts?.pre) || hasScript(tab.request.scripts?.post);
 
@@ -134,6 +139,11 @@ function HttpResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
           <span className={statusClass}>
             {res.status} {res.statusText}
           </span>
+          {errors.length > 0 && (
+            <span className="gql-err">
+              {errors.length} {errors.length === 1 ? "error" : "errors"}
+            </span>
+          )}
           <span className="dim">{res.elapsedMs} ms</span>
           <span className="dim">{formatBytes(res.size)}</span>
           <span className="dim">{res.httpVersion.replace(/^HTTP\/([23])\.0$/, "HTTP/$1")}</span>
@@ -172,9 +182,41 @@ function HttpResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
           )}
         </>
       ) : (
-        <BodyViewer tabId={tab.id} body={res.body} contentType={contentType} example={!!tab.example} tools={saveExample} />
+        <>
+          {errors.length > 0 && <GqlErrorList errors={errors} tabId={tab.id} canJump={!tab.example} />}
+          <BodyViewer tabId={tab.id} body={res.body} contentType={contentType} example={!!tab.example} tools={saveExample} />
+        </>
       )}
     </>,
+  );
+}
+
+/** At most this many GraphQL errors listed above the body; the body has them all. */
+const MAX_GQL_ERRORS = 5;
+
+function GqlErrorList({ errors, tabId, canJump }: { errors: GqlError[]; tabId: string; canJump: boolean }) {
+  const jump = (line: number) => window.dispatchEvent(new CustomEvent<OpenGqlLine>(OPEN_GQL_LINE, { detail: { tabId, line } }));
+  return (
+    <div className="gql-errors" role="list" aria-label="GraphQL errors">
+      {errors.slice(0, MAX_GQL_ERRORS).map((e, i) => (
+        <div key={i} className="gql-erow" role="listitem">
+          <CircleX {...ico} />
+          <span>
+            <span className="msg">{e.message}</span>
+            {e.path && <span className="path">{e.path}</span>}
+            {e.code && <span className="code-tag">{e.code}</span>}
+          </span>
+          {e.line && canJump ? (
+            <button type="button" className="link" onClick={() => jump(e.line!)}>
+              Line {e.line}
+            </button>
+          ) : (
+            <span />
+          )}
+        </div>
+      ))}
+      {errors.length > MAX_GQL_ERRORS && <span className="gql-more">and {errors.length - MAX_GQL_ERRORS} more in the body</span>}
+    </div>
   );
 }
 

@@ -6,6 +6,7 @@
 import type { Auth, Collection, Environment, Example, KV, RequestBody, RequestNode, TreeNode } from "../../types";
 import { kv, newRequest, paramsFromUrl, parseQuery, uid } from "../model";
 import { dropFilePaths, requestsOf, str, type Any, type ImportPlan, type Note } from "./common";
+import { isGql } from "../graphql";
 
 const toKV = (list: Any[] | undefined): KV[] =>
   (Array.isArray(list) ? list : []).filter((x) => x && typeof x === "object").map((x) => kv(str(x.key), str(x.value), !x.disabled && x.enabled !== false));
@@ -132,6 +133,13 @@ function convertItems(items: Any[], parentAuth: Auth, seen: Seen): TreeNode[] {
       body: convertBody(r.body),
       auth: convertAuth(r.auth, seen) ?? parentAuth,
     });
+    // a GraphQL body makes a GraphQL request; its POST is implied
+    if (r.body?.mode === "graphql" && !r.body.disabled) {
+      const g = r.body.graphql ?? {};
+      req.method = "GQL";
+      req.gql = { query: str(g.query), variables: typeof g.variables === "string" ? g.variables : g.variables ? JSON.stringify(g.variables, null, 2) : "" };
+      req.body = { ...req.body, mode: "none", raw: "" };
+    }
     const pre = scriptOf(it.event, "prerequest");
     const post = scriptOf(it.event, "test");
     if (pre || post) {
@@ -249,9 +257,12 @@ function pmRequest(r: Omit<RequestNode, "type" | "examples">): Any {
   const q = r.url.indexOf("?");
   const raw = r.url;
   return {
-    method: r.method,
+    // GraphQL: Postman's own graphql body on a POST
+    method: isGql(r) ? "POST" : r.method,
     header: pmKv(r.headers),
-    ...(pmBody(r.body) && { body: pmBody(r.body) }),
+    ...(isGql(r)
+      ? { body: { mode: "graphql", graphql: { query: r.gql?.query ?? "", variables: r.gql?.variables ?? "" } } }
+      : pmBody(r.body) && { body: pmBody(r.body) }),
     ...(pmAuth(r.auth) && { auth: pmAuth(r.auth) }),
     url: {
       raw,

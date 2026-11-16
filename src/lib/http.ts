@@ -3,6 +3,7 @@ import type { HttpResponse, RequestDef, Settings } from "../types";
 import { resolve, type VarScope, resolveWithin } from "./vars";
 import { uid } from "./model";
 import { stripJsonComments } from "./jsonc";
+import { gqlAsHttp } from "./graphql";
 
 type WireKV = { key: string; value: string };
 type WireBody =
@@ -32,7 +33,9 @@ function base64Utf8(s: string): string {
 }
 
 /** Applies variables, auth and implicit headers. Pure: used by Send and by cURL export. */
-export function prepare(req: RequestDef, scope: VarScope, budget?: number): Prepared {
+export function prepare(request: RequestDef, scope: VarScope, budget?: number): Prepared {
+  // GraphQL goes out as a POST of its JSON payload; a request a pre-request script already turned into one passes as is
+  const req = gqlAsHttp(request);
   // `budget`: one allowance for the whole request when rendering a preview; left out (a send), each field gets the full one
   const shared = budget === undefined ? undefined : { left: budget };
   const r = (s: string) => (shared ? resolveWithin(s, scope, shared) : resolve(s, scope));

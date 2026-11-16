@@ -22,11 +22,13 @@ import { WsRequestPane } from "./WsPane";
 import { defaultWs, isWs } from "../lib/ws";
 import { SioRequestPane } from "./SioPane";
 import { defaultSio, isSio } from "../lib/sio";
+import { defaultGql, gqlFromJson, gqlPayload, isGql } from "../lib/graphql";
+import { GqlQueryEditor, OPEN_GQL_LINE, type OpenGqlLine } from "./GqlPane";
 
-type Section = "params" | "headers" | "body" | "auth" | "scripts";
+type Section = "params" | "headers" | "body" | "query" | "auth" | "scripts";
 
 export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
-  const [section, setSection] = useState<Section>(tab.request.body.mode !== "none" ? "body" : "params");
+  const [picked, setSection] = useState<Section>(isGql(tab.request) ? "query" : tab.request.body.mode !== "none" ? "body" : "params");
   const [menuOpen, setMenuOpen] = useState(false);
   const [phase, setPhase] = useState<"pre" | "post">(hasScript(tab.request.scripts?.pre) || !hasScript(tab.request.scripts?.post) ? "pre" : "post");
   const menuRef = useRef<HTMLDivElement>(null);
@@ -39,6 +41,9 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
   const st = useStore.getState(); // actions only
 
   const req = tab.request;
+  const gql = isGql(req);
+  // GraphQL's Query takes Body's place, both ways when the method changes
+  const section: Section = gql ? (picked === "body" ? "query" : picked) : picked === "query" ? "body" : picked;
   const set = (patch: Parameters<typeof update>[1]) => update(tab.id, patch);
   const scope = scopeFor(tab.id);
   const missing = unresolved(req.url, scope);
@@ -109,8 +114,13 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
       setSection("scripts");
       setPhase(d.src);
     };
+    const openQuery = (e: Event) => (e as CustomEvent<OpenGqlLine>).detail.tabId === tab.id && setSection("query");
     window.addEventListener(OPEN_SCRIPT, open);
-    return () => window.removeEventListener(OPEN_SCRIPT, open);
+    window.addEventListener(OPEN_GQL_LINE, openQuery);
+    return () => {
+      window.removeEventListener(OPEN_SCRIPT, open);
+      window.removeEventListener(OPEN_GQL_LINE, openQuery);
+    };
   }, [tab.id]);
 
   const copyCurl = async () => {
@@ -155,9 +165,14 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
     </>
   );
   const titlePath = ex ? `${exPath} · example` : saved ? [col!.name, ...folders].join(" / ") : "Not saved";
-  // the method menu, whichever pane shows it: gRPC, WebSocket and Socket.IO bring their own settings and a message body
+  // the method menu, whichever pane shows it: gRPC, WebSocket and Socket.IO bring their own settings and a message body;
+  // GraphQL takes a JSON body that already is one ({ "query": … }), and leaving it keeps its payload as the JSON body
   const pickMethod = (m: string) =>
-    m === "GRPC"
+    m === "GQL"
+      ? set({ method: "GQL", gql: req.gql ?? (req.body.mode === "json" ? gqlFromJson(req.body.raw) : null) ?? defaultGql() })
+      : gql && !["GRPC", "WS", "SIO"].includes(m) && req.body.mode === "none"
+        ? set({ method: m, body: { ...req.body, mode: "json", raw: gqlPayload(req.gql ?? defaultGql()) } })
+        : m === "GRPC"
       ? set({ method: "GRPC", grpc: req.grpc ?? defaultGrpc(req.url), body: { ...req.body, mode: "json" } })
       : m === "WS"
         ? set({ method: "WS", ws: req.ws ?? defaultWs(), body: { ...req.body, mode: req.body.mode === "text" ? "text" : "json" } })
@@ -326,7 +341,7 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
       </div>
 
       <nav className="subtabs" aria-label="Request">
-        {(["params", "body", "headers", "auth", "scripts"] as Section[]).map((s) => (
+        {((gql ? ["query", "params", "headers", "auth", "scripts"] : ["params", "body", "headers", "auth", "scripts"]) as Section[]).map((s) => (
           <button key={s} type="button" className="subtab" aria-pressed={section === s} onClick={() => setSection(s)}>
             {s[0].toUpperCase() + s.slice(1)}
             {s === "params" && n(enabledParams)}
@@ -352,6 +367,7 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
           )}
           {section === "headers" && <KVEditor rows={req.headers} nameLabel="Header" addLabel="Add a header" onChange={(headers) => set({ headers })} />}
           {section === "body" && <BodyEditor tab={tab} />}
+          {section === "query" && <GqlQueryEditor tab={tab} />}
           {section === "auth" && <AuthEditor auth={req.auth} onChange={(auth) => set({ auth })} />}
           {section === "scripts" && <ScriptsEditor tab={tab} phase={phase} setPhase={setPhase} />}
         </fieldset>

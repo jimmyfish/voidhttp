@@ -38,6 +38,14 @@ A lightweight, local-first API client. Rust + React + Tauri v2.
 - Scripts run in an isolated QuickJS sandbox with no network, file or app access, a 10-second time limit and a 64 MB memory limit. A post-response script sees the first 8 MB of the response body, and the Console keeps the first 1,000 lines
 - Not supported yet: `pm.sendRequest`, `require()` libraries (lodash, CryptoJS…), cookies, global variables (`pm.globals.set` warns and keeps nothing), folder and collection scripts
 
+### GraphQL
+
+Pick GraphQL in the method menu and enter the endpoint URL. The Query tab holds the document on the left (highlighted, Beautify, `#` comments with `⌘/`) and its variables as JSON on the right (`{{variables}}` and `//` comments work there, as in a JSON body). When the document defines several operations, an Operation picker chooses the one Send runs. Send is an HTTP POST of `{ query, operationName, variables }` as JSON, so params, headers, auth, scripts, history, examples and Copy as cURL work as for any HTTP request; scripts see that POST.
+
+The Docs panel beside Variables fetches the schema with an introspection query (using the request's headers and auth) and lets you browse root types, fields with their arguments, types, enum values and deprecations, with search. When a server turns introspection off, load an introspection JSON file instead. Schemas are kept for the session, one per endpoint.
+
+GraphQL errors arrive with `200 OK`, so the response shows how many came back beside the status and lists them above the body, each with its path, its `extensions.code`, and a link to its line in the query. Subscriptions and schema-aware autocomplete are not supported yet.
+
 ### gRPC
 
 Pick gRPC in the method menu. Methods come from server reflection (v1, falling back to v1alpha) or from `.proto` files compiled in-app (no `protoc` needed). Unary, server, client and bidirectional streams; messages are JSON, with "Fill example" from the schema. Metadata (keys ending in `-bin` take base64), TLS or plaintext per request, error details (`google.rpc.ErrorInfo`, `BadRequest`…) decoded, history, and Copy as grpcurl. Paste a grpcurl command into the address bar to import it (a cURL command pasted into a gRPC tab turns it back into HTTP).
@@ -63,7 +71,7 @@ Import from a file (picker or drag-and-drop onto the window), a URL, or pasted t
 | Format | Import | Export |
 | --- | --- | --- |
 | voidHTTP export (`.voidhttp.json`): collections and environments, nothing lost | ✓ | ✓ |
-| Postman Collection v2.0 / v2.1 and Postman environments | ✓ (auth inheritance flattened; request scripts kept, folder and collection scripts dropped) | ✓ v2.1, environments written beside it |
+| Postman Collection v2.0 / v2.1 and Postman environments | ✓ (auth inheritance flattened; request scripts kept, folder and collection scripts dropped; GraphQL bodies become GraphQL requests) | ✓ v2.1, environments written beside it |
 | OpenAPI 3.x and Swagger 2 (JSON or YAML) | ✓ folders from tags or paths, `{{baseUrl}}` from the first server, response examples, `$ref` into files beside the spec or URLs | |
 | HAR | ✓ pick which captured calls become requests | ✓ each request with its latest saved example as the response |
 | cURL and grpcurl commands, one or many | ✓ | |
@@ -147,7 +155,7 @@ src-tauri/src/store.rs    atomic JSON persistence in ~/.config/voidhttp and the 
 src-tauri/src/files.rs    read and write import/export files (64 MB read limit, atomic writes)
 src-tauri/src/fonts.rs    installed system fonts for Settings
 src/store.ts              app state (zustand) and debounced persistence
-src/lib/                  vars, request preparation, gRPC calls and schemas, WebSocket, Socket.IO, network settings, cURL, JSONPath, masking, themes
+src/lib/                  vars, request preparation, GraphQL (wire body, introspection), gRPC calls and schemas, WebSocket, Socket.IO, network settings, cURL, JSONPath, masking, themes
 src/lib/formats/          import and export: Postman, OpenAPI / Swagger, HAR, voidHTTP, pasted commands
 src/components/           UI
 ```
@@ -158,7 +166,7 @@ Per-device state stays in the app data dir (`~/Library/Application Support/dev.v
 
 ## Not yet
 
-These are not implemented yet: folder and collection scripts, `pm.sendRequest`, GraphQL, Socket.IO long-polling, gRPC-Web, OAuth 2 flows, collection runner, and code generation beyond cURL and grpcurl.
+These are not implemented yet: folder and collection scripts, `pm.sendRequest`, GraphQL subscriptions and autocomplete, Socket.IO long-polling, gRPC-Web, OAuth 2 flows, collection runner, and code generation beyond cURL and grpcurl.
 
 ## Contributing
 

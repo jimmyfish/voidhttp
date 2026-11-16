@@ -2,7 +2,7 @@
  * voidHTTP's own export: collections and environments exactly as stored, so nothing is lost
  * (gRPC calls, saved examples, environment colours). Ids are made fresh on import.
  */
-import type { Auth, Collection, Environment, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, RequestScripts, SioDef, TreeNode, WsDef } from "../../types";
+import type { Auth, Collection, Environment, GqlDef, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, RequestScripts, SioDef, TreeNode, WsDef } from "../../types";
 import { defaultSio } from "../sio";
 import { cloneNode, uid } from "../model";
 import { newRequest } from "../model";
@@ -58,6 +58,15 @@ function saneGrpc(g: Any): GrpcDef | undefined {
 }
 
 /** Socket.IO settings with every field of the type the app expects. */
+function saneGql(v: Any): GqlDef | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  return {
+    query: typeof v.query === "string" ? v.query : "",
+    variables: typeof v.variables === "string" ? v.variables : "",
+    ...(typeof v.operation === "string" && v.operation && { operation: v.operation }),
+  };
+}
+
 function saneSio(v: Any): SioDef | undefined {
   if (!v || typeof v !== "object") return undefined;
   const d = defaultSio();
@@ -150,6 +159,7 @@ function sane(n: Any): TreeNode | null {
     grpc: saneGrpc(n.grpc),
     ws: saneWs(n.ws),
     sio: saneSio(n.sio),
+    gql: saneGql(n.gql),
     scripts: saneScripts(n.scripts),
     examples: Array.isArray(n.examples)
       ? n.examples

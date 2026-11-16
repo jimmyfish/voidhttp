@@ -22,7 +22,7 @@ export interface RequestBody {
 export interface RequestDef {
   id: string;
   name: string;
-  /** An HTTP method, "GRPC" for a gRPC call (see `grpc`), "WS" for a WebSocket (see `ws`) or "SIO" for Socket.IO (see `sio`). */
+  /** An HTTP method, "GQL" for GraphQL over HTTP (see `gql`), "GRPC" for a gRPC call (see `grpc`), "WS" for a WebSocket (see `ws`) or "SIO" for Socket.IO (see `sio`). */
   method: string;
   /** The URL; for gRPC the server address, host:port; for WebSocket a ws:// or wss:// URL. */
   url: string;
@@ -35,6 +35,7 @@ export interface RequestDef {
   grpc?: GrpcDef;
   ws?: WsDef;
   sio?: SioDef;
+  gql?: GqlDef;
   /** Postman-style JavaScript run around an HTTP send: `pre` before it, `post` once the response arrives. */
   scripts?: RequestScripts;
 }
@@ -68,6 +69,16 @@ export interface ScriptRun {
   tests: ScriptTest[];
   logs: ScriptLog[];
   failed?: { src: "pre" | "post"; name: string; message: string; line?: number };
+}
+
+/** A GraphQL request: sent as an HTTP POST of `{ query, variables, operationName }` as JSON. */
+export interface GqlDef {
+  /** the document: one or more operations, fragments, `#` comments */
+  query: string;
+  /** JSON for `variables`; `{{name}}` resolves like anywhere else; empty sends none */
+  variables: string;
+  /** which named operation Send runs when the document holds several */
+  operation?: string;
 }
 
 export interface SioDef {

@@ -52,6 +52,7 @@ import {
   type GrpcEvent,
 } from "./lib/grpc";
 import { connectWs, isWs, prepareWs, wsClose, wsMessageText, wsSend, type WsEvent } from "./lib/ws";
+import { gqlAsHttp } from "./lib/graphql";
 import { connectSio, isSio, isSocket, maskAuth, prepareSio, sioClose, sioEmit, sioEmitOf, type PreparedSio, type SioEvent } from "./lib/sio";
 
 const HISTORY_LIMIT = 200;
@@ -553,11 +554,12 @@ export const useStore = create<State>((set, get) => {
       const stillSending = () => projectOf(pid)?.tabs.find((t) => t.id === tabId)?.inflightId === inflightId;
       const run: ScriptRun = { tests: [], logs: [] };
 
-      let toSend = request;
+      // scripts see what goes on the wire: a GraphQL request as its POST and JSON payload; history keeps the GraphQL request
+      let toSend = gqlAsHttp(request);
       let locals: Record<string, string> = {};
       if (hasScript(scripts?.pre)) {
         inScript.add(inflightId);
-        const out = await runScript("pre", scripts!.pre!, { request, ...scriptCtx() });
+        const out = await runScript("pre", scripts!.pre!, { request: toSend, ...scriptCtx() });
         inScript.delete(inflightId);
         if (!stillSending()) return; // cancelled while the script ran: its variable changes are dropped too
         saveVars(out.vars);
@@ -570,7 +572,7 @@ export const useStore = create<State>((set, get) => {
           }));
           return;
         }
-        toSend = withScriptRequest(request, out.request);
+        toSend = withScriptRequest(toSend, out.request);
         locals = out.locals;
       }
 

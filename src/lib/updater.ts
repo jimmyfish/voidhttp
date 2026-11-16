@@ -84,12 +84,37 @@ export function releaseDate(date?: string): string | undefined {
   return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 }
 
-/** Release notes as list lines: markdown bullets and headings lose their markers, blank lines go. */
+/** The section headings whose items get a prefix in the short list; Added and Changed items need none. */
+const NOTE_PREFIX: Record<string, string> = { fixed: "Fix: ", security: "Security: ", removed: "Removed: ", deprecated: "Deprecated: " };
+
+const plain = (l: string) => l.replace(/\*\*|__|`/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").trim();
+
+/**
+ * Release notes as short list lines. The notes are a CHANGELOG.md section (Keep a Changelog):
+ * "### Fixed" headings and "- **Lead.** long detail" bullets with nested sub-bullets. Each top-level
+ * bullet becomes one line, its bold lead or else its first sentence, prefixed by its section where
+ * that helps ("Fix: ..."). Notes with no bullets at all are listed line by line.
+ */
 export function noteLines(notes?: string): string[] {
-  return (notes ?? "")
-    .split("\n")
-    .map((l) => l.replace(/^\s*(?:[-*+]|\d+\.|#{1,6})\s+/, "").replace(/\*\*|__|`/g, "").trim())
-    .filter(Boolean);
+  const lines = (notes ?? "").split(/\r?\n/);
+  if (!lines.some((l) => /^[-*+]\s+/.test(l)))
+    return lines.map((l) => plain(l.replace(/^\s*(?:\d+\.|#{1,6})\s+/, ""))).filter(Boolean);
+  const out: string[] = [];
+  let prefix = "";
+  for (const l of lines) {
+    const heading = l.match(/^#{1,6}\s+(.*)/);
+    if (heading) {
+      prefix = NOTE_PREFIX[heading[1].trim().toLowerCase()] ?? "";
+      continue;
+    }
+    // top-level bullets only: indented sub-bullets and wrapped lines are detail
+    const item = l.match(/^[-*+]\s+(.*)/)?.[1];
+    if (!item) continue;
+    const lead = item.match(/^\*\*(.+?)\*\*/)?.[1];
+    const text = plain(lead ?? item.match(/^.+?[.!?](?=\s|$)/)?.[0] ?? item).replace(/[.:]$/, "");
+    if (text) out.push(prefix + text);
+  }
+  return out;
 }
 
 export const mb = (bytes: number) => (bytes / (1024 * 1024)).toFixed(1);
