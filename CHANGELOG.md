@@ -2,7 +2,7 @@
 
 All notable changes to voidHTTP are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## [0.1.6] - Unreleased
+## [0.1.6] - 2026-11-16
 
 ### Added
 
@@ -21,6 +21,8 @@ All notable changes to voidHTTP are listed here. The format follows [Keep a Chan
 
 ### Changed
 
+- **About voidHTTP** (app menu) opens a new dialog instead of the plain macOS panel: the version (click to copy), update status with Install and Restart, the release notes, the license in short, and links to GitHub, the full license and the issue tracker.
+- The update popover and the About dialog now show what changed in a new version, one short line per item, taken from this changelog.
 - voidHTTP now has a license: Apache License 2.0 with the Commons Clause. You may use, modify and redistribute it, and forks must keep the LICENSE and NOTICE files. You may not sell it or offer it as a paid product or service. Releases before 0.1.6 were published without a license.
 
 ### Security
@@ -70,7 +72,7 @@ First tagged release.
 - Import from voidHTTP, Postman v2.x, OpenAPI 3 / Swagger 2, HAR, and cURL / grpcurl commands. Export to voidHTTP, Postman v2.1 and HAR.
 - Light and dark themes with colour schemes, system fonts, and compact mode.
 
-[0.1.6]: https://github.com/jimmyfish/voidhttp/compare/v0.1.5...HEAD
+[0.1.6]: https://github.com/jimmyfish/voidhttp/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/jimmyfish/voidhttp/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/jimmyfish/voidhttp/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/jimmyfish/voidhttp/releases/tag/v0.1.3
