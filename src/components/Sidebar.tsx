@@ -59,6 +59,51 @@ function dropTarget(ev: MouseEvent, item: DragItem): Drop | null {
   return { collectionId: col, targetId: id, where: f < 0.5 ? "before" : "after" };
 }
 
+/**
+ * Which collections and folders are open, kept here (not per row) so ⌥→ / ⌥← can open or close them all.
+ * A collection starts open, a folder closed.
+ */
+const OpenCtx = createContext<{ isOpen: (id: string, byDefault: boolean) => boolean; setOpen: (id: string, open: boolean) => void }>({
+  isOpen: (_, d) => d,
+  setOpen: () => undefined,
+});
+
+/** Every collection and folder id, for expand and collapse all. */
+function containerIds(collections: Collection[]): string[] {
+  const walk = (nodes: TreeNode[]): string[] => nodes.flatMap((n) => (n.type === "folder" ? [n.id, ...walk(n.children)] : []));
+  return collections.flatMap((c) => [c.id, ...walk(c.children)]);
+}
+
+/** Focus a row's clickable body once it has rendered (after a rename, or a collapse that hid the focused row). */
+const focusRow = (id: string) =>
+  requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(`.tree .row[data-id="${CSS.escape(id)}"] > button.row-main`)?.focus());
+
+/**
+ * Sidebar keys on a focused row: ↑/↓ move between rows (↓ from the search box enters the list),
+ * ⌥→ / ⌥← expand or collapse everything. Enter opens (the row is a button); → / ←, F2, ⌘D and ⌘⌫ live on the row.
+ */
+function navKeys(e: React.KeyboardEvent<HTMLElement>, setAll: (open: boolean) => void) {
+  const t = e.target as HTMLElement;
+  const fromSearch = t.matches(".search input");
+  if (!fromSearch && !t.matches("button.row-main")) return;
+  const rows = [...e.currentTarget.querySelectorAll<HTMLButtonElement>(".tree button.row-main")];
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    if (fromSearch && e.key === "ArrowUp") return;
+    e.preventDefault();
+    const i = rows.indexOf(t as HTMLButtonElement);
+    const next = fromSearch ? rows[0] : rows[i + (e.key === "ArrowDown" ? 1 : -1)];
+    next?.focus();
+    next?.scrollIntoView({ block: "nearest" });
+  } else if (!fromSearch && e.altKey && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
+    e.preventDefault();
+    const open = e.key === "ArrowRight";
+    setAll(open);
+    // collapsing can hide the focused row: keep focus on its collection
+    const row = t.closest<HTMLElement>(".row");
+    if (!open && row?.dataset.col) focusRow(row.dataset.col);
+  }
+}
+
 const sameDrop = (a: Drop | null, b: Drop | null) =>
   a === b || (!!a && !!b && a.targetId === b.targetId && a.where === b.where && a.collectionId === b.collectionId);
 
@@ -70,7 +115,13 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
   const [dragId, setDragId] = useState<string | null>(null);
   const [ghost, setGhost] = useState<DragItem | null>(null);
   const [drop, setDrop] = useState<Drop | null>(null);
+  const [openIds, setOpenIds] = useState<Record<string, boolean>>({});
   const collections = useStore((st) => st.collections);
+  const openCtx = {
+    isOpen: (id: string, byDefault: boolean) => openIds[id] ?? byDefault,
+    setOpen: (id: string, open: boolean) => setOpenIds((o) => (o[id] === open ? o : { ...o, [id]: open })),
+  };
+  const setAll = (open: boolean) => setOpenIds(Object.fromEntries(containerIds(useStore.getState().collections).map((id) => [id, open])));
   const s = useStore.getState(); // actions only
 
   const openImport = () => s.openModal({ kind: "import" });
@@ -152,7 +203,7 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
 
   if (view === "history") {
     return (
-      <aside className="sidebar">
+      <aside className="sidebar" onKeyDown={(e) => navKeys(e, () => undefined)}>
         {resize}
         <div className="side-head">
           <h2>History</h2>
@@ -167,7 +218,7 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
   }
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" onKeyDown={(e) => navKeys(e, setAll)}>
       {resize}
       <div className="side-head">
         <h2>Collections</h2>
@@ -203,9 +254,11 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
           </div>
         ) : (
           <DragCtx.Provider value={{ dragId, drop, start: startDrag }}>
-            {collections.map((c) => (
-              <CollectionView key={c.id} collection={c} filter={f} />
-            ))}
+            <OpenCtx.Provider value={openCtx}>
+              {collections.map((c) => (
+                <CollectionView key={c.id} collection={c} filter={f} />
+              ))}
+            </OpenCtx.Provider>
           </DragCtx.Provider>
         )}
       </div>
@@ -233,7 +286,9 @@ function matches(n: TreeNode, f: string): boolean {
 }
 
 function CollectionView({ collection, filter }: { collection: Collection; filter: string }) {
-  const [open, setOpen] = useState(true);
+  const { isOpen, setOpen: setOpenId } = useContext(OpenCtx);
+  const open = isOpen(collection.id, true);
+  const setOpen = (v: boolean) => setOpenId(collection.id, v);
   const shown = open || !!filter;
   return (
     <>
@@ -256,7 +311,11 @@ function CollectionView({ collection, filter }: { collection: Collection; filter
 }
 
 function Node({ node, collectionId, depth, filter }: { node: TreeNode; collectionId: string; depth: number; filter: string }) {
-  const [open, setOpen] = useState(false);
+  // a folder's open state is shared (expand / collapse all); a request's examples list is its own
+  const { isOpen, setOpen: setOpenId } = useContext(OpenCtx);
+  const [exOpen, setExOpen] = useState(false);
+  const open = node.type === "folder" ? isOpen(node.id, false) : exOpen;
+  const setOpen = (v: boolean) => (node.type === "folder" ? setOpenId(node.id, v) : setExOpen(v));
   const openSaved = useStore((s) => s.openSaved);
   const activeNodeId = useStore((s) => s.tabs.find((t) => t.id === s.activeTabId)?.savedRef?.nodeId);
   const activeEx = useStore((s) => s.tabs.find((t) => t.id === s.activeTabId)?.example);
@@ -267,6 +326,7 @@ function Node({ node, collectionId, depth, filter }: { node: TreeNode; collectio
       : activeEx?.collectionId === collectionId && activeEx.nodeId === node.id;
   useEffect(() => {
     if (holdsActive) setOpen(true);
+    // setOpen is rebuilt each render; only a change of holdsActive should open the row
   }, [holdsActive]);
 
   if (node.type === "request") {
@@ -398,9 +458,19 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
         onClick={container ? onToggle : onClick}
         onDoubleClick={rename}
         onKeyDown={(e) => {
-          if (expandable && (e.key === "ArrowRight" ? !open : e.key === "ArrowLeft" && open)) {
+          const mod = e.metaKey || e.ctrlKey;
+          if ((container || expandable) && !e.altKey && !mod && (e.key === "ArrowRight" ? !open : e.key === "ArrowLeft" && open)) {
             e.preventDefault();
             onToggle!();
+          } else if (e.key === "F2" && !mod) {
+            e.preventDefault();
+            rename();
+          } else if (mod && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "d") {
+            e.preventDefault();
+            s.duplicateNode(collectionId, nodeId);
+          } else if (mod && (e.key === "Backspace" || e.key === "Delete")) {
+            e.preventDefault();
+            remove();
           }
         }}
       >
@@ -424,7 +494,7 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
         )}
         {method && <span className={`m m-${method}`}>{methodLabel(method)}</span>}
         {editing ? (
-          <RenameField initial={name} onDone={(v) => (setEditing(false), v !== null && s.renameNode(collectionId, nodeId, v))} />
+          <RenameField initial={name} onDone={(v) => (setEditing(false), v !== null && s.renameNode(collectionId, nodeId, v), focusRow(nodeId))} />
         ) : (
           <span className="name" title={name}>
             {name}
@@ -456,6 +526,8 @@ function ExampleRow({ example, collectionId, nodeId, depth, active }: { example:
   const [menu, setMenu] = useState<MenuState>(false);
   const [editing, setEditing] = useState(false);
   const ref = { collectionId, nodeId, exampleId: example.id };
+  const remove = () =>
+    s.openModal({ kind: "confirm", title: `Delete example “${example.name}”?`, message: "This cannot be undone.", onConfirm: () => s.deleteExample(ref) });
   const items: MenuItem[] = [
     {
       label: "Rename",
@@ -467,8 +539,7 @@ function ExampleRow({ example, collectionId, nodeId, depth, active }: { example:
       label: "Delete",
       icon: <Trash2 {...ico} />,
       danger: true,
-      run: () =>
-        s.openModal({ kind: "confirm", title: `Delete example “${example.name}”?`, message: "This cannot be undone.", onConfirm: () => s.deleteExample(ref) }),
+      run: remove,
     },
   ];
   // a gRPC example shows its status code the way history does: OK for 0
@@ -480,7 +551,20 @@ function ExampleRow({ example, collectionId, nodeId, depth, active }: { example:
       aria-current={active ? "page" : undefined}
       style={{ "--indent": `${depth * 16 + 40}px` } as React.CSSProperties}
     >
-      <RowMain editing={editing} onClick={() => s.openExample(ref)} onDoubleClick={() => setEditing(true)}>
+      <RowMain
+        editing={editing}
+        onClick={() => s.openExample(ref)}
+        onDoubleClick={() => setEditing(true)}
+        onKeyDown={(e) => {
+          if (e.key === "F2" && !e.metaKey && !e.ctrlKey) {
+            e.preventDefault();
+            setEditing(true);
+          } else if ((e.metaKey || e.ctrlKey) && (e.key === "Backspace" || e.key === "Delete")) {
+            e.preventDefault();
+            remove();
+          }
+        }}
+      >
         <Bookmark {...ico} className="ico ex-ico" />
         {editing ? (
           <RenameField initial={example.name} onDone={(v) => (setEditing(false), v !== null && s.renameExample(ref, v))} />

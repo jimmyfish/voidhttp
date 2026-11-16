@@ -15,6 +15,7 @@ import { UpdateChip } from "./components/UpdateChip";
 import { useUpdates } from "./updates";
 import { useNetwork } from "./lib/net";
 import { useCerts } from "./lib/certs";
+import { applyZoom, onGlobalKey } from "./shortcuts";
 
 export const SIDEBAR_DEFAULT = 296;
 const SIDEBAR_MIN = 220;
@@ -157,46 +158,17 @@ export default function App() {
     useStore.getState().init();
   }, []);
 
+  // every app-wide shortcut lives in src/shortcuts.ts (Settings › Shortcuts lists them)
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const mod = e.metaKey || e.ctrlKey;
-      if (!mod) return;
-      const s = useStore.getState();
-      if (e.key === ",") {
-        e.preventDefault();
-        s.openModal(s.modal?.kind === "settings" ? null : { kind: "settings" });
-        return;
-      }
-      if (s.view !== "project") return; // request shortcuts only inside a project
-      if (e.key.toLowerCase() === "e") {
-        e.preventDefault();
-        // ⌘E toggles the Variables dialog; it never stacks on top of another dialog
-        if (s.modal?.kind === "environments") s.openModal(null);
-        else if (!s.modal) s.openModal({ kind: "environments" });
-      } else if (e.key === "\\") {
-        e.preventDefault();
-        s.setSettings({ sidebarHidden: !s.settings.sidebarHidden });
-      } else if (e.key === "Enter" && s.activeTabId) {
-        e.preventDefault();
-        s.sendTab(s.activeTabId);
-      } else if (e.key.toLowerCase() === "s" && s.activeTabId) {
-        e.preventDefault();
-        s.saveTab(s.activeTabId);
-      } else if (e.key.toLowerCase() === "t") {
-        e.preventDefault();
-        s.newTab();
-      } else if (e.key.toLowerCase() === "f" && !e.shiftKey) {
-        // ⌘F jumps to the response filter when a response body is on screen
-        const field = document.querySelector<HTMLInputElement>(".rf-input");
-        if (!field) return;
-        e.preventDefault();
-        field.focus();
-        field.select();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onGlobalKey);
+    return () => window.removeEventListener("keydown", onGlobalKey);
   }, []);
+
+  // ⌘+ / ⌘− / ⌘0 zoom the whole webview; the level is kept in settings
+  const zoom = settings.zoom ?? 1;
+  useEffect(() => {
+    if (loaded) applyZoom(zoom);
+  }, [loaded, zoom]);
 
   // Updates: one quiet check once the workspace has loaded (Settings > Updates can turn it off),
   // and "Check for Updates…" in the app menu, which opens the chip's popover or Settings > Updates

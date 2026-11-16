@@ -2,6 +2,16 @@
 
 All notable changes to voidHTTP are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Quick open (⌘P).** Fuzzy-search the requests, examples and open tabs of the current project by name, folder or URL, then press Enter to open one. A method typed as a word (`post login`) filters by method. With nothing typed it lists the open tabs and the requests you sent lately.
+- **Actions (⇧⌘P, or `>` in quick open).** Send, cancel, save as, reopen a closed tab, show or hide the sidebar, zoom, switch theme or layout, import, settings and more, each shown with its shortcut.
+- **Settings > Shortcuts** lists every keyboard shortcut, with a search box. ⌘/ opens it (inside a code editor ⌘/ still comments lines). Shortcuts can't be changed.
+- **More shortcuts:** ⌘. cancel the request, ⇧⌘S save as, ⌘L jump to the URL, ⇧⌘T reopen the last closed tab, ⇧⌘] / ⇧⌘[ and ⌃Tab / ⌃⇧Tab next and previous tab, ⌘1–⌘8 go to a tab and ⌘9 to the last, ⇧⌘F search the sidebar, ⌥E switch environment, ⌘O import, ⌘+ / ⌘− / ⌘0 zoom (remembered between launches).
+- **Sidebar keyboard:** ↑ / ↓ move between items (↓ from the search box enters the list), Enter opens, → / ← expand or collapse (⌥ for all), F2 renames, ⌘D duplicates and ⌘⌫ deletes the focused item.
+
 ## [0.1.6] - 2026-11-16
 
 ### Added

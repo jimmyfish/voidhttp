@@ -368,6 +368,8 @@ export interface Settings {
   runScripts?: boolean;
   /** Look for a new version when the app opens (default on). */
   autoUpdateCheck?: boolean;
+  /** Page zoom (⌘+ / ⌘− / ⌘0), 0.5 to 2; missing = 100%. */
+  zoom?: number;
   /** Settings > Network; missing fields take DEFAULT_NET (src/lib/net.ts): all off. */
   network?: NetSettings;
   /** Settings > Certificates; missing = nothing added. */

@@ -197,18 +197,35 @@ All of these work for HTTP, WebSocket, Socket.IO and gRPC alike, and all are off
 
 Hands off the mouse.
 
+Every shortcut is also listed in **Settings › Shortcuts** (`⌘/Ctrl + /`). They can't be changed yet.
+
 | Key | What happens |
 | --- | --- |
+| `⌘/Ctrl + P` | Quick open: fuzzy-search requests, examples and open tabs in the current project by name, folder or URL (`post login` filters by method) |
+| `⌘/Ctrl + Shift + P` | Run an action (or type `>` in quick open): send, save as, zoom, theme, import, settings… each with its shortcut |
 | `⌘/Ctrl + Enter` | Send (or Invoke a gRPC call). On an open client or bidi stream, send the next message. Connect a WebSocket or Socket.IO server, or send/emit once it's open |
+| `⌘/Ctrl + .` | Cancel the request in flight |
 | `⌘/Ctrl + S` | Save to collection |
+| `⌘/Ctrl + Shift + S` | Save as a new request |
+| `⌘/Ctrl + L` | Jump to the URL |
+| `⌘/Ctrl + F` | Jump to the response filter |
 | `⌘/Ctrl + T` | New tab |
 | `⌘/Ctrl + W` | Close the open dialog, otherwise the active tab |
-| `⌘/Ctrl + Shift + W` | Close window |
+| `⌘/Ctrl + Shift + T` | Reopen the last closed tab |
+| `⌘/Ctrl + Shift + ]` / `[` | Next / previous tab (`Ctrl + Tab` / `Ctrl + Shift + Tab` work too) |
+| `⌘/Ctrl + 1` … `8` | Go to that tab; `⌘/Ctrl + 9` goes to the last one |
+| `⌘/Ctrl + Shift + F` | Search the sidebar (`↓` moves into the list) |
+| `↑` `↓` `Enter` | Move through the sidebar and open the item |
+| `→` `←` | Expand or collapse a collection, folder or example list; with `Alt` / `⌥`, all of them |
+| `F2` / `⌘/Ctrl + D` / `⌘/Ctrl + Backspace` | Rename / duplicate / delete the focused sidebar item |
 | `⌘/Ctrl + E` | Open or close the Variables dialog |
-| `⌘/Ctrl + F` | Jump to the response filter |
+| `Alt/⌥ + E` | Switch environment |
 | `⌘/Ctrl + \` | Show or hide the sidebar |
+| `⌘/Ctrl + +` / `-` / `0` | Zoom in / out / back to 100% |
+| `⌘/Ctrl + O` | Import |
 | `⌘/Ctrl + ,` | Settings |
-| `⌘/Ctrl + /` | Comment or uncomment lines in a JSON body |
+| `⌘/Ctrl + /` | Comment or uncomment lines in a JSON, script or GraphQL editor; anywhere else, open the shortcut list |
+| `⌘/Ctrl + Shift + W` | Close window |
 | Middle-click a tab | Close it |
 
 ## <img src="docs/assets/icons/database.svg" width="24" height="24" align="top" alt="" /> Where's my data?

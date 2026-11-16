@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useStore } from "../store";
 import { methodLabel } from "../lib/model";
 import { EnvMenu } from "./EnvMenu";
@@ -11,6 +12,10 @@ export function TabsBar() {
   const sidebarHidden = useStore((s) => !!s.settings.sidebarHidden);
   const split = useStore((s) => s.settings.layout === "split");
   const s = useStore.getState(); // actions only
+  // ⌘1–⌘9, ⇧⌘] and ⌘P can pick a tab scrolled out of view: bring it in
+  useEffect(() => {
+    document.querySelector('.tabsbar .tab[aria-current="page"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [activeTabId]);
 
   return (
     <div className="tabsbar">

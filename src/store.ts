@@ -68,7 +68,9 @@ export type Modal =
   /** select: an environment or collection id to open on */
   /** addVar: start a new, empty variable of that name in the selected environment or collection */
   | { kind: "environments"; select?: string; addVar?: string }
-  | { kind: "settings"; section?: "appearance" | "requests" | "network" | "certificates" | "updates" }
+  | { kind: "settings"; section?: SettingsSection }
+  /** ⌘P quick open (requests, examples, open tabs) or, with actions, ⇧⌘P (app actions) */
+  | { kind: "quickopen"; actions?: boolean }
   /** About voidHTTP, from the app menu: version, updates, licence, links */
   | { kind: "about" }
   /** create a project (no id) or edit one */
@@ -81,6 +83,7 @@ export type Modal =
   | { kind: "example"; request: RequestDef; response: HttpResponse | GrpcResult; target?: SavedRef };
 
 export type View = "home" | "project";
+export type SettingsSection = "appearance" | "requests" | "network" | "certificates" | "shortcuts" | "updates";
 
 /**
  * The open project's data sits at the top of the state (collections, environments, history, tabs…),
@@ -120,6 +123,10 @@ interface State extends ProjectData {
   // requests and tabs (current project)
   newTab(req?: RequestDef, savedRef?: SavedRef): void;
   closeTab(id: string): void;
+  /** ⇧⌘T: brings back the most recently closed tab of the open project */
+  reopenTab(): void;
+  /** name of the tab ⇧⌘T would bring back, if any */
+  lastClosedTab(): string | undefined;
   setActiveTab(id: string): void;
   updateRequest(tabId: string, patch: Partial<RequestDef>): void;
   /** `skipScripts`: send without the pre-request and post-response scripts, once */
@@ -265,6 +272,12 @@ const inScript = new Set<string>();
 function stopInflight(t: Tab) {
   if (t.inflightId) (isGrpc(t.request) ? grpcCancel : isWs(t.request) ? wsClose : isSio(t.request) ? sioClose : cancel)(t.inflightId).catch(() => undefined);
 }
+
+/** Closed tabs per project, newest last, for ⇧⌘T. Runtime only: a restart starts empty. */
+const closedTabs = new Map<string, Tab[]>();
+const CLOSED_LIMIT = 20;
+/** A blank scratch tab: nothing typed, never saved, nothing received. */
+const pristine = (t: Tab) => !t.savedRef && !t.example && !t.dirty && !t.request.url && !t.response;
 
 /** Session tabs come back without responses; example tabs get theirs from the collection, or close when it is gone. */
 function restoreTabs(tabs: Tab[], collections: Collection[]): Tab[] {
@@ -494,6 +507,11 @@ export const useStore = create<State>((set, get) => {
     closeTab(id) {
       const tab = get().tabs.find((t) => t.id === id);
       if (tab) stopInflight(tab);
+      if (tab && !pristine(tab)) {
+        const key = get().currentProjectId ?? "";
+        const list = [...(closedTabs.get(key) ?? []), { id: tab.id, request: tab.request, savedRef: tab.savedRef, example: tab.example, dirty: tab.dirty }];
+        closedTabs.set(key, list.slice(-CLOSED_LIMIT));
+      }
       set((s) => {
         const idx = s.tabs.findIndex((t) => t.id === id);
         const tabs = s.tabs.filter((t) => t.id !== id);
@@ -501,6 +519,39 @@ export const useStore = create<State>((set, get) => {
         return { tabs, activeTabId };
       });
       if (get().tabs.length === 0) get().newTab();
+    },
+
+    reopenTab() {
+      const key = get().currentProjectId ?? "";
+      const list = closedTabs.get(key) ?? [];
+      while (list.length) {
+        const t = list.pop()!;
+        // an example opens from its collection again; a deleted one is skipped
+        if (t.example) {
+          if (!findExample(get().collections, t.example)) continue;
+          get().openExample(t.example);
+          return;
+        }
+        const s = get();
+        const open = t.savedRef && s.tabs.find((x) => x.savedRef?.nodeId === t.savedRef!.nodeId);
+        if (open) return set({ activeTabId: open.id });
+        // a request deleted since comes back as an unsaved one
+        const col = t.savedRef && s.collections.find((c) => c.id === t.savedRef!.collectionId);
+        const savedRef = col && findNode(col.children, t.savedRef!.nodeId) ? t.savedRef : undefined;
+        const tab: Tab = { id: uid(), request: t.request, savedRef, dirty: t.dirty || (!!t.savedRef && !savedRef) };
+        const active = s.tabs.find((x) => x.id === s.activeTabId);
+        // like opening a saved request: a blank scratch tab gives its place
+        set((st) => ({
+          tabs: active && pristine(active) ? st.tabs.map((x) => (x.id === active.id ? tab : x)) : [...st.tabs, tab],
+          activeTabId: tab.id,
+        }));
+        return;
+      }
+    },
+
+    lastClosedTab() {
+      const list = closedTabs.get(get().currentProjectId ?? "") ?? [];
+      return list[list.length - 1]?.request.name;
     },
 
     setActiveTab(id) {

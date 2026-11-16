@@ -1762,3 +1762,81 @@ button.gdoc-row:hover { background: var(--color-paper-2); }
 @media (max-width: 860px) {
   .gql-split { grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(160px, 1fr); }
 }
+
+/* ---------- Shortcuts: ⌘P quick open, ⇧⌘P actions (src/components/QuickOpen.tsx), Settings › Shortcuts ---------- */
+/* ---------- Quick open (⌘P) and Actions (⇧⌘P): one box, two modes ---------- */
+/* sits high like VS Code's, over a lighter wash than a dialog so the app stays readable */
+.qo-backdrop {
+  position: fixed; inset: 0; z-index: var(--z-modal);
+  display: flex; justify-content: center; align-items: flex-start; padding: 12vh var(--space-md) 0;
+  background: color-mix(in srgb, var(--color-overlay) 45%, transparent);
+}
+.qo {
+  display: flex; flex-direction: column; width: 620px; max-width: 100%; max-height: min(520px, 72vh); overflow: hidden;
+  border-radius: var(--radius-card); background: var(--color-paper);
+  box-shadow: 0 0 0 1px var(--color-rule), 0 16px 40px var(--color-shadow);
+}
+
+/* input row: search glyph, the query, and which project is searched */
+.qo-in { display: flex; align-items: center; gap: var(--space-xs); min-height: 48px; padding: 0 var(--space-sm) 0 var(--space-md); border-bottom: 1px solid var(--color-rule); }
+.qo-in > .ico { color: var(--color-muted); }
+.qo-in input {
+  flex: 1; min-width: 0; height: 46px; border: none; outline: none; background: none;
+  color: var(--color-ink); font: inherit; font-size: var(--text-md);
+}
+.qo-in input::placeholder { color: var(--color-muted); }
+.qo-scope {
+  display: inline-flex; align-items: center; gap: var(--space-2xs); flex-shrink: 0; height: 24px; padding: 0 var(--space-xs) 0 3px;
+  border-radius: var(--radius-pill); background: var(--color-paper-3); color: var(--color-muted); font-size: var(--text-xs); white-space: nowrap;
+}
+.qo-scope .proj-tile { width: 18px; height: 18px; border-radius: 50%; }
+.qo-scope .proj-tile .ico { width: 11px; height: 11px; }
+
+.qo-list { flex: 1; min-height: 0; overflow: auto; padding: var(--space-2xs); }
+.qo-grp { padding: var(--space-xs) var(--space-sm) var(--space-3xs); color: var(--color-muted); font-size: var(--text-xs); font-weight: 600; }
+.qo-grp:first-child { padding-top: var(--space-2xs); }
+
+/* one result: method (or icon) | name + where it lives | key hint */
+.qo-row {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: var(--space-xs);
+  width: 100%; min-height: 36px; padding: 0 var(--space-sm); border: none; border-radius: 6px;
+  background: none; color: var(--color-ink); text-align: left; cursor: pointer;
+}
+.qo-row:hover { background: var(--color-paper-3); }
+.qo-row[aria-selected="true"] { background: var(--color-accent-soft); }
+.qo-row .m { width: auto; }
+.qo-row > .ico { color: var(--color-muted); justify-self: start; }
+.qo-row .ex-ico { color: var(--color-muted); }
+.qo-txt { display: flex; align-items: baseline; gap: var(--space-xs); min-width: 0; white-space: nowrap; }
+.qo-txt .name { overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; max-width: 60%; }
+.qo-txt .where { overflow: hidden; text-overflow: ellipsis; color: var(--color-muted); font-size: var(--text-sm); }
+/* the letters the query matched, like VS Code: coloured and bold, no fill */
+.qo-row mark { background: none; color: var(--color-link); font-weight: 700; }
+.qo-row .tag { padding: 1px 6px; border-radius: 4px; background: var(--color-paper-3); color: var(--color-muted); font-size: var(--text-xs); }
+.qo-row[aria-selected="true"] .tag { background: var(--color-paper); }
+.qo-row kbd { justify-self: end; }
+.qo-row .dirty { width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent); flex-shrink: 0; align-self: center; }
+
+/* actions mode: icon column is narrower than a method tag */
+.qo--actions .qo-row { grid-template-columns: 20px minmax(0, 1fr) auto; }
+
+.qo-empty { display: grid; justify-items: center; gap: var(--space-2xs); padding: var(--space-xl) var(--space-md); color: var(--color-muted); text-align: center; }
+.qo-empty .ico { width: 22px; height: 22px; }
+.qo-empty strong { color: var(--color-ink); font-weight: 600; }
+
+.qo-foot {
+  display: flex; align-items: center; gap: var(--space-md); min-height: 34px; padding: 0 var(--space-md);
+  border-top: 1px solid var(--color-rule); color: var(--color-muted); font-size: var(--text-xs);
+}
+.qo-foot span { display: inline-flex; align-items: center; gap: var(--space-3xs); }
+.qo-foot .push { margin-left: auto; }
+.qo-foot kbd { padding: 0 5px; }
+
+/* ---------- Settings › Shortcuts: read-only reference ---------- */
+.sc-pane { max-height: min(560px, 68vh); overflow: auto; padding-right: var(--space-2xs); }
+.sc-pane .set-head { position: sticky; top: 0; z-index: 1; padding-bottom: var(--space-xs); background: var(--color-paper); }
+.sc-pane .search { flex: 1; max-width: 260px; margin-left: auto; }
+.sc-pane .set-item.compact { min-height: 40px; }
+.sc-keys { display: inline-flex; align-items: center; gap: var(--space-2xs); color: var(--color-muted); font-size: var(--text-xs); }
+.sc-note { color: var(--color-muted); font-size: var(--text-sm); margin-top: var(--space-xs); }
+.sc-pane .set-head h4 { font-size: var(--text-lg); }

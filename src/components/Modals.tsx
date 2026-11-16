@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Select } from "./Select";
-import { useStore } from "../store";
+import { useStore, type SettingsSection } from "../store";
 import type { Environment, KV } from "../types";
 import { kv, listFolders, uid } from "../lib/model";
 import { ExampleModal } from "./ExampleModal";
 import { ImportModal } from "./ImportModal";
 import { ExportModal } from "./ExportModal";
 import { KVEditor } from "./KVEditor";
-import { Ban, Check, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, FileBadge, Network, Plus, Send, Trash2, TriangleAlert, Type, ico } from "./Icon";
+import { Ban, Check, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, FileBadge, Keyboard, Network, Plus, Send, Trash2, TriangleAlert, Type, ico } from "./Icon";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useUpdates } from "../updates";
 import { CertificatesPane } from "./CertificatesPane";
 import { AboutModal } from "./AboutModal";
+import { QuickOpen } from "./QuickOpen";
+import { ShortcutsPane } from "./ShortcutsPane";
 import { RELEASES_URL } from "../lib/updater";
 import { ago } from "../lib/time";
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
@@ -58,6 +60,8 @@ export function Modals() {
       return <VariablesModal onClose={close} select={modal.select} addVar={modal.addVar} />;
     case "settings":
       return <SettingsModal onClose={close} section={modal.section} />;
+    case "quickopen":
+      return <QuickOpen key={modal.actions ? "actions" : "open"} actions={modal.actions} onClose={close} />;
     case "about":
       return <AboutModal onClose={close} />;
     case "project":
@@ -452,10 +456,14 @@ const UI_SIZES = [12, 13, 14, 15, 16, 17, 18];
 const CODE_SIZES = [11, 12, 13, 14, 15, 16];
 
 /** The one app-wide settings dialog: appearance (theme, fonts), request defaults, network, certificates and updates. */
-function SettingsModal({ onClose, section: initial }: { onClose: () => void; section?: "appearance" | "requests" | "network" | "certificates" | "updates" }) {
+function SettingsModal({ onClose, section: initial }: { onClose: () => void; section?: SettingsSection }) {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
-  const [section, setSection] = useState(initial ?? "appearance");
+  const [section, setSection] = useState<SettingsSection>(initial ?? "appearance");
+  // ⌘/ while Settings is open on another section moves it to Shortcuts
+  useEffect(() => {
+    if (initial) setSection(initial);
+  }, [initial]);
   const theme = settings.theme ?? "auto";
   const [fonts, setFonts] = useState({ all: UI_FONTS, mono: MONO_FONTS });
   useEffect(() => {
@@ -494,6 +502,12 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
             <button type="button" aria-current={section === "certificates"} onClick={() => setSection("certificates")}>
               <FileBadge {...ico} />
               Certificates
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current={section === "shortcuts"} onClick={() => setSection("shortcuts")}>
+              <Keyboard {...ico} />
+              Shortcuts
             </button>
           </li>
           <li>
@@ -600,6 +614,8 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
           <UpdatesPane />
         ) : section === "network" ? (
           <NetworkPane />
+        ) : section === "shortcuts" ? (
+          <ShortcutsPane />
         ) : section === "certificates" ? (
           <CertificatesPane onOpenRequests={() => setSection("requests")} />
         ) : (
