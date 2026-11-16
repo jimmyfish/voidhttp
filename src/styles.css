@@ -686,7 +686,10 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
 .stats .stat-text > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------- title strip: app settings on the far right ---------- */
-.strip-settings { margin-left: auto; margin-right: var(--space-xs); flex-shrink: 0; }
+/* right end of the strip: dev build pill, update chip, Settings gear. The group takes the auto margin,
+ * so the gear stays at the far right whichever of the others is shown */
+.strip-end { margin-left: auto; display: flex; align-items: center; gap: var(--space-2xs); flex-shrink: 0; }
+.strip-settings { margin-right: var(--space-xs); flex-shrink: 0; }
 .strip-settings.on, .strip-settings[aria-expanded="true"] { background: var(--color-paper); color: var(--color-ink); }
 
 /* ---------- Variables: env actions, format switch, code formats ---------- */
@@ -1233,9 +1236,8 @@ textarea.xf-paste { display: block; width: 100%; min-height: 220px; padding: var
 
 /* in-app updates (approved 2026-11-13, preview .hallmark/preview/updates.html): a chip in the title strip
  * beside the Settings gear, a popover under it for each step, and the Updates pane in Settings */
-/* title strip: the chip takes the auto margin, so the gear sits right beside it */
-.upd-anchor { position: relative; margin-left: auto; display: flex; align-items: center; flex-shrink: 0; }
-.upd-anchor + .strip-settings { margin-left: var(--space-2xs); }
+/* title strip: the chip sits in .strip-end, beside the gear */
+.upd-anchor { position: relative; display: flex; align-items: center; flex-shrink: 0; }
 .upd-chip {
   display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 8px;
   border: none; border-radius: var(--radius-pill); background: var(--color-accent-soft); color: var(--color-link);
@@ -1840,3 +1842,26 @@ button.gdoc-row:hover { background: var(--color-paper-2); }
 .sc-keys { display: inline-flex; align-items: center; gap: var(--space-2xs); color: var(--color-muted); font-size: var(--text-xs); }
 .sc-note { color: var(--color-muted); font-size: var(--text-sm); margin-top: var(--space-xs); }
 .sc-pane .set-head h4 { font-size: var(--text-lg); }
+
+/* dev build tag (approved 2026-11-16, preview .hallmark/preview/build.html): `bun tauri dev` says so in a pill
+ * left of the Settings gear, beside the version in About and Settings > Updates; release builds show nothing */
+.build-tag {
+  display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px 0 7px; flex-shrink: 0;
+  border: none; border-radius: var(--radius-pill); white-space: nowrap; cursor: default;
+  font: 700 var(--text-xs) / 1 var(--font-mono); letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
+  --c: var(--color-warn);
+  color: var(--c); background: color-mix(in srgb, var(--c) 11%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 32%, transparent);
+}
+.build-tag .ico { width: 13px; height: 13px; flex-shrink: 0; }
+.build-tag .sha { font-weight: 400; letter-spacing: 0; opacity: 0.85; }
+button.build-tag:hover { background: color-mix(in srgb, var(--c) 17%, transparent); }
+.build-tag:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+/* About: the badge beside the copyable version; the build drawn as a response in place of the update card */
+.about-verline { display: flex; align-items: center; gap: var(--space-2xs); margin-top: var(--space-xs); }
+.about-verline .about-ver { margin-top: 0; }
+.about-res dd .muted { color: var(--color-muted); }
+.about-res dd.warn { color: var(--color-warn); }
+/* Settings > Updates: the badge inline after the version */
+.set-label .build-tag { margin-left: var(--space-2xs); height: 20px; padding: 0 7px 0 6px; vertical-align: 1px; font-size: 10px; }
+.set-label .build-tag .ico { width: 11px; height: 11px; }
+.set-item[aria-disabled="true"] label, .set-item[aria-disabled="true"] .desc { color: var(--color-muted); }

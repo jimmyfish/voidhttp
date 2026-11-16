@@ -12,6 +12,7 @@ import { DEFAULT_SCHEME, findScheme, isDark, schemeTokens } from "./lib/themes";
 import { Braces, CircleCheck, HistoryIcon, House, Layers, Mark, Settings, Undo2, X, ico, icoLg } from "./components/Icon";
 import { DropImport } from "./components/DropImport";
 import { UpdateChip } from "./components/UpdateChip";
+import { BuildTag } from "./components/BuildTag";
 import { useUpdates } from "./updates";
 import { useNetwork } from "./lib/net";
 import { useCerts } from "./lib/certs";
@@ -114,17 +115,21 @@ function AppStrip() {
           );
         })}
       </nav>
-      <UpdateChip />
-      <button
-        type="button"
-        className="icon-btn strip-settings"
-        title="Settings (⌘,)"
-        aria-label="Settings"
-        aria-expanded={settingsOpen}
-        onClick={() => st.openModal({ kind: "settings" })}
-      >
-        <Settings {...ico} />
-      </button>
+      {/* one group takes the auto margin, so the gear stays at the far right with or without the pill or chip */}
+      <div className="strip-end">
+        <BuildTag />
+        <UpdateChip />
+        <button
+          type="button"
+          className="icon-btn strip-settings"
+          title="Settings (⌘,)"
+          aria-label="Settings"
+          aria-expanded={settingsOpen}
+          onClick={() => st.openModal({ kind: "settings" })}
+        >
+          <Settings {...ico} />
+        </button>
+      </div>
     </div>
   );
 }

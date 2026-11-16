@@ -6,6 +6,7 @@ export {
   Bookmark,
   BookmarkPlus,
   Braces,
+  Bug,
   ChevronDown,
   ChevronLeft,
   ChevronRight,

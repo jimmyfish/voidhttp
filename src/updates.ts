@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { getVersion } from "@tauri-apps/api/app";
 import { checkForUpdate, hasPendingUpdate, installUpdate, restartToUpdate, type UpdateState } from "./lib/updater";
+import { DEV_BUILD } from "./build";
 
 interface Updates {
   state: UpdateState;
@@ -33,6 +34,8 @@ export const useUpdates = create<Updates>((set, get) => ({
 
   async check({ quiet = false } = {}) {
     const prev = get().state;
+    // a dev build never checks: an update would replace it with the release from GitHub
+    if (DEV_BUILD) return prev;
     // a found or installed update stays until the app restarts
     if (busy(prev) || prev.kind === "ready") return prev;
     set({ state: { kind: "checking" } });
@@ -46,6 +49,7 @@ export const useUpdates = create<Updates>((set, get) => ({
   },
 
   async install() {
+    if (DEV_BUILD) return;
     const s = get().state;
     if (busy(s) || s.kind === "ready") return;
     if (!hasPendingUpdate()) {

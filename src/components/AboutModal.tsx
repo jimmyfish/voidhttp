@@ -3,6 +3,8 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { useUpdates } from "../updates";
 import { RELEASES_URL, REPO_URL, mb, noteLines, releaseDate } from "../lib/updater";
 import { ago } from "../lib/time";
+import { DEV_BUILD, type DevBuild } from "../build";
+import { BuildBadge } from "./BuildTag";
 import { ChevronDown, CircleArrowDown, CircleDot, Copy, ExternalLink, Github, LoaderCircle, RefreshCw, Scale, X, ico } from "./Icon";
 
 /** Notes longer than this fold behind "Show all n changes". */
@@ -31,9 +33,21 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
     return () => clearTimeout(t);
   }, [copied]);
 
+  // a dev build shows the commit it runs from (v0.1.6-12-g8b686a8+), not the tauri.conf.json version
+  const shown = DEV_BUILD?.describe || (version && `v${version}`);
   const copyVersion = () => {
-    void navigator.clipboard.writeText(`voidHTTP ${version}`).then(() => setCopied(true));
+    const text = DEV_BUILD
+      ? `voidHTTP ${version} dev (${[DEV_BUILD.describe, DEV_BUILD.branch && `branch ${DEV_BUILD.branch}`].filter(Boolean).join(", ")})`
+      : `voidHTTP ${version}`;
+    void navigator.clipboard.writeText(text).then(() => setCopied(true));
   };
+
+  const ver = shown && (
+    <button type="button" className="about-ver" title="Copy version" data-copied={copied || undefined} onClick={copyVersion}>
+      {copied ? "Copied" : shown}
+      <Copy {...ico} />
+    </button>
+  );
 
   // a click on the icon restarts the ripple from the middle
   const ping = () => {
@@ -61,15 +75,18 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
             void<span>HTTP</span>
           </h2>
           <p className="about-tag">Antisocial by design. Speaks API, avoids people.</p>
-          {version && (
-            <button type="button" className="about-ver" title="Copy version" data-copied={copied || undefined} onClick={copyVersion}>
-              {copied ? "Copied" : `v${version}`}
-              <Copy {...ico} />
-            </button>
-          )}
+          {ver &&
+            (DEV_BUILD ? (
+              <div className="about-verline">
+                <BuildBadge />
+                {ver}
+              </div>
+            ) : (
+              ver
+            ))}
         </header>
         <div className="about-body">
-          <UpdateCard />
+          {DEV_BUILD ? <BuildCard b={DEV_BUILD} /> : <UpdateCard />}
           <div className="about-res" aria-label="License">
             <div className="about-res-line">
               <span className="m">GET</span>
@@ -104,6 +121,53 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
           <p className="about-foot">© 2026 Fish &amp; Lovely OSS Community</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** A dev build in place of the update card, drawn as a response like the licence: where it comes from, and that updates are off. */
+function BuildCard({ b }: { b: DevBuild }) {
+  const started = new Date(b.startedAt).toLocaleString(undefined, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return (
+    <div className="about-res" aria-label="Build">
+      <Line path="/build" status={<span className="status">200 OK</span>} />
+      <dl>
+        <dt>Channel</dt>
+        <dd>dev</dd>
+        {b.describe && (
+          <>
+            <dt>Version</dt>
+            <dd>
+              {b.describe}
+              {b.tag && b.ahead > 0 && (
+                <span className="muted">
+                  {" "}
+                  · {b.ahead} commit{b.ahead === 1 ? "" : "s"} after {b.tag}
+                </span>
+              )}
+            </dd>
+          </>
+        )}
+        {b.branch && (
+          <>
+            <dt>Branch</dt>
+            <dd>{b.branch}</dd>
+          </>
+        )}
+        {b.sha && (
+          <>
+            <dt>Commit</dt>
+            <dd>
+              {b.sha}
+              {b.dirty && <span className="muted"> + uncommitted changes</span>}
+            </dd>
+          </>
+        )}
+        <dt>Started</dt>
+        <dd>{started}</dd>
+        <dt>Updates</dt>
+        <dd className="warn">off in dev builds</dd>
+      </dl>
     </div>
   );
 }

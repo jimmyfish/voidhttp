@@ -10,6 +10,8 @@ import { KVEditor } from "./KVEditor";
 import { Ban, Check, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, FileBadge, Keyboard, Network, Plus, Send, Trash2, TriangleAlert, Type, ico } from "./Icon";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useUpdates } from "../updates";
+import { DEV_BUILD } from "../build";
+import { BuildBadge } from "./BuildTag";
 import { CertificatesPane } from "./CertificatesPane";
 import { AboutModal } from "./AboutModal";
 import { QuickOpen } from "./QuickOpen";
@@ -990,11 +992,61 @@ function NetworkPane() {
   );
 }
 
+/** Settings > Updates in a dev build: where it comes from, and the updater switched off so it never replaces this build. */
+function DevUpdatesPane({ version }: { version: string }) {
+  const b = DEV_BUILD!;
+  const where = [b.describe, b.branch && `on branch ${b.branch}`].filter(Boolean).join(" ");
+  return (
+    <div className="set-pane">
+      <h4>Updates</h4>
+      <div className="set-list">
+        <div className="set-item">
+          <div className="set-text">
+            <span className="set-label">
+              voidHTTP {version}
+              <BuildBadge />
+            </span>
+            <span className="desc">{where ? `${where} · ` : ""}updates are off in dev builds</span>
+          </div>
+          <div className="set-ctl">
+            <button type="button" className="upd-link" onClick={() => void openUrl(`${RELEASES_URL}/latest`)}>
+              Get the release
+              <ExternalLink {...ico} />
+            </button>
+          </div>
+        </div>
+        <div className="set-item" aria-disabled="true">
+          <div className="set-text">
+            <label htmlFor="set-auto-update">Check automatically</label>
+            <span className="desc">Off in dev builds, so an update never replaces this build</span>
+          </div>
+          <div className="set-ctl">
+            <input id="set-auto-update" className="switch" type="checkbox" role="switch" checked={false} disabled readOnly />
+          </div>
+        </div>
+        <div className="set-item">
+          <div className="set-text">
+            <span className="set-label">Release notes</span>
+            <span className="desc">What changed in each version</span>
+          </div>
+          <div className="set-ctl">
+            <button type="button" className="upd-link" onClick={() => void openUrl(RELEASES_URL)}>
+              Open on GitHub
+              <ExternalLink {...ico} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Settings > Updates: the running version and what the updater knows, plus the launch check switch. */
 function UpdatesPane() {
   const auto = useStore((s) => s.settings.autoUpdateCheck !== false);
   const setSettings = useStore((s) => s.setSettings);
   const u = useUpdates();
+  if (DEV_BUILD) return <DevUpdatesPane version={u.version} />;
   const st = u.state;
   const pct = st.kind === "downloading" && st.total ? Math.floor((st.received / st.total) * 100) : undefined;
 

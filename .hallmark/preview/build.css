@@ -1,0 +1,37 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: brand · v2.0.0
+ * build channel (under design): dev builds (bun tauri dev) say so, so they are never mistaken
+ * for the release downloaded from GitHub. Official releases show nothing new.
+ * Uses only tokens from src/tokens.css; ported into src/styles.css once approved. */
+
+/* title strip: a pill left of the Settings gear, where the update chip would sit (updates are off in dev builds) */
+.build-tag {
+  display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px 0 7px; flex-shrink: 0;
+  border: none; border-radius: var(--radius-pill); white-space: nowrap; cursor: default;
+  font: 700 var(--text-xs) / 1 var(--font-mono); letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
+  --c: var(--color-warn);
+  color: var(--c); background: color-mix(in srgb, var(--c) 11%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 32%, transparent);
+}
+.build-tag .ico { width: 13px; height: 13px; flex-shrink: 0; }
+.build-tag .sha { font-weight: 400; letter-spacing: 0; opacity: 0.85; }
+.build-tag:hover { background: color-mix(in srgb, var(--c) 17%, transparent); }
+.build-tag:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+/* right end of the strip: build pill, update chip, gear. The group takes the auto margin, so the gear stays at the far right with or without a pill */
+.strip-end { margin-left: auto; display: flex; align-items: center; gap: var(--space-2xs); flex-shrink: 0; }
+.strip-end .strip-settings { margin-left: 0; }
+
+/* About: the channel sits beside the copyable version */
+.about-verline { display: flex; align-items: center; gap: var(--space-2xs); margin-top: var(--space-xs); }
+.about-verline .about-ver { margin-top: 0; }
+.about-verline .build-tag { height: 24px; }
+
+/* About: the build drawn as a response, in place of the update card */
+.about-res dd .muted { color: var(--color-muted); }
+.about-res dd.warn { color: var(--color-warn); }
+
+/* Settings > Updates: channel tag inline after the version */
+.set-label .build-tag { margin-left: var(--space-2xs); height: 20px; padding: 0 7px 0 6px; vertical-align: 1px; font-size: 10px; }
+.set-label .build-tag .ico { width: 11px; height: 11px; }
+.set-item[aria-disabled="true"] label, .set-item[aria-disabled="true"] .desc { color: var(--color-muted); }
+
+/* preview only: channel and screen variants toggle with [hidden], which display rules above would override */
+.build-tag[hidden], .about-verline[hidden], .about-ver[hidden], .about-res[hidden], .set-item[hidden], .backdrop[hidden] { display: none; }
