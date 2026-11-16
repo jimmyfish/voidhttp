@@ -162,9 +162,9 @@
     "semantic_hash": "68b2561792597071c31052d4f422f30b"
   },
   "README.md": {
-    "mtime": 1794809407.2229662,
-    "seen": 1794809408.037506,
-    "ast_hash": "e47e4fceaf4b77d1284bcb6bdd29be7b",
+    "mtime": 1794810129.462763,
+    "seen": 1794810130.588886,
+    "ast_hash": "185fba4503224dea54194e8a0e6d8733",
     "semantic_hash": ""
   },
   "index.html": {
@@ -797,12 +797,6 @@
     "ast_hash": "2b236be9a8773999b6afd121b2e0c5e8",
     "semantic_hash": ""
   },
-  "docs/assets/hero.svg": {
-    "mtime": 1794809402.2864566,
-    "seen": 1794809408.03751,
-    "ast_hash": "e640aaba99dd52fddb43a7b2eddbcf60",
-    "semantic_hash": ""
-  },
   "docs/assets/icons/arrow-right-left.svg": {
     "mtime": 1794808731.749621,
     "seen": 1794808960.1797209,
@@ -981,6 +975,18 @@
     "mtime": 1794808731.751221,
     "seen": 1794808960.179737,
     "ast_hash": "cc0585dfd39e000e0a3d6547f928f6b7",
+    "semantic_hash": ""
+  },
+  "docs/examples/moonbase-api.yaml": {
+    "mtime": 1794810120.445392,
+    "seen": 1794810130.588819,
+    "ast_hash": "2184607586f1c9162e1b7d91c9170205",
+    "semantic_hash": ""
+  },
+  "docs/assets/voidhttp-window.svg": {
+    "mtime": 1794809402.2864566,
+    "seen": 1794810103.720853,
+    "ast_hash": "e640aaba99dd52fddb43a7b2eddbcf60",
     "semantic_hash": ""
   }
 }

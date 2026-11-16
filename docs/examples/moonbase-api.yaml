@@ -1,0 +1,654 @@
+openapi: 3.0.3
+info:
+  title: Moonbase Labs API
+  version: 1.0.0
+  description: |
+    A made-up API for a made-up grocery delivery service on the Moon. It exists so you can take
+    voidHTTP for a spin: import this file and you get folders, variables, auth, JSON, form and
+    multipart bodies, and saved response examples to click through.
+
+    Every request goes to an echo server (httpbin.org), which sends back whatever you sent it.
+    So Send always works, and the real-looking answers live in each request's saved examples.
+
+    Nothing here is real. No cheese was harmed.
+  contact:
+    name: voidHTTP
+    url: https://github.com/jimmyfish/voidhttp
+  license:
+    name: Apache 2.0 with Commons Clause
+    url: https://github.com/jimmyfish/voidhttp/blob/master/LICENSE
+
+servers:
+  - url: https://httpbin.org/anything/moonbase/v1
+    description: Echo sandbox. httpbin mirrors your request back, so everything "works".
+  - url: https://api.moonbase.example/v1
+    description: Production. Fictional on purpose; .example domains never resolve.
+
+tags:
+  - name: Auth
+    description: Get a token, keep a token, find out who you are.
+  - name: Catalog
+    description: Everything we can fly to your crater.
+  - name: Orders
+    description: Place, track, change and cancel deliveries.
+  - name: Crew
+    description: The people driving the moon buggies.
+  - name: Misc
+    description: Health checks and other odds and ends.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      description: Trade a username and password for a token. Put the token in `{{token}}`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            example:
+              username: neil
+              password: one-small-step
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+              example:
+                accessToken: eyJhbGciOiJIUzI1NiJ9.ZHVtbXk.c2lnbmF0dXJl
+                refreshToken: rt_7c1d0e
+                expiresIn: 3600
+                tokenType: Bearer
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: bad_credentials
+                message: That's not the password. Houston has been informed.
+
+  /auth/token:
+    post:
+      tags: [Auth]
+      summary: Refresh token
+      description: Classic form-encoded token refresh.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [grant_type, refresh_token]
+              properties:
+                grant_type:
+                  type: string
+                  example: refresh_token
+                refresh_token:
+                  type: string
+                  example: rt_7c1d0e
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+              example:
+                accessToken: eyJhbGciOiJIUzI1NiJ9.ZnJlc2g.c2lnbmF0dXJl
+                refreshToken: rt_8a2f11
+                expiresIn: 3600
+                tokenType: Bearer
+
+  /me:
+    get:
+      tags: [Auth]
+      summary: Who am I
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              example:
+                id: usr_001
+                name: Neil
+                email: neil@moonbase.example
+                crater: Crater 42
+                memberSince: "2026-07-20"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /catalog/items:
+    get:
+      tags: [Catalog]
+      summary: List items
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [snacks, fuel, gear, oxygen]
+            example: snacks
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: inStock
+          in: query
+          schema:
+            type: boolean
+            example: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Item"
+                  nextCursor:
+                    type: string
+                    nullable: true
+              example:
+                data:
+                  - sku: MOON-CHEESE-01
+                    name: Moon cheese, aged 4.5 billion years
+                    category: snacks
+                    price: 12.5
+                    inStock: true
+                  - sku: SPACE-SOCKS
+                    name: Anti-gravity socks (they still get lost)
+                    category: gear
+                    price: 9
+                    inStock: true
+                nextCursor: null
+
+  /catalog/items/{sku}:
+    get:
+      tags: [Catalog]
+      summary: Get item
+      parameters:
+        - $ref: "#/components/parameters/Sku"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+              example:
+                sku: MOON-CHEESE-01
+                name: Moon cheese, aged 4.5 billion years
+                category: snacks
+                price: 12.5
+                inStock: true
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /orders:
+    get:
+      tags: [Orders]
+      summary: List orders
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, confirmed, launched, delivered, cancelled]
+            example: confirmed
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Order"
+                  total:
+                    type: integer
+              example:
+                data:
+                  - id: ord_9f3c21
+                    status: confirmed
+                    total: 48.5
+                    currency: USD
+                    express: true
+                    eta: "2026-11-17T09:30:00Z"
+                total: 1
+    post:
+      tags: [Orders]
+      summary: Create order
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          description: Send the same key twice and you get one order, not two wheels of cheese.
+          schema:
+            type: string
+            example: "{{$guid}}"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewOrder"
+            example:
+              customer: cus_neil_001
+              items:
+                - sku: MOON-CHEESE-01
+                  qty: 2
+                - sku: ROCKET-FUEL-XL
+                  qty: 1
+              deliverTo: Crater 42, The Moon
+              express: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              example:
+                id: ord_9f3c21
+                status: confirmed
+                total: 48.5
+                currency: USD
+                express: true
+                eta: "2026-11-17T09:30:00Z"
+                courier:
+                  name: Lunar Express
+                  vehicle: moon buggy
+                  vibe: immaculate
+                tracking: https://track.example.com/ord_9f3c21
+        "422":
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                Out of stock:
+                  summary: Out of stock
+                  value:
+                    code: out_of_stock
+                    message: MOON-CHEESE-01 is out of stock. The cows went back to Earth.
+                    field: items[0].sku
+                Address too far:
+                  summary: Address too far
+                  value:
+                    code: out_of_range
+                    message: We deliver to the Moon, not to Mars. Yet.
+                    field: deliverTo
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /orders/{orderId}:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+    get:
+      tags: [Orders]
+      summary: Get order
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              example:
+                id: ord_9f3c21
+                status: launched
+                total: 48.5
+                currency: USD
+                express: true
+                eta: "2026-11-17T09:30:00Z"
+                courier:
+                  name: Lunar Express
+                  vehicle: moon buggy
+                  vibe: immaculate
+                tracking: https://track.example.com/ord_9f3c21
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Orders]
+      summary: Update address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deliverTo:
+                  type: string
+            example:
+              deliverTo: Crater 43, the one with the nicer view
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              example:
+                id: ord_9f3c21
+                status: confirmed
+                total: 48.5
+                currency: USD
+                express: true
+                eta: "2026-11-17T09:45:00Z"
+                deliverTo: Crater 43, the one with the nicer view
+    delete:
+      tags: [Orders]
+      summary: Cancel order
+      responses:
+        "204":
+          description: No Content
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: already_launched
+                message: Too late, the rocket already left. Wave at it.
+
+  /crew/{crewId}:
+    parameters:
+      - $ref: "#/components/parameters/CrewId"
+    get:
+      tags: [Crew]
+      summary: Get crew member
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Crew"
+              example:
+                id: crew_042
+                name: Sally
+                role: buggy pilot
+                rating: 4.9
+                funFact: Has never once parallel parked. There is no parallel on the Moon.
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /crew/{crewId}/avatar:
+    parameters:
+      - $ref: "#/components/parameters/CrewId"
+    put:
+      tags: [Crew]
+      summary: Upload avatar
+      description: Multipart upload. Pick a file in the `photo` field before you send.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                photo:
+                  type: string
+                  format: binary
+                caption:
+                  type: string
+                  example: Helmet hair, don't care
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example:
+                id: crew_042
+                avatar: https://cdn.moonbase.example/crew_042.png
+
+  /health:
+    get:
+      tags: [Misc]
+      summary: Health check
+      security: []
+      parameters:
+        - name: X-Moon-Phase
+          in: header
+          schema:
+            type: string
+            enum: [new, waxing, full, waning]
+            example: full
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example:
+                status: ok
+                oxygen: 98.6
+                gravity: 0.166
+                mood: chill
+
+  /telemetry:
+    post:
+      tags: [Misc]
+      summary: Send telemetry
+      description: Included for comedic purposes. voidHTTP doesn't phone home, and neither does this.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            example:
+              everythingYouDid: true
+      responses:
+        "410":
+          description: Gone
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                code: not_today
+                message: Nope. We don't do that here.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: string
+        example: ord_9f3c21
+    Sku:
+      name: sku
+      in: path
+      required: true
+      schema:
+        type: string
+        example: MOON-CHEESE-01
+    CrewId:
+      name: crewId
+      in: path
+      required: true
+      schema:
+        type: string
+        example: crew_042
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: no_token
+            message: Who goes there? Log in first and put the token in {{token}}.
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            code: not_found
+            message: Lost in space. We looked behind every crater.
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+    Token:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+        tokenType:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        crater:
+          type: string
+        memberSince:
+          type: string
+          format: date
+    Item:
+      type: object
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+          enum: [snacks, fuel, gear, oxygen]
+        price:
+          type: number
+        inStock:
+          type: boolean
+    NewOrder:
+      type: object
+      required: [customer, items, deliverTo]
+      properties:
+        customer:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            required: [sku, qty]
+            properties:
+              sku:
+                type: string
+              qty:
+                type: integer
+                minimum: 1
+        deliverTo:
+          type: string
+        express:
+          type: boolean
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, launched, delivered, cancelled]
+        total:
+          type: number
+        currency:
+          type: string
+        express:
+          type: boolean
+        eta:
+          type: string
+          format: date-time
+        deliverTo:
+          type: string
+        courier:
+          type: object
+          properties:
+            name:
+              type: string
+            vehicle:
+              type: string
+            vibe:
+              type: string
+        tracking:
+          type: string
+          format: uri
+    Crew:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+        rating:
+          type: number
+        funFact:
+          type: string
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        field:
+          type: string

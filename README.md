@@ -58,6 +58,14 @@ voidHTTP goes the other way:
 
 After that, the app updates itself. You'll see a little chip when a new version lands.
 
+**Want something to poke at?** Import the demo API, a made-up grocery delivery service on the Moon. In voidHTTP, open Import, choose URL, and paste:
+
+```
+https://raw.githubusercontent.com/jimmyfish/voidhttp/master/docs/examples/moonbase-api.yaml
+```
+
+You get 15 requests in 5 folders, with JSON, form and multipart bodies, bearer auth, and saved examples (including what happens when the moon cheese runs out). Every request goes to an echo server, so Send always works. The file is [docs/examples/moonbase-api.yaml](docs/examples/moonbase-api.yaml).
+
 ## <img src="docs/assets/icons/sparkles.svg" width="24" height="24" align="top" alt="" /> What it does
 
 ### <img src="docs/assets/icons/folder-tree.svg" width="20" height="20" align="top" alt="" /> Projects, tabs, the whole workspace
