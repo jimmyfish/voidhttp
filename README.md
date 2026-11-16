@@ -4,7 +4,7 @@
 
 # voidHTTP
 
-**The API client that minds its own business.**
+**Antisocial by design. Speaks API, avoids people.**
 
 No account. No cloud. No telemetry. No 400 MB of bundled Chromium.
 Just you, your requests, and a very fast Rust core.
@@ -259,29 +259,33 @@ The longer story is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 </details>
 
-<details>
-<summary><img src="docs/assets/icons/rocket.svg" width="18" height="18" align="top" alt="" /> <b>Shipping a release</b></summary>
-
-<br />
-
-Push a version tag (`v0.2.0`, `v0.2.1`, …) and `.github/workflows/release.yml` takes it from there. It builds separate macOS bundles for Apple Silicon and Intel (so each Mac downloads only what it needs) and uploads them to a **draft** GitHub release, along with `latest.json`, the manifest the in-app updater reads. Release notes come from that version's section of [CHANGELOG.md](CHANGELOG.md).
-
-Publish the draft by hand. Until you do, `/releases/latest/` keeps pointing at the previous release, so nobody gets a half-baked update.
-
-Update bundles are signed with a Tauri updater key. The workflow needs two repository secrets:
-
-- `TAURI_SIGNING_PRIVATE_KEY`: contents of `~/.tauri/voidhttp.key`
-- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`: the password you picked when generating it
-
-The matching public key goes in `plugins.updater.pubkey` in `src-tauri/tauri.conf.json`.
-
-</details>
-
 ## <img src="docs/assets/icons/lightbulb.svg" width="24" height="24" align="top" alt="" /> On the wishlist
 
 Not built yet, but on the radar: folder and collection scripts, `pm.sendRequest`, GraphQL subscriptions and autocomplete, Socket.IO long-polling, gRPC-Web, OAuth 2 flows, a collection runner, and code generation beyond cURL and grpcurl.
 
 Want one of these sooner? Open an issue and make some noise.
+
+## <img src="docs/assets/icons/ban.svg" width="24" height="24" align="top" alt="" /> Never on the wishlist
+
+Every so often someone asks: *"Can my backend team and I design the API contract together in here? Live? With comments?"*
+
+No. Not "not yet". Not "maybe in v2". **No.**
+
+voidHTTP is local by design. It is an introvert. It will never have:
+
+- accounts, sign-in, or "invite your team"
+- cloud sync, shared workspaces, or a "share link"
+- real-time co-editing, comments, mentions, or presence avatars
+- hosted mocks, monitors, or an "API design platform" hiding behind a login wall
+
+This isn't because we can't build it, and it isn't about server bills. **We just don't want to.** An API client that wants you on a team plan is the exact app voidHTTP was built to get away from. Your requests, tokens and half-finished endpoints stay on your machine, with you, where they belong.
+
+**Still need to work with other humans?** You already have the tools:
+
+- **Your API contract belongs in your repo**, as an OpenAPI file, reviewed in pull requests like the rest of your code. voidHTTP imports it whenever you like.
+- **Your collections are plain JSON.** Export a `.voidhttp.json` or a Postman v2.1 file, commit it, and send it however you want. Git is the collaboration feature.
+
+Issues asking for team or cloud features get closed with a friendly link to this section. Nothing personal. We just need some alone time.
 
 ## <img src="docs/assets/icons/users.svg" width="24" height="24" align="top" alt="" /> Come build with us
 

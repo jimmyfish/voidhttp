@@ -162,9 +162,9 @@
     "semantic_hash": "68b2561792597071c31052d4f422f30b"
   },
   "README.md": {
-    "mtime": 1794810129.462763,
-    "seen": 1794810130.588886,
-    "ast_hash": "185fba4503224dea54194e8a0e6d8733",
+    "mtime": 1794811765.809845,
+    "seen": 1794811766.938554,
+    "ast_hash": "ca123edc3ebbe4d152f6e4c3801382b7",
     "semantic_hash": ""
   },
   "index.html": {
@@ -732,15 +732,15 @@
     "semantic_hash": ""
   },
   "src/components/AboutModal.tsx": {
-    "mtime": 1794811068.9161603,
-    "seen": 1794811069.7772648,
-    "ast_hash": "c2fb63096e569f888abe3c681ddc3bf1",
+    "mtime": 1794811480.2881994,
+    "seen": 1794811481.134764,
+    "ast_hash": "2db12946011d1a8e072fb5ff005e071a",
     "semantic_hash": ""
   },
   ".hallmark/preview/about.html": {
-    "mtime": 1794811068.917234,
-    "seen": 1794811069.777306,
-    "ast_hash": "aef326e2c76ee97f840f817ae52cad76",
+    "mtime": 1794811480.2891903,
+    "seen": 1794811481.134807,
+    "ast_hash": "f853c6ec527303c3caab2597208eff93",
     "semantic_hash": ""
   },
   ".hallmark/preview/scripts.html": {
@@ -987,6 +987,12 @@
     "mtime": 1794809402.2864566,
     "seen": 1794810103.720853,
     "ast_hash": "e640aaba99dd52fddb43a7b2eddbcf60",
+    "semantic_hash": ""
+  },
+  "docs/RELEASING.md": {
+    "mtime": 1794811765.7842236,
+    "seen": 1794811766.938556,
+    "ast_hash": "16beee77b1e07f8914d48d90a14fe1a0",
     "semantic_hash": ""
   }
 }

@@ -60,7 +60,7 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
           <h2 className="about-name" id="about-name">
             void<span>HTTP</span>
           </h2>
-          <p className="about-tag">A lightweight API client.</p>
+          <p className="about-tag">Antisocial by design. Speaks API, avoids people.</p>
           {version && (
             <button type="button" className="about-ver" title="Copy version" data-copied={copied || undefined} onClick={copyVersion}>
               {copied ? "Copied" : `v${version}`}
