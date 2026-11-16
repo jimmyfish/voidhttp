@@ -2,7 +2,8 @@
  * voidHTTP's own export: collections and environments exactly as stored, so nothing is lost
  * (gRPC calls, saved examples, environment colours). Ids are made fresh on import.
  */
-import type { Auth, Collection, Environment, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, TreeNode } from "../../types";
+import type { Auth, Collection, Environment, GqlDef, GrpcDef, GrpcResult, KV, MultipartField, RequestNode, RequestScripts, SioDef, TreeNode, WsDef } from "../../types";
+import { defaultSio } from "../sio";
 import { cloneNode, uid } from "../model";
 import { newRequest } from "../model";
 import { dropFilePaths, requestsOf, type Any, type ImportPlan } from "./common";
@@ -56,6 +57,40 @@ function saneGrpc(g: Any): GrpcDef | undefined {
   };
 }
 
+/** Socket.IO settings with every field of the type the app expects. */
+function saneGql(v: Any): GqlDef | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  return {
+    query: typeof v.query === "string" ? v.query : "",
+    variables: typeof v.variables === "string" ? v.variables : "",
+    ...(typeof v.operation === "string" && v.operation && { operation: v.operation }),
+  };
+}
+
+function saneSio(v: Any): SioDef | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const d = defaultSio();
+  const str = (x: unknown, fallback: string) => (typeof x === "string" ? x : fallback);
+  return {
+    namespace: str(v.namespace, d.namespace),
+    path: str(v.path, d.path),
+    eio: v.eio === 3 ? 3 : 4,
+    auth: str(v.auth, ""),
+    event: str(v.event, d.event),
+    ack: v.ack === true,
+    ackTimeoutMs: typeof v.ackTimeoutMs === "number" && Number.isFinite(v.ackTimeoutMs) && v.ackTimeoutMs >= 0 ? Math.floor(v.ackTimeoutMs) : d.ackTimeoutMs,
+  };
+}
+
+/** A WebSocket's settings with every field of the type the app expects. */
+function saneWs(w: Any): WsDef | undefined {
+  if (!w || typeof w !== "object") return undefined;
+  return {
+    subprotocols: Array.isArray(w.subprotocols) ? w.subprotocols.filter((x: unknown) => typeof x === "string") : [],
+    pingSec: typeof w.pingSec === "number" && Number.isFinite(w.pingSec) && w.pingSec > 0 ? Math.floor(w.pingSec) : 0,
+  };
+}
+
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
 const pairs = (list: unknown) =>
   (Array.isArray(list) ? list : []).filter((r) => r && typeof r === "object").map((r: Any) => ({ key: text(r.key), value: text(r.value) }));
@@ -89,6 +124,13 @@ function saneGrpcResult(g: Any): GrpcResult | undefined {
   };
 }
 
+function saneScripts(v: Any): RequestScripts | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const pre = typeof v.pre === "string" && v.pre ? v.pre : undefined;
+  const post = typeof v.post === "string" && v.post ? v.post : undefined;
+  return pre || post ? { ...(pre && { pre }), ...(post && { post }) } : undefined;
+}
+
 /** Fills fields a hand-edited or older file may miss, and gives every field its type, so the rest of the app can trust the shape. */
 function sane(n: Any): TreeNode | null {
   if (!n || typeof n !== "object") return null;
@@ -115,6 +157,10 @@ function sane(n: Any): TreeNode | null {
     },
     auth: saneAuth(n.auth),
     grpc: saneGrpc(n.grpc),
+    ws: saneWs(n.ws),
+    sio: saneSio(n.sio),
+    gql: saneGql(n.gql),
+    scripts: saneScripts(n.scripts),
     examples: Array.isArray(n.examples)
       ? n.examples
           // an HTTP example has a response; a gRPC example has an ended call instead

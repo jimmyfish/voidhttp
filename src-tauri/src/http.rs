@@ -88,10 +88,13 @@ pub struct HttpResponse {
     pub elapsed_ms: u64,
 }
 
+/// follow_redirects, insecure, the id of the client certificate in use
+type ClientKey = (bool, bool, Option<String>);
+
 /// Shared HTTP state: pooled clients and in-flight cancellation tokens.
 pub struct HttpState {
     jar: Arc<Jar>,
-    clients: Mutex<HashMap<(bool, bool), Client>>,
+    clients: Mutex<HashMap<ClientKey, Client>>,
     inflight: Mutex<HashMap<String, CancellationToken>>,
 }
 
@@ -106,26 +109,41 @@ impl Default for HttpState {
 }
 
 impl HttpState {
-    /// One pooled client per (follow_redirects, insecure) combination so
-    /// keep-alive connections are reused across sends.
-    fn client(&self, follow_redirects: bool, insecure: bool) -> Result<Client, String> {
+    /// Drops the pooled clients after Settings > Network changes; the next send builds new ones.
+    pub fn reset_clients(&self) {
+        if let Ok(mut clients) = self.clients.lock() {
+            clients.clear();
+        }
+    }
+
+    /// One pooled client per (follow_redirects, insecure, client certificate) combination so
+    /// keep-alive connections are reused across sends. TLS comes from Settings > Certificates.
+    fn client(&self, follow_redirects: bool, insecure: bool, url: &reqwest::Url) -> Result<Client, String> {
+        let host = url.host_str().unwrap_or_default().trim_matches(['[', ']']);
+        let port = url.port_or_known_default().unwrap_or(443);
+        let key: ClientKey = (follow_redirects, insecure, crate::certs::client_id_for(host, port));
         let mut clients = self.clients.lock().map_err(|e| e.to_string())?;
-        if let Some(c) = clients.get(&(follow_redirects, insecure)) {
+        if let Some(c) = clients.get(&key) {
             return Ok(c.clone());
         }
+        let mut tls = crate::certs::tls_config(insecure, host, port)?;
+        // reqwest leaves ALPN to a preconfigured rustls config
+        tls.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
         let policy = if follow_redirects {
             redirect::Policy::limited(10)
         } else {
             redirect::Policy::none()
         };
-        let client = Client::builder()
+        let builder = Client::builder()
             .user_agent(USER_AGENT)
             .redirect(policy)
-            .danger_accept_invalid_certs(insecure)
-            .cookie_provider(self.jar.clone())
+            .use_preconfigured_tls(tls)
+            .cookie_provider(self.jar.clone());
+        let client = crate::net::current()
+            .apply(builder)?
             .build()
             .map_err(|e| format!("failed to build HTTP client: {e}"))?;
-        clients.insert((follow_redirects, insecure), client.clone());
+        clients.insert(key, client.clone());
         Ok(client)
     }
 }
@@ -179,7 +197,7 @@ async fn execute(state: &HttpState, req: HttpRequest) -> Result<HttpResponse, St
         .map_err(|_| format!("Invalid HTTP method: {}", req.method))?;
 
     let url = normalize_url(&req.url)?;
-    let client = state.client(req.options.follow_redirects, req.options.insecure)?;
+    let client = state.client(req.options.follow_redirects, req.options.insecure, &url)?;
 
     let mut headers = HeaderMap::new();
     for h in req.headers.iter().filter(|h| !h.key.trim().is_empty()) {
@@ -324,7 +342,10 @@ pub(crate) fn root_cause(e: &(dyn std::error::Error + 'static)) -> String {
         msg = format!("{msg}: {s}");
         src = s.source();
     }
-    msg
+    match crate::certs::tls_hint(&msg) {
+        Some(hint) => format!("{msg}. {hint}"),
+        None => msg,
+    }
 }
 
 #[cfg(test)]

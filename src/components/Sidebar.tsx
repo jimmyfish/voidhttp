@@ -536,7 +536,8 @@ function HistoryRow({ entry: h }: { entry: HistoryEntry }) {
   };
   const items: MenuItem[] = [
     { label: "Open in new tab", icon: <FilePlus {...ico} />, run: () => s.openHistory(h.id) },
-    ...(h.kept === "full" ? ([{ label: "Save response as example…", icon: <BookmarkPlus {...ico} />, run: asExample }] as MenuItem[]) : []),
+    // a WebSocket session has no example form
+    ...(h.kept === "full" && h.request.method !== "WS" && h.request.method !== "SIO" ? ([{ label: "Save response as example…", icon: <BookmarkPlus {...ico} />, run: asExample }] as MenuItem[]) : []),
     { label: "Save request to collection…", icon: <CopyPlus {...ico} />, run: toCollection },
     "sep",
     { label: "Delete from history", icon: <Trash2 {...ico} />, run: () => s.deleteHistory(h.id), danger: true },

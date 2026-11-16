@@ -1,10 +1,12 @@
 /**
  * Postman Collection v2.0/v2.1 and Environment: import and export.
- * Scripts (pre-request/tests) are not run by voidHTTP: they are dropped on import and said so.
+ * Request scripts (pre-request and tests) come along as the request's Pre-request and Post-response scripts.
+ * Folder and collection scripts have no place in voidHTTP yet: they are dropped on import and said so.
  */
 import type { Auth, Collection, Environment, Example, KV, RequestBody, RequestNode, TreeNode } from "../../types";
 import { kv, newRequest, paramsFromUrl, parseQuery, uid } from "../model";
 import { dropFilePaths, requestsOf, str, type Any, type ImportPlan, type Note } from "./common";
+import { isGql } from "../graphql";
 
 const toKV = (list: Any[] | undefined): KV[] =>
   (Array.isArray(list) ? list : []).filter((x) => x && typeof x === "object").map((x) => kv(str(x.key), str(x.value), !x.disabled && x.enabled !== false));
@@ -14,7 +16,8 @@ function pick(list: Any[] | undefined, key: string): string {
 }
 
 /** Postman auth types voidHTTP has no form for, counted for the report. */
-type Seen = { scripts: number; auth: Map<string, number> };
+/** `scripts`: folder and collection scripts left out; `kept`: request scripts brought in */
+type Seen = { scripts: number; kept: number; auth: Map<string, number> };
 
 function convertAuth(a: Any, seen: Seen): Auth | undefined {
   if (!a || !a.type) return undefined;
@@ -73,8 +76,14 @@ const safeJson = (s: string | undefined) => {
   }
 };
 
-const hasScript = (events: Any) =>
-  Array.isArray(events) && events.some((e: Any) => [e?.script?.exec].flat().some((l: Any) => typeof l === "string" && l.trim()));
+/** The code of one event ("prerequest" or "test"), joined: Postman keeps it as an array of lines or one string. */
+const scriptOf = (events: Any, listen: string): string =>
+  (Array.isArray(events) ? events : [])
+    .filter((e: Any) => e?.listen === listen && !e?.disabled)
+    .map((e: Any) => [e?.script?.exec].flat().filter((l: Any) => typeof l === "string").join("\n"))
+    .filter((code: string) => code.trim())
+    .join("\n\n");
+const hasScript = (events: Any) => !!(scriptOf(events, "prerequest") || scriptOf(events, "test"));
 
 function convertExamples(responses: Any, req: RequestNode): Example[] {
   if (!Array.isArray(responses)) return [];
@@ -109,8 +118,8 @@ const stripNode = (n: RequestNode) => {
 
 function convertItems(items: Any[], parentAuth: Auth, seen: Seen): TreeNode[] {
   return (items ?? []).map((it: Any): TreeNode => {
-    if (hasScript(it.event)) seen.scripts++;
     if (Array.isArray(it.item)) {
+      if (hasScript(it.event)) seen.scripts++;
       const auth = convertAuth(it.auth, seen) ?? parentAuth;
       return { type: "folder", id: uid(), name: String(it.name ?? "Folder"), children: convertItems(it.item, auth, seen) };
     }
@@ -124,6 +133,19 @@ function convertItems(items: Any[], parentAuth: Auth, seen: Seen): TreeNode[] {
       body: convertBody(r.body),
       auth: convertAuth(r.auth, seen) ?? parentAuth,
     });
+    // a GraphQL body makes a GraphQL request; its POST is implied
+    if (r.body?.mode === "graphql" && !r.body.disabled) {
+      const g = r.body.graphql ?? {};
+      req.method = "GQL";
+      req.gql = { query: str(g.query), variables: typeof g.variables === "string" ? g.variables : g.variables ? JSON.stringify(g.variables, null, 2) : "" };
+      req.body = { ...req.body, mode: "none", raw: "" };
+    }
+    const pre = scriptOf(it.event, "prerequest");
+    const post = scriptOf(it.event, "test");
+    if (pre || post) {
+      req.scripts = { ...(pre && { pre }), ...(post && { post }) };
+      seen.kept += Number(!!pre) + Number(!!post);
+    }
     req.params = paramsFromUrl(url, []);
     // carry over disabled query params from the structured url
     for (const qp of Array.isArray(r.url?.query) ? r.url.query : []) if (qp?.disabled) req.params.push(kv(str(qp.key), str(qp.value), false));
@@ -136,7 +158,7 @@ function convertItems(items: Any[], parentAuth: Auth, seen: Seen): TreeNode[] {
 const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 export function importPostman(doc: Any): ImportPlan {
-  const seen: Seen = { scripts: hasScript(doc.event) ? 1 : 0, auth: new Map() };
+  const seen: Seen = { scripts: hasScript(doc.event) ? 1 : 0, kept: 0, auth: new Map() };
   const rootAuth = convertAuth(doc.auth, seen) ?? { type: "none" };
   const files = dropFilePaths([
     {
@@ -148,7 +170,9 @@ export function importPostman(doc: Any): ImportPlan {
   ]);
   const collection: Collection = files.collections[0];
   const notes: Note[] = [...files.notes];
-  if (seen.scripts) notes.push({ level: "warn", text: `${count(seen.scripts, "pre-request or test script")} left out. voidHTTP does not run scripts.` });
+  if (seen.kept) notes.push({ level: "warn", text: `${count(seen.kept, "request script")} kept. They run on every send: read them first, or turn scripts off in Settings › Requests.` });
+  if (seen.scripts)
+    notes.push({ level: "warn", text: `Scripts on ${count(seen.scripts, "folder or the collection", "folders or the collection")} left out. voidHTTP runs request scripts only.` });
   const oauth = seen.auth.get("oauth2");
   if (oauth) notes.push({ level: "warn", text: `OAuth2 auth on ${count(oauth, "item")} becomes Bearer \`{{token}}\`. voidHTTP has no OAuth2 flow yet.` });
   for (const [type, n] of seen.auth) if (type !== "oauth2") notes.push({ level: "warn", text: `\`${type}\` auth on ${count(n, "item")} is left out.` });
@@ -233,9 +257,12 @@ function pmRequest(r: Omit<RequestNode, "type" | "examples">): Any {
   const q = r.url.indexOf("?");
   const raw = r.url;
   return {
-    method: r.method,
+    // GraphQL: Postman's own graphql body on a POST
+    method: isGql(r) ? "POST" : r.method,
     header: pmKv(r.headers),
-    ...(pmBody(r.body) && { body: pmBody(r.body) }),
+    ...(isGql(r)
+      ? { body: { mode: "graphql", graphql: { query: r.gql?.query ?? "", variables: r.gql?.variables ?? "" } } }
+      : pmBody(r.body) && { body: pmBody(r.body) }),
     ...(pmAuth(r.auth) && { auth: pmAuth(r.auth) }),
     url: {
       raw,
@@ -247,10 +274,14 @@ function pmRequest(r: Omit<RequestNode, "type" | "examples">): Any {
 function pmItems(nodes: TreeNode[]): Any[] {
   return nodes.flatMap((n): Any[] => {
     if (n.type === "folder") return [{ name: n.name, item: pmItems(n.children) }];
-    if (n.method === "GRPC") return []; // v2.1 has no gRPC request
+    if (n.method === "GRPC" || n.method === "WS" || n.method === "SIO") return []; // v2.1 has no gRPC, WebSocket or Socket.IO request
+    const event = (["pre", "post"] as const)
+      .filter((k) => n.scripts?.[k]?.trim())
+      .map((k) => ({ listen: k === "pre" ? "prerequest" : "test", script: { type: "text/javascript", exec: n.scripts![k]!.split("\n") } }));
     return [
       {
         name: n.name,
+        ...(event.length && { event }),
         request: pmRequest(n),
         // only HTTP examples have a Postman form
         response: (n.examples ?? []).flatMap(({ name, request, response: r }) =>

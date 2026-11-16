@@ -130,6 +130,8 @@ export function schemeTokens(s: Scheme): Record<string, string> {
     "--m-head": txt(yellow),
     "--m-options": txt(mix(magenta, red, 0.5)),
     "--m-other": muted,
+    // GraphQL keeps its own pink in every scheme: only its lightness follows the background
+    "--m-gql": dark ? "#ff4fb8" : "#c4007f",
     "--j-key": txt(red),
     "--j-str": txt(green),
     "--j-num": txt(orange),

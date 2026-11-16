@@ -17,7 +17,7 @@ export function useRuns(tab: Tab) {
   const history = useStore((s) => s.history);
   const runs = useMemo(() => runsOf(history, tab), [history, tab.request, tab.savedRef, tab.example]);
   // a response sent from this tab is the newest run; one picked from history names its entry
-  const current = tab.fromHistory ? tab.fromHistory.entryId : tab.response || tab.grpc?.end ? runs[0]?.id : undefined;
+  const current = tab.fromHistory ? tab.fromHistory.entryId : tab.response || tab.grpc?.end || tab.ws?.close || tab.ws?.refused ? runs[0]?.id : undefined;
   return { runs, current };
 }
 

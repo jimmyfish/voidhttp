@@ -1,0 +1,60 @@
+/* Hallmark · WebSocket requests · preview of the styles that port into src/styles.css
+ * reuses app.css and grpc.css as is: request line, method menu, subtabs, editor, composer bar, stream rows, live dot, meta
+ * new token: --m-ws, the method-label colour for WebSocket rows and tabs. Like --m-grpc it is a FIXED tag colour in every
+ * theme and scheme (a protocol, not an HTTP method the scheme colours): amethyst, the one tag hue no method label uses. */
+
+:root { --m-ws: var(--tag-amethyst); }
+
+.m-WS, .method-menu .m-WS { color: var(--m-ws); }
+
+/* ---------- request line: Connect / Disconnect sit where Send does ---------- */
+.ws-connect .ico, .ws-disconnect .ico { width: 14px; height: 14px; }
+.ws-connect, .ws-disconnect { display: inline-flex; align-items: center; gap: var(--space-2xs); min-width: 112px; justify-content: center; }
+/* open connection: the button turns into an outlined red Disconnect, so the live state reads from the request line too */
+.ws-disconnect { color: var(--color-error); border-color: color-mix(in srgb, var(--color-error) 55%, transparent); background: transparent; font-weight: 600; }
+.ws-disconnect:hover { background: color-mix(in srgb, var(--color-error) 7%, transparent); }
+/* the URL is locked while connected: the field reads as plain text, edits wait for the next Connect */
+.url-field.is-live input { color: var(--color-ink-2); }
+
+/* ---------- message tab: format switch beside the label ---------- */
+.msg-head .seg { margin-left: var(--space-2xs); }
+
+/* ---------- response stream: system lines between messages ---------- */
+/* connected / closed / failed lines: same height as a message row, muted, no number or arrow */
+.smsg-sys {
+  display: grid; grid-template-columns: 16px 3ch 7ch minmax(0, 1fr); align-items: center; gap: var(--space-xs);
+  min-height: 30px; padding: 0 var(--space-sm); color: var(--color-muted); font-family: var(--font-body); font-size: var(--text-sm);
+}
+.smsg-sys .ico { width: 14px; height: 14px; }
+.smsg-sys.ok .ico { color: var(--color-ok); }
+.smsg-sys .t { font: var(--text-code) var(--font-mono); font-variant-numeric: tabular-nums; grid-column: 3; }
+.smsg-sys .ico { grid-column: 1; }
+.smsg-sys .s { grid-column: 4; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.smsg-sys .s b { font: 600 var(--text-sm) var(--font-mono); color: var(--color-ok); }
+
+/* a binary frame: a small tag in front of the hex preview */
+.smsg .bin { display: inline-block; margin-right: var(--space-xs); padding: 0 var(--space-2xs); border-radius: var(--radius-pill); background: var(--color-paper-2); color: var(--color-ink-2); font: var(--text-xs)/1.6 var(--font-body); }
+.smsg-open .hex { margin: 0; padding: var(--space-2xs) 0; font: var(--text-code)/1.65 var(--font-mono); color: var(--color-ink-2); white-space: pre; }
+
+/* close row: reuse .smsg-end; a code that is not 1000 wears the error colour */
+.smsg-end .warn { flex-shrink: 0; font: 600 var(--text-sm) var(--font-mono); color: var(--color-warn); }
+
+/* ---------- filter: received / sent only ---------- */
+.dir-filter { display: inline-flex; }
+.res-tools .seg { margin-left: var(--space-sm); }
+
+/* ---------- handshake tab: request + response headers of the upgrade ---------- */
+.hs { flex: 1; min-height: 0; overflow: auto; padding: var(--space-sm) var(--space-md); display: grid; align-content: start; gap: var(--space-md); }
+.hs h4 { display: flex; align-items: center; gap: var(--space-xs); margin: 0 0 var(--space-2xs); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink); }
+.hs h4 .ok, .hs h4 .fail { font: 600 var(--text-sm) var(--font-mono); }
+.hs h4 .ok { color: var(--color-ok); } .hs h4 .fail { color: var(--color-error); }
+.hs dl { display: grid; grid-template-columns: minmax(140px, max-content) minmax(0, 1fr); gap: 2px var(--space-md); margin: 0; font: var(--text-code)/1.65 var(--font-mono); }
+.hs dt { color: var(--color-muted); }
+.hs dd { margin: 0; color: var(--color-ink); overflow-wrap: anywhere; }
+
+/* ---------- failed handshake: the server's HTTP answer stands in for the stream ---------- */
+.ws-fail { display: grid; gap: var(--space-2xs); margin: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: 10px; background: color-mix(in srgb, var(--color-error) 7%, var(--color-paper)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-error) 30%, transparent); }
+.ws-fail strong { display: flex; align-items: center; gap: var(--space-xs); color: var(--color-ink); font-weight: 600; }
+.ws-fail strong .ico { color: var(--color-error); }
+.ws-fail .msg { font: var(--text-sm) var(--font-mono); color: var(--color-error); }
+.ws-fail .acts { display: flex; gap: var(--space-md); margin-top: var(--space-2xs); }

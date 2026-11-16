@@ -185,9 +185,9 @@ export interface LineEdit {
 
 /**
  * VS Code-style ⌘/ on the lines a selection touches: comments them all with `// ` at their shared indent,
- * or uncomments them when every non-blank line is already commented.
+ * or uncomments them when every non-blank line is already commented. `marker` is the comment start: `//`, or `#` for GraphQL.
  */
-export function toggleLineComments(value: string, selStart: number, selEnd: number): LineEdit {
+export function toggleLineComments(value: string, selStart: number, selEnd: number, marker = "//"): LineEdit {
   const from = value.lastIndexOf("\n", selStart - 1) + 1;
   // a selection ending at column 0 doesn't include that line
   let endAt = selEnd > selStart && value[selEnd - 1] === "\n" ? selEnd - 1 : selEnd;
@@ -197,7 +197,7 @@ export function toggleLineComments(value: string, selStart: number, selEnd: numb
 
   const lines = value.slice(from, to).split("\n");
   const filled = lines.filter((l) => l.trim());
-  const uncomment = filled.length > 0 && filled.every((l) => l.trimStart().startsWith("//"));
+  const uncomment = filled.length > 0 && filled.every((l) => l.trimStart().startsWith(marker));
   const indent = Math.min(...filled.map((l) => l.length - l.trimStart().length), Infinity);
 
   const deltas: { at: number; d: number }[] = []; // offset within the old block, change in length
@@ -208,12 +208,12 @@ export function toggleLineComments(value: string, selStart: number, selEnd: numb
     if (!l.trim()) return l;
     if (uncomment) {
       const lead = l.length - l.trimStart().length;
-      const n = l.startsWith("// ", lead) ? 3 : 2;
+      const n = l.startsWith(`${marker} `, lead) ? marker.length + 1 : marker.length;
       deltas.push({ at: start + lead, d: -n });
       return l.slice(0, lead) + l.slice(lead + n);
     }
-    deltas.push({ at: start + indent, d: 3 });
-    return l.slice(0, indent) + "// " + l.slice(indent);
+    deltas.push({ at: start + indent, d: marker.length + 1 });
+    return l.slice(0, indent) + `${marker} ` + l.slice(indent);
   });
   const text = next.join("\n");
 

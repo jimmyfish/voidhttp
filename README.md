@@ -27,15 +27,42 @@ A lightweight, local-first API client. Rust + React + Tauri v2.
 - Cookie jar shared across requests (in memory)
 - Request cancellation
 
+### Scripts
+
+- Each HTTP request can have a pre-request script (runs before Send) and a post-response script (runs once the response arrives), written in Postman's `pm` JavaScript API
+- `pm.environment`, `pm.collectionVariables` and `pm.variables` (get, set, unset, `replaceIn`): changes are saved to the active environment or the request's collection
+- The pre-request script can change the request before it goes out: `pm.request.url`, `.method`, `.headers` (`add`, `upsert`, `remove`) and a text body
+- `pm.test` with `pm.expect` (a chai-style subset: `equal`, `eql`, `include`, `match`, `property`, `keys`, `length`, `above`/`below`, `a`/`an`, and more) and `pm.response.to.have.status` / `.header`. The legacy `tests["…"]`, `responseBody` and `postman.setEnvironmentVariable` forms work too
+- Results show in the response's Tests tab (passed / failed, with the failing assertion and its line) and Console tab (`console.log` output, variable changes, errors)
+- A failing pre-request script stops the send and points at its line; "Send without scripts" sends once without them. Settings › Requests can turn scripts off
+- Scripts run in an isolated QuickJS sandbox with no network, file or app access, a 10-second time limit and a 64 MB memory limit. A post-response script sees the first 8 MB of the response body, and the Console keeps the first 1,000 lines
+- Not supported yet: `pm.sendRequest`, `require()` libraries (lodash, CryptoJS…), cookies, global variables (`pm.globals.set` warns and keeps nothing), folder and collection scripts
+
+### GraphQL
+
+Pick GraphQL in the method menu and enter the endpoint URL. The Query tab holds the document on the left (highlighted, Beautify, `#` comments with `⌘/`) and its variables as JSON on the right (`{{variables}}` and `//` comments work there, as in a JSON body). When the document defines several operations, an Operation picker chooses the one Send runs. Send is an HTTP POST of `{ query, operationName, variables }` as JSON, so params, headers, auth, scripts, history, examples and Copy as cURL work as for any HTTP request; scripts see that POST.
+
+The Docs panel beside Variables fetches the schema with an introspection query (using the request's headers and auth) and lets you browse root types, fields with their arguments, types, enum values and deprecations, with search. When a server turns introspection off, load an introspection JSON file instead. Schemas are kept for the session, one per endpoint.
+
+GraphQL errors arrive with `200 OK`, so the response shows how many came back beside the status and lists them above the body, each with its path, its `extensions.code`, and a link to its line in the query. Subscriptions and schema-aware autocomplete are not supported yet.
+
 ### gRPC
 
 Pick gRPC in the method menu. Methods come from server reflection (v1, falling back to v1alpha) or from `.proto` files compiled in-app (no `protoc` needed). Unary, server, client and bidirectional streams; messages are JSON, with "Fill example" from the schema. Metadata (keys ending in `-bin` take base64), TLS or plaintext per request, error details (`google.rpc.ErrorInfo`, `BadRequest`…) decoded, history, and Copy as grpcurl. Paste a grpcurl command into the address bar to import it (a cURL command pasted into a gRPC tab turns it back into HTTP).
+
+### WebSocket
+
+Pick WebSocket in the method menu and enter a `ws://` or `wss://` URL (`{{variables}}`, params, headers and auth apply to the upgrade request). Connect opens the socket; send text or JSON messages one by one while received ones stream into a live list (click a row to expand it; binary frames show as hex). Subprotocols and a keep-alive ping interval are under Settings. The Handshake tab shows the upgrade request and the server's answer; a refused upgrade shows its HTTP status and body. Sessions go to history with their messages.
+
+### Socket.IO
+
+Pick Socket.IO in the method menu, enter the server URL and a namespace (left empty, the URL's path is the namespace, as socket.io-client reads it). Connect opens a WebSocket to the server's Engine.IO endpoint and joins the namespace; Socket.IO 3 and 4 (Engine.IO 4) and Socket.IO 2 (Engine.IO 3) are both supported, picked under Settings with the mount path and the handshake auth JSON (`{{variables}}` work there). Emit sends an event with one argument, text or JSON; turn on Wait for ack to see the server's ack threaded under the emit, or a note when it does not come in time. Received events show their name and every argument (binary attachments as base64), and a filter menu narrows the list by event name. The Handshake tab shows the Engine.IO open packet, the namespace join and the upgrade; a refused join shows the server's `connect_error` and its data. Only the WebSocket transport is used: a server or proxy that allows long-polling only refuses the upgrade, and the app says so.
 
 ### History and examples
 
 - History (last 200 requests per project), with each response kept on disk as received. Bodies over a size limit (1 MB by default) keep only status and headers
 - Runs: switch between earlier responses of the same request from the response pane
-- Examples: save a response under a saved request. Tokens, cookies and personal data (email, phone, NIK, account numbers…) are found by name and masked in the saved copy
+- Examples: save a response (or an ended gRPC call, with its metadata, messages and trailers) under a saved request. Tokens, cookies and personal data (email, phone, NIK, account numbers…) are found by name and masked in the saved copy
 
 ### Import and export
 
@@ -44,12 +71,19 @@ Import from a file (picker or drag-and-drop onto the window), a URL, or pasted t
 | Format | Import | Export |
 | --- | --- | --- |
 | voidHTTP export (`.voidhttp.json`): collections and environments, nothing lost | ✓ | ✓ |
-| Postman Collection v2.0 / v2.1 and Postman environments | ✓ (auth inheritance flattened, scripts dropped) | ✓ v2.1, environments written beside it |
+| Postman Collection v2.0 / v2.1 and Postman environments | ✓ (auth inheritance flattened; request scripts kept, folder and collection scripts dropped; GraphQL bodies become GraphQL requests) | ✓ v2.1, environments written beside it |
 | OpenAPI 3.x and Swagger 2 (JSON or YAML) | ✓ folders from tags or paths, `{{baseUrl}}` from the first server, response examples, `$ref` into files beside the spec or URLs | |
 | HAR | ✓ pick which captured calls become requests | ✓ each request with its latest saved example as the response |
 | cURL and grpcurl commands, one or many | ✓ | |
 
 On export, pick which environments go along (none, the active one, all). Secret values are blanked unless you choose to keep them, and examples can be left out.
+
+Imported files are treated as untrusted:
+
+- A file path in an imported multipart field is dropped, and the review step names it; pick the file again before sending. An imported collection cannot choose which local file gets uploaded
+- OpenAPI `$ref` files are read only from the spec's folder or below it (symlinks resolved), and only `.json`, `.yaml` and `.yml` outside hidden folders and outside voidHTTP's own data
+- Blanking secrets also covers passwords in URLs (`https://user:pass@host`), secret-looking query params, and secret fields inside JSON variable values
+- Very large imports are capped (rows per table, requests and folders per import) so the editor and sidebar stay responsive
 
 ### Appearance and settings
 
@@ -58,12 +92,17 @@ On export, pick which environments go along (none, the active one, all). Secret 
 - Compact mode: fewer icons, methods shown as coloured dots
 - Soft wrap for the request body and the response body
 - Requests: timeout, follow redirects, skip TLS verification, keep responses in history and the largest body kept
+- Network, for HTTP, WebSocket, Socket.IO and gRPC alike (all off by default):
+  - Secure DNS (DNS over HTTPS) via Cloudflare, Google, Quad9, AdGuard or a custom DoH URL. Optional fallback to the system resolver when DoH has no answer (intranet names on a VPN), and a list of domains that always use the system resolver
+  - Proxy: SOCKS5 or HTTP, with optional `user:pass@`, and a skip list. `localhost`, `127.0.0.1` and `::1` always connect directly
+  - Connection check: look up, connect to and (for HTTPS) handshake with a host using the settings on screen, step by step
+- Certificates, for HTTP, WebSocket and gRPC alike: CA certificates (`.pem`) trusted on top of the public CAs, for dev servers with a self-signed or company certificate; client certificates for mutual TLS (CRT + KEY or PFX) matched by host and port, with passphrases kept in the macOS Keychain. Files stay where they are; only their paths are saved
 
 ### Shortcuts
 
 | Key | Action |
 | --- | --- |
-| `⌘/Ctrl + Enter` | Send, or Invoke a gRPC call; on an open client or bidi stream, send the next message |
+| `⌘/Ctrl + Enter` | Send, or Invoke a gRPC call; on an open client or bidi stream, send the next message; Connect a WebSocket or Socket.IO server, or send (emit) once it is open |
 | `⌘/Ctrl + S` | Save to collection |
 | `⌘/Ctrl + T` | New tab |
 | `⌘/Ctrl + W` | Close the open dialog, otherwise the active tab |
@@ -92,7 +131,7 @@ The gRPC live test talks to the public test server grpcb.in and is skipped by de
 
 ## Releases
 
-Pushing a version tag (`v0.2.0`, `v0.2.1`, …) runs `.github/workflows/release.yml`. It builds a universal macOS binary (Apple Silicon and Intel) and uploads it to a **draft** GitHub release, together with `latest.json`, the manifest the Tauri updater reads. Publish the draft by hand; until then, `/releases/latest/` keeps pointing at the previous release.
+Pushing a version tag (`v0.2.0`, `v0.2.1`, …) runs `.github/workflows/release.yml`. It builds macOS bundles for Apple Silicon and Intel separately (each Mac downloads only its own) and uploads them to a **draft** GitHub release, together with `latest.json`, the manifest the Tauri updater reads. Publish the draft by hand; until then, `/releases/latest/` keeps pointing at the previous release.
 
 Update bundles are signed with a Tauri updater key. The workflow needs two repository secrets:
 
@@ -108,11 +147,15 @@ The app is ad-hoc signed (no Apple Developer ID), so a first install needs `xatt
 ```
 src-tauri/src/http.rs     HTTP engine: reqwest, pooled clients, cancellation, multipart
 src-tauri/src/grpc.rs     gRPC engine: tonic, dynamic messages (prost-reflect), reflection, protox, streams
+src-tauri/src/ws.rs       WebSocket engine: tokio-tungstenite over rustls, one live socket per tab
+src-tauri/src/sio.rs      Socket.IO client on the WebSocket engine: Engine.IO 3/4, namespace join, emits, acks
+src-tauri/src/certs.rs    the one rustls setup: public + custom CAs, client certificates, Keychain passphrases
+src-tauri/src/net.rs      secure DNS (hickory, DoH), SOCKS5 / HTTP proxy, connection check
 src-tauri/src/store.rs    atomic JSON persistence in ~/.config/voidhttp and the app data dir
 src-tauri/src/files.rs    read and write import/export files (64 MB read limit, atomic writes)
 src-tauri/src/fonts.rs    installed system fonts for Settings
 src/store.ts              app state (zustand) and debounced persistence
-src/lib/                  vars, request preparation, gRPC calls and schemas, cURL, JSONPath, masking, themes
+src/lib/                  vars, request preparation, GraphQL (wire body, introspection), gRPC calls and schemas, WebSocket, Socket.IO, network settings, cURL, JSONPath, masking, themes
 src/lib/formats/          import and export: Postman, OpenAPI / Swagger, HAR, voidHTTP, pasted commands
 src/components/           UI
 ```
@@ -123,4 +166,18 @@ Per-device state stays in the app data dir (`~/Library/Application Support/dev.v
 
 ## Not yet
 
-These are not implemented yet: pre-request and test scripts, GraphQL, WebSocket, gRPC-Web, OAuth 2 flows, collection runner, and code generation beyond cURL and grpcurl.
+These are not implemented yet: folder and collection scripts, `pm.sendRequest`, GraphQL subscriptions and autocomplete, Socket.IO long-polling, gRPC-Web, OAuth 2 flows, collection runner, and code generation beyond cURL and grpcurl.
+
+## Contributing
+
+Bug reports, ideas and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), the [Code of Conduct](CODE_OF_CONDUCT.md), and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the app is built. Changes per version are in [CHANGELOG.md](CHANGELOG.md). Report security problems privately, as described in [SECURITY.md](SECURITY.md).
+
+## License
+
+voidHTTP is source-available under the [Apache License 2.0 with the Commons Clause](LICENSE).
+
+- **Allowed:** using it for free, including at work; reading and modifying the source; forking it and sharing your fork.
+- **Required:** keep the [LICENSE](LICENSE) and [NOTICE](NOTICE) files in every copy and fork. NOTICE credits this repository.
+- **Not allowed:** selling it. You may not offer voidHTTP, or a fork or service whose value comes mainly from it, for a fee: no paid app, subscription, hosted service or paid support.
+
+Because of the Commons Clause, voidHTTP is not "open source" as the OSI defines it. For any other arrangement, open an issue to ask.

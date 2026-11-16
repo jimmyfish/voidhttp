@@ -122,7 +122,9 @@ export function findSensitive(req: RequestDef, res: Received, extra: string[] = 
   if (a.type === "bearer") add("Request auth", "Bearer token", "secret", a.token, { t: "auth", field: "token" });
   if (a.type === "basic") add("Request auth", "Basic password", "secret", a.password, { t: "auth", field: "password" });
   if (a.type === "apikey") add("Request auth", a.key || "API key", "secret", a.value, { t: "auth", field: "value" });
-  if (req.body.mode === "json") walk(grpc ? "Request message" : "Request body", (path) => ({ t: "reqJson", path }), parseJson(req.body.raw), []);
+  // a GraphQL request sends its variables, not its body
+  if (req.method === "GQL") walk("GraphQL variables", (path) => ({ t: "reqJson", path }), parseJson(req.gql?.variables ?? ""), []);
+  else if (req.body.mode === "json") walk(grpc ? "Request message" : "Request body", (path) => ({ t: "reqJson", path }), parseJson(req.body.raw), []);
   if (!grpc && req.body.mode === "form") kv("Request body", "form", req.body.form);
   if (!grpc && req.body.mode === "multipart") kv("Request body", "multipart", req.body.multipart.filter((f) => f.kind === "text"));
   if (grpc) {
@@ -305,7 +307,8 @@ export function applyMasks<R extends Received>(req: RequestDef, res: R, groups: 
   const copy = structuredClone(res) as Received;
   const http = isGrpcResult(copy) ? undefined : copy;
   const grpc = isGrpcResult(copy) ? copy : undefined;
-  const reqJson = request.body.mode === "json" ? parseJson(request.body.raw) : undefined;
+  const gqlVars = request.method === "GQL" ? request.gql : undefined;
+  const reqJson = gqlVars ? parseJson(gqlVars.variables) : request.body.mode === "json" ? parseJson(request.body.raw) : undefined;
   const resJson = http?.bodyEncoding === "utf8" ? parseJson(http.body) : undefined;
   // gRPC messages are parsed when a mask first reaches them
   const msgDocs = new Map<number, unknown>();
@@ -370,7 +373,8 @@ export function applyMasks<R extends Received>(req: RequestDef, res: R, groups: 
     }
   }
   if (paramHit) request.url = urlWithParams(request.url, request.params);
-  if (reqJsonHit) request.body.raw = JSON.stringify(reqJson, null, 2);
+  if (reqJsonHit && gqlVars) gqlVars.variables = JSON.stringify(reqJson, null, 2);
+  else if (reqJsonHit) request.body.raw = JSON.stringify(reqJson, null, 2);
   if (grpc) {
     for (const [i, doc] of msgDocs) {
       const msg = grpc.messages[i];

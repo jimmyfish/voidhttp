@@ -55,6 +55,12 @@
   --color-unresolved: var(--tag-alizarin);
   /* gRPC is a protocol, not a scheme colour: the convention cyan in every theme and scheme, by owner request */
   --m-grpc: var(--tag-cyan);
+  /* WebSocket, the same way: amethyst, the one tag hue no method label uses */
+  --m-ws: var(--tag-amethyst);
+  /* Socket.IO: turquoise in every theme and scheme, by owner pick */
+  --m-sio: var(--tag-turquoise);
+  /* GraphQL: its own rhodamine pink, not a scheme colour; darkened to read as text here, lifted in dark themes (themes.ts too) */
+  --m-gql: #c4007f;
   /* the faint grey ring round every tag dot and swatch: keeps Clouds visible on light and Asphalt on dark */
   --tag-ring: rgb(128 128 128 / 0.35);
   /* switch knob: white in every theme, on the grey or accent track */
@@ -85,6 +91,7 @@
     --color-ok: #01bf71; --color-redir: #6cb6ff; --color-error: #ff5c5c; --color-warn: #f5b84b;
     --color-hit: rgb(245 184 75 / 0.22); --color-hit-cur: rgb(245 184 75 / 0.5); --color-hit-edge: #f5b84b;
     --color-overlay: rgb(0 0 0 / 0.55); --color-shadow: rgb(0 0 0 / 0.3);
+    --m-gql: #ff4fb8;
     --m-get: #01bf71; --m-post: #ff7a33; --m-put: #38b6f0; --m-patch: #a78bfa; --m-delete: #ff5c5c; --m-head: #e5c07b; --m-options: #ff7aa8; --m-other: #8a9bb8;
     --j-key: #ff7b72; --j-str: #79b8ff; --j-num: #ffab70; --j-bool: #b392f0; --j-punct: #8a9bb8;
     color-scheme: dark;
@@ -98,6 +105,7 @@
   --color-ok: #01bf71; --color-redir: #6cb6ff; --color-error: #ff5c5c; --color-warn: #f5b84b;
     --color-hit: rgb(245 184 75 / 0.22); --color-hit-cur: rgb(245 184 75 / 0.5); --color-hit-edge: #f5b84b;
   --color-overlay: rgb(0 0 0 / 0.55); --color-shadow: rgb(0 0 0 / 0.3);
+  --m-gql: #ff4fb8;
   --m-get: #01bf71; --m-post: #ff7a33; --m-put: #38b6f0; --m-patch: #a78bfa; --m-delete: #ff5c5c; --m-head: #e5c07b; --m-options: #ff7aa8; --m-other: #8a9bb8;
   --j-key: #ff7b72; --j-str: #79b8ff; --j-num: #ffab70; --j-bool: #b392f0; --j-punct: #8a9bb8;
   color-scheme: dark;

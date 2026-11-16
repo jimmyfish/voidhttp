@@ -65,7 +65,7 @@ select.field { appearance: none; -webkit-appearance: none; padding-right: 32px; 
 /* method labels: coloured text, never a chip */
 .m { font: 700 var(--text-xs)/1 var(--font-body); width: 44px; flex-shrink: 0; color: var(--m-other); }
 .m-GET { color: var(--m-get); } .m-POST { color: var(--m-post); } .m-PUT { color: var(--m-put); }
-.m-PATCH { color: var(--m-patch); } .m-DELETE { color: var(--m-delete); } .m-GRPC { color: var(--m-grpc); }
+.m-PATCH { color: var(--m-patch); } .m-DELETE { color: var(--m-delete); } .m-GRPC { color: var(--m-grpc); } .m-WS { color: var(--m-ws); } .m-SIO { color: var(--m-sio); } .m-GQL { color: var(--m-gql); }
 .m-HEAD { color: var(--m-head); } .m-OPTIONS { color: var(--m-options); }
 
 /* ---------- shell: rail + panel ---------- */
@@ -1020,7 +1020,7 @@ fieldset.ro { display: contents; }
 .method-menu button[aria-checked="true"] { background: var(--color-paper-2); }
 /* .menu button paints items in ink; the method colours must win over it */
 .method-menu .m-GET { color: var(--m-get); } .method-menu .m-POST { color: var(--m-post); } .method-menu .m-PUT { color: var(--m-put); } .method-menu .m-PATCH { color: var(--m-patch); }
-.method-menu .m-DELETE { color: var(--m-delete); } .method-menu .m-HEAD { color: var(--m-head); } .method-menu .m-OPTIONS { color: var(--m-options); } .method-menu .m-GRPC { color: var(--m-grpc); }
+.method-menu .m-DELETE { color: var(--m-delete); } .method-menu .m-HEAD { color: var(--m-head); } .method-menu .m-OPTIONS { color: var(--m-options); } .method-menu .m-GRPC { color: var(--m-grpc); } .method-menu .m-WS { color: var(--m-ws); } .method-menu .m-SIO { color: var(--m-sio); } .method-menu .m-GQL { color: var(--m-gql); }
 .method-menu hr { margin: var(--space-3xs) var(--space-xs); }
 
 /* ---------- import and export (approved preview .hallmark/preview/transfer.html, 2026-11-13) ---------- */
@@ -1295,3 +1295,470 @@ textarea.xf-paste { display: block; width: 100%; min-height: 220px; padding: var
 .set-status.ok { color: var(--color-ok); }
 .set-status.new { color: var(--color-link); font-weight: 600; }
 .set-status.bad { color: var(--color-error); }
+
+/* Settings > Network: DNS, Proxy and Test lists in one pane, each under a small heading */
+.set-group { margin: var(--space-md) 0 var(--space-2xs); color: var(--color-muted); font-size: var(--text-sm); font-weight: 600; }
+.set-pane h4 + .set-group { margin-top: 0; }
+.set-wide { width: 260px; font-family: var(--font-mono); font-size: var(--text-code); }
+/* a row that belongs to the one above it (provider, proxy address) */
+.set-item--sub { padding-left: calc(var(--space-md) * 2); }
+.set-problem {
+  display: flex; align-items: center; gap: 6px; margin: 0; padding: var(--space-xs) var(--space-md);
+  border-top: 1px solid var(--color-rule); color: var(--color-error); font-size: var(--text-sm);
+}
+.set-problem .ico { width: 14px; height: 14px; flex-shrink: 0; }
+.set-pane > .set-problem { border-top: none; padding: 0 0 var(--space-xs); }
+.net-test { display: flex; gap: var(--space-xs); }
+.net-test .field { width: 200px; font-family: var(--font-mono); font-size: var(--text-code); }
+.net-result {
+  display: grid; gap: var(--space-3xs); padding: var(--space-xs) var(--space-md) var(--space-sm);
+  border-top: 1px solid var(--color-rule); font-size: var(--text-sm); -webkit-user-select: text; user-select: text;
+}
+.net-result .set-status { font-weight: 600; }
+.net-steps { display: grid; grid-template-columns: max-content 1fr; gap: 2px var(--space-sm); margin: 0; font: var(--text-sm) / 1.5 var(--font-mono); }
+.net-step { display: contents; }
+.net-steps dt { color: var(--color-muted); }
+.net-steps dd { margin: 0; color: var(--color-ink); overflow-wrap: anywhere; }
+.net-steps dd.bad { color: var(--color-error); }
+.net-hint { color: var(--color-muted); }
+
+/* ---------- Settings > Certificates: CA files and client certificates (mutual TLS) ---------- */
+/* a file or host row inside a bordered list: icon, name, what we read from it, remove / menu */
+.cert-row { min-height: 44px; padding-block: var(--space-xs); }
+.cert-row .file-row .dim.warn { color: var(--color-warn); }
+.cert-row .file-row .dim.bad { color: var(--color-error); }
+.cert-row .file-row > .ico.bad { color: var(--color-error); }
+.cert-row .row-more { display: inline-grid; margin: 0; min-width: 26px; min-height: 26px; border-radius: 6px; }
+.cert-row .set-problem { flex-basis: 100%; }
+/* a file row with its problem under it */
+.cert-file { display: grid; gap: var(--space-3xs); min-width: 0; flex: 1; }
+.cert-file .why { color: var(--color-error); font-size: var(--text-sm); }
+.cert-file .why code { font: var(--text-code) var(--font-mono); }
+
+/* last row of a list: the add button, with a one-line hint beside it */
+.cert-add { justify-content: flex-start; gap: var(--space-sm); min-height: 44px; }
+.cert-add .hint { color: var(--color-muted); font-size: var(--text-sm); }
+.cert-add .hint code { font: var(--text-code) var(--font-mono); color: var(--color-ink-2); }
+
+/* add / edit a client certificate: rows inside the list, Cancel + Add at the end */
+.cert-form.set-item { min-height: 44px; padding-block: var(--space-xs); }
+.cert-form-head { font-weight: 600; color: var(--color-ink); }
+.cert-host { display: flex; align-items: center; gap: var(--space-2xs); }
+.cert-host .field { width: 200px; font: var(--text-code) var(--font-mono); }
+.cert-host .cert-port { width: 72px; }
+.cert-host .sep { color: var(--color-muted); }
+.cert-pick { width: 272px; justify-content: flex-start; font: var(--text-code) var(--font-mono); overflow: hidden; }
+.cert-pick span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cert-pick .placeholder { color: var(--color-muted); font-family: var(--font-ui); font-size: var(--text-md); }
+.cert-pass { width: 272px; }
+.cert-actions { justify-content: flex-end; gap: var(--space-xs); }
+
+/* Skip TLS verification is on: the CA list is not used, say so above it */
+.set-notice {
+  display: flex; align-items: flex-start; gap: 6px; margin: 0 0 var(--space-sm); padding: var(--space-xs) var(--space-sm);
+  border-radius: 8px; background: color-mix(in srgb, var(--color-warn) 9%, var(--color-paper));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-warn) 35%, transparent);
+  color: var(--color-ink); font-size: var(--text-sm);
+}
+.set-notice .ico { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; color: var(--color-warn); }
+.set-notice .link { font-size: inherit; }
+.cert-port[aria-invalid="true"] { border-color: var(--color-error); }
+
+/* ---------- WebSocket (approved preview: .hallmark/preview/websocket.html) ---------- */
+/* request line: Connect / Disconnect sit where Send does */
+.ws-connect, .ws-disconnect { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2xs); min-width: 112px; }
+/* open connection: an outlined red Disconnect, so the live state reads from the request line too */
+.ws-disconnect { color: var(--color-error); border-color: color-mix(in srgb, var(--color-error) 55%, transparent); background: transparent; font-weight: 600; }
+.ws-disconnect:hover { background: color-mix(in srgb, var(--color-error) 7%, transparent); }
+/* the URL is locked while connected; edits wait for the next Connect */
+.url-field.is-live .url-input input { caret-color: transparent; }
+.url-field.is-live .url-hl { opacity: 0.75; }
+
+.msg-head .seg { margin-left: var(--space-2xs); }
+
+/* settings tab: bordered rows like the Settings dialog */
+.ws-settings { max-width: 760px; }
+.ws-settings .set-text .desc code { font: var(--text-code) var(--font-mono); color: var(--color-ink-2); }
+.ws-settings .set-ctl .field { width: 260px; font-family: var(--font-mono); font-size: var(--text-code); }
+.ws-settings .set-ctl .ws-num { width: 96px; }
+
+/* stream: system lines between messages (connected), same grid as a message row */
+.smsg-sys {
+  display: grid; grid-template-columns: 16px 3ch 7ch minmax(0, 1fr); align-items: center; gap: var(--space-xs);
+  min-height: 30px; padding: 0 var(--space-sm); color: var(--color-muted); font-family: var(--font-body); font-size: var(--text-sm);
+}
+.smsg-sys .ico { grid-column: 1; width: 14px; height: 14px; }
+.smsg-sys.ok .ico { color: var(--color-ok); }
+.smsg-sys .t { grid-column: 3; font: var(--text-code) var(--font-mono); font-variant-numeric: tabular-nums; }
+.smsg-sys .s { grid-column: 4; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.smsg-sys .s b { font: 600 var(--text-sm) var(--font-mono); color: var(--color-ok); }
+
+/* a binary frame: a small tag in front of the hex preview */
+.smsg .bin { display: inline-block; margin-right: var(--space-xs); padding: 0 var(--space-2xs); border-radius: var(--radius-pill); background: var(--color-paper-2); color: var(--color-ink-2); font: var(--text-xs)/1.6 var(--font-ui); }
+.smsg-open .hex { margin: 0; padding: var(--space-2xs) 0; font: var(--text-code)/1.65 var(--font-mono); color: var(--color-ink-2); white-space: pre; overflow-x: auto; }
+.smsg-open .ws-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* handshake tab: request and response headers of the upgrade */
+.hs { flex: 1; min-height: 0; overflow: auto; padding: var(--space-sm) var(--space-md); display: grid; align-content: start; gap: var(--space-md); }
+.hs h4 { display: flex; align-items: center; gap: var(--space-xs); margin: 0 0 var(--space-2xs); font-size: var(--text-sm); font-weight: 600; color: var(--color-ink); }
+.hs h4 .ok, .hs h4 .fail { font: 600 var(--text-sm) var(--font-mono); }
+.hs h4 .ok { color: var(--color-ok); } .hs h4 .fail { color: var(--color-error); }
+.hs dl { display: grid; grid-template-columns: minmax(140px, max-content) minmax(0, 1fr); gap: 2px var(--space-md); margin: 0; font: var(--text-code)/1.65 var(--font-mono); }
+.hs dt { color: var(--color-muted); }
+.hs dd { margin: 0; color: var(--color-ink); overflow-wrap: anywhere; }
+
+/* refused handshake: the server's HTTP answer stands in for the stream */
+.ws-fail { display: grid; gap: var(--space-2xs); margin: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: 10px; background: color-mix(in srgb, var(--color-error) 7%, var(--color-paper)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-error) 30%, transparent); }
+.ws-fail strong { display: flex; align-items: center; gap: var(--space-xs); color: var(--color-ink); font-weight: 600; }
+.ws-fail strong .ico { color: var(--color-error); }
+.ws-fail .msg { font: var(--text-sm) var(--font-mono); color: var(--color-error); }
+.ws-fail .ws-fail-body { color: var(--color-ink-2); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; }
+.ws-fail .acts { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-2xs); font-size: var(--text-sm); }
+
+/* ---------- Socket.IO (approved preview: .hallmark/preview/socketio.html) ---------- */
+/* request line: the server URL, then the namespace, like gRPC's server then method */
+.ns-seg {
+  display: flex; align-items: center; gap: var(--space-2xs); flex: 0 1 220px; min-width: 120px; height: 100%;
+  padding: 0 var(--space-xs) 0 var(--space-sm);
+}
+.ns-seg .ns-lbl { flex-shrink: 0; color: var(--color-muted); font-size: var(--text-sm); }
+.ns-seg input { flex: 1; min-width: 0; padding: 0; border: none; background: none; outline: none; font: var(--text-code) var(--font-mono); color: var(--color-ink); }
+.ns-seg input::placeholder { color: var(--color-placeholder); }
+.url-field.is-live .ns-seg input { color: var(--color-ink-2); caret-color: transparent; }
+
+/* composer: the event name over its one argument */
+.emit-head { display: flex; align-items: center; gap: var(--space-xs); min-height: var(--control); flex-wrap: wrap; }
+.emit-head .lbl { color: var(--color-muted); font-size: var(--text-sm); }
+.ev-input {
+  width: 240px; min-height: 28px; padding: 0 var(--space-xs); border: 1px solid var(--color-field-edge); border-radius: 6px;
+  background: var(--color-paper); color: var(--color-ink); font: var(--text-code) var(--font-mono);
+}
+.ev-input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -1px; }
+.ev-input::placeholder { color: var(--color-placeholder); }
+.emit-head .seg { margin-left: auto; }
+
+/* ack: a switch beside Emit; the timeout only when it is on */
+.ack-ctl { display: inline-flex; align-items: center; gap: var(--space-xs); color: var(--color-ink-2); font-size: var(--text-sm); }
+.ack-ctl .switch { flex-shrink: 0; }
+.ack-ctl .ack-ms { width: 72px; min-height: 26px; padding: 0 var(--space-2xs); border: 1px solid var(--color-field-edge); border-radius: 6px; background: var(--color-paper); color: var(--color-ink); font: var(--text-code) var(--font-mono); text-align: right; }
+.ack-ctl .ack-ms:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -1px; }
+.ack-ctl .unit { color: var(--color-muted); }
+
+/* event list: the event name, a quiet mono chip in front of the arguments, so the payload still leads */
+.smsg .ev {
+  display: inline-block; max-width: 22ch; margin-right: var(--space-xs); padding: 0 var(--space-2xs); overflow: hidden; vertical-align: bottom;
+  border-radius: 4px; background: var(--color-paper-2); color: var(--color-ink); font: 600 var(--text-code)/1.6 var(--font-mono);
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.smsg.out .ev { background: var(--color-accent-soft); color: var(--color-link); }
+/* the lead of a stream row: its padding, the icon column and the gap; an ack starts where its emit's icon ends */
+.stream { --row-lead: calc(var(--space-sm) + 16px + var(--space-xs)); }
+/* an ack: indented under the emit it answers, its own arrow, the emit's number */
+.smsg.ack { padding-left: var(--row-lead); }
+.smsg.ack .ico, .smsg.ack .n { color: var(--color-ok); }
+.ack-tag { display: inline-block; margin-right: var(--space-xs); color: var(--color-ok); font: 600 var(--text-sm) var(--font-ui); }
+.smsg-wait.ack-wait, .smsg-wait.ack-late { padding-left: calc(var(--row-lead) + var(--space-sm)); }
+.smsg-wait.ack-late { color: var(--color-warn); }
+.smsg-wait.ack-late .ico { width: 14px; height: 14px; color: currentColor; }
+/* system line parts: spaced, not dot-joined */
+.smsg-sys .s code { font: var(--text-code) var(--font-mono); color: var(--color-ink-2); }
+.smsg-sys .s > span + span { margin-left: var(--space-md); }
+
+/* event filter: which event names the list shows */
+.ev-filter-wrap { position: relative; display: inline-flex; margin-left: var(--space-xs); }
+.ev-filter {
+  display: inline-flex; align-items: center; gap: var(--space-3xs); min-height: 26px; padding: 0 var(--space-2xs) 0 var(--space-xs);
+  border: none; border-radius: 6px; background: none; color: var(--color-muted); font-size: var(--text-sm);
+}
+.ev-filter .ico { width: 14px; height: 14px; }
+.ev-filter:hover, .ev-filter[aria-expanded="true"] { background: var(--color-paper-2); color: var(--color-ink); }
+.ev-filter:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.ev-filter .on { color: var(--color-link); font-weight: 600; }
+.ev-menu { left: 0; right: auto; min-width: 260px; }
+.ev-menu button { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: var(--space-xs); }
+.ev-menu button .ico { color: var(--color-link); }
+.ev-menu button .tick-gap { width: 16px; }
+.ev-menu button code { overflow: hidden; text-overflow: ellipsis; font: var(--text-code) var(--font-mono); }
+.ev-menu button .cnt { color: var(--color-muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.ev-menu .menu-note { margin: 0; padding: var(--space-2xs) var(--space-sm) var(--space-xs); color: var(--color-muted); font-size: var(--text-sm); }
+
+/* settings tab: version, path, and the handshake auth's code field */
+.sio-settings { max-width: 760px; }
+.sio-settings .set-text .desc code { font: var(--text-code) var(--font-mono); color: var(--color-ink-2); }
+.sio-settings .set-ctl .field { width: 220px; min-height: 28px; font: var(--text-code) var(--font-mono); }
+.sio-settings .set-item.stack { flex-direction: column; align-items: stretch; gap: var(--space-xs); padding-bottom: var(--space-sm); }
+.sio-settings .set-item.stack .editor { flex: none; min-height: 84px; }
+
+/* About voidHTTP (approved 2026-11-16, preview .hallmark/preview/about.html): replaces the native macOS About panel.
+ * Updates and the licence are drawn as requests. */
+.about {
+  position: relative; width: 420px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); overflow: hidden auto; overscroll-behavior: contain;
+  border-radius: var(--radius-card); background: var(--color-paper); border: 1px solid var(--color-rule);
+  box-shadow: 0 24px 64px var(--color-shadow); -webkit-user-select: text; user-select: text;
+}
+.about-close { position: absolute; top: var(--space-xs); right: var(--space-xs); z-index: 1; }
+
+/* hero: the icon sits in the void its own logo draws, rings drifting outward */
+.about-hero {
+  position: relative; display: grid; justify-items: center; gap: var(--space-2xs);
+  padding: var(--space-xl) var(--space-lg) var(--space-md); text-align: center; isolation: isolate;
+  background: radial-gradient(120% 90% at 50% 0%, var(--color-accent-soft), transparent 70%);
+}
+.about-orbit { position: relative; display: grid; place-items: center; width: 88px; height: 88px; margin-bottom: var(--space-xs); cursor: pointer; }
+.about-orbit img {
+  position: relative; width: 88px; height: 88px; filter: drop-shadow(0 6px 14px var(--color-shadow));
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: about-settle 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.about-orbit:hover img { transform: translateY(-2px) rotate(-4deg); }
+.about-orbit:active img { transform: scale(0.96); transition-duration: 0.1s; }
+/* rings: three drifting outward without pause, at 15% so they stay in the background */
+.about-orbit i {
+  position: absolute; inset: 0; z-index: -1; border-radius: 50%; opacity: 0; pointer-events: none;
+  border: 1.5px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+.about-orbit.ping i { animation: about-ripple 6s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
+.about-orbit.ping i:nth-child(2) { animation-delay: 2s; }
+.about-orbit.ping i:nth-child(3) { animation-delay: 4s; }
+@keyframes about-settle {
+  from { transform: translateY(8px) scale(0.9); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes about-ripple {
+  0% { transform: scale(0.9); opacity: 0; }
+  15% { opacity: 0.15; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .about-orbit img { animation: none; transition: none; }
+  .about-orbit:hover img, .about-orbit:active img { transform: none; }
+  .about-orbit.ping i { animation: none; }
+}
+
+.about-name { margin: 0; font-size: var(--text-3xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.about-name span { color: var(--color-accent); }
+.about-tag { margin: 0; color: var(--color-muted); font-size: var(--text-md); }
+
+/* version: one click copies it for a bug report */
+.about-ver {
+  display: inline-flex; align-items: center; gap: 6px; height: 24px; margin-top: var(--space-xs); padding: 0 8px 0 10px;
+  border: none; border-radius: var(--radius-pill); background: var(--color-paper-2); color: var(--color-ink-2);
+  font: 600 var(--text-xs) / 1 var(--font-mono); font-variant-numeric: tabular-nums;
+}
+.about-ver .ico { width: 12px; height: 12px; color: var(--color-muted); }
+.about-ver:hover { background: var(--color-paper-3); box-shadow: inset 0 0 0 1px var(--color-rule); }
+.about-ver:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.about-ver[data-copied] { color: var(--color-ok); }
+.about-ver[data-copied] .ico { color: var(--color-ok); }
+
+/* the licence, as a response: what voidHTTP shows all day */
+.about-body { display: grid; gap: var(--space-sm); padding: var(--space-xs) var(--space-lg) var(--space-lg); }
+.about-res { border: 1px solid var(--color-rule); border-radius: 10px; overflow: hidden; font: var(--text-code) / 1.5 var(--font-mono); }
+.about-res-line {
+  display: flex; align-items: center; gap: var(--space-xs); padding: 7px var(--space-sm);
+  background: var(--color-paper-2); border-bottom: 1px solid var(--color-rule);
+}
+.about-res-line .m { font-weight: 700; color: var(--m-get); }
+.about-res-line .url { color: var(--color-ink-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.about-res-line .status { margin-left: auto; font-weight: 700; color: var(--color-ok); white-space: nowrap; }
+.about-res dl { display: grid; grid-template-columns: max-content 1fr; gap: 3px var(--space-sm); margin: 0; padding: var(--space-xs) var(--space-sm) 10px; }
+.about-res dt { color: var(--j-key); }
+.about-res dt::after { content: ":"; color: var(--j-punct); }
+.about-res dd { margin: 0; color: var(--color-ink); }
+.about-res dd.deny { color: var(--color-error); }
+
+/* updates, as a request too: 304 when current, 206 while downloading, 205 to restart */
+.about-res-line { position: relative; }
+.about-res-line .status.redir { color: var(--color-redir); }
+.about-res-line .status.fail { color: var(--color-error); }
+.about-res-line .status.wait { display: inline-flex; align-items: center; gap: 5px; color: var(--color-muted); font-weight: 400; }
+.about-res-line .status.wait .ico { width: 13px; height: 13px; }
+.about-res-line .status.busy { color: var(--color-link); }
+/* download progress fills the line's bottom edge */
+.about-prog { position: absolute; left: 0; bottom: -1px; height: 2px; width: var(--p, 0%); background: var(--color-accent); transition: width 0.3s ease; }
+.about-upd-body { display: grid; gap: var(--space-xs); padding: 10px var(--space-sm) var(--space-sm); font: var(--text-sm) / 1.45 var(--font-ui); }
+.about-upd-row { display: flex; align-items: center; gap: var(--space-sm); }
+.about-upd-text { display: grid; flex: 1; min-width: 0; margin: 0; color: var(--color-ink); }
+.about-upd-text .sub { color: var(--color-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.about-upd-row .btn { flex-shrink: 0; gap: 6px; height: 28px; min-height: 28px; padding: 0 10px; font-size: var(--text-sm); white-space: nowrap; }
+.about-upd-row .btn .ico { width: 14px; height: 14px; }
+/* release notes: first 3 changes, the rest behind "Show all" (AboutModal slices the list); expanded, the list scrolls inside a fixed height
+ * so a long changelog never pushes the dialog off the window */
+.about-upd .upd-notes { max-height: none; overflow: visible; margin: 0; }
+.about-notes { display: grid; gap: var(--space-2xs); }
+.about-notes[data-open] .upd-notes { max-height: 184px; overflow: auto; overscroll-behavior: contain; }
+.about-notes-more { justify-self: start; margin-left: 2px; }
+.about-notes-more .ico { transition: transform 0.2s ease; }
+.about-notes[data-open] .about-notes-more .ico { transform: rotate(180deg); }
+.about-upd .upd-err { font-size: var(--text-xs); }
+.about-upd .upd-link { margin-right: auto; }
+.about-upd[hidden] { display: none; }
+
+.about-foot { margin: 0; text-align: center; color: var(--color-muted); font-size: var(--text-xs); }
+
+.about-links { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3xs); }
+.about-links .btn { gap: 6px; height: 28px; min-height: 28px; padding: 0 10px; font-size: var(--text-sm); }
+.about-links .btn .ico { width: 14px; height: 14px; }
+
+
+/* ---------- scripts (pre-request + post-response), approved preview .hallmark/preview/scripts.html ---------- */
+/* request: Pre-request | Post-response switch with a dot when that slot holds a script, Snippets on the right */
+.script-head { display: flex; align-items: center; gap: var(--space-xs); min-height: var(--control); }
+.script-head .push { margin-left: auto; }
+.script-head .seg button { display: inline-flex; align-items: center; gap: 6px; }
+.script-head .has { width: 6px; height: 6px; border-radius: 50%; background: var(--color-ok); }
+.snip-wrap { position: relative; }
+.snip-wrap > .btn { font-size: var(--text-sm); display: inline-flex; align-items: center; gap: var(--space-2xs); }
+.snip-menu { min-width: 280px; }
+.snip-menu .grp { padding: var(--space-2xs) var(--space-sm) 2px; font-size: var(--text-xs); font-weight: 600; color: var(--color-muted); }
+.snip-menu button { width: 100%; font-size: var(--text-sm); }
+.script-hint { color: var(--color-muted); font-size: var(--text-sm); }
+.script-hint code, .editor-empty code, .empty code, .tests-none code { font: var(--text-code) var(--font-mono); color: var(--color-ink-2); }
+.script-hint .link { font-size: var(--text-sm); }
+/* an empty script: what it is for, over the editor; clicks go through to the text */
+.editor-empty {
+  position: absolute; inset: 0; z-index: var(--z-raised); display: grid; place-content: center; justify-items: center; gap: var(--space-xs);
+  padding: var(--space-lg); color: var(--color-muted); text-align: center; pointer-events: none;
+}
+.editor-empty strong { color: var(--color-ink); font-weight: 600; }
+
+/* JavaScript in the code view: the JSON palette, keywords in the literal colour, pm and console in the key colour */
+.j-kw { color: var(--j-bool); }
+.j-pm { color: var(--j-key); }
+.j-re { color: var(--j-str); }
+/* the line a script failed on */
+.code .l.err-line { background: color-mix(in srgb, var(--color-error) 9%, transparent); box-shadow: inset 2px 0 0 var(--color-error); }
+.code .l.err-line::before { color: var(--color-error); font-weight: 600; }
+
+/* response: Tests 3/4 is red as soon as one test fails; the same for a Console holding an error */
+.subtab .n.fail { color: var(--color-error); }
+.res-tools .push { margin-left: auto; }
+.res-tools .seg .c { margin-left: 4px; font-variant-numeric: tabular-nums; color: var(--color-muted); font-weight: 400; }
+
+/* Tests: one row per pm.test, a failed one says why under its name */
+.tests { flex: 1; min-height: 0; overflow: auto; padding: var(--space-2xs) 0; }
+.trow { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: var(--space-xs); min-height: 32px; padding: 0 var(--space-sm); }
+.trow + .trow { border-top: 1px solid var(--color-rule); }
+.trow.pass > .ico { color: var(--color-ok); }
+.trow.fail > .ico { color: var(--color-error); }
+.trow .name { color: var(--color-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trow .where { font: var(--text-sm) var(--font-mono); color: var(--color-muted); }
+.trow .why { grid-column: 2 / 4; margin: -4px 0 var(--space-xs); font: var(--text-code)/1.5 var(--font-mono); color: var(--color-error); overflow-wrap: anywhere; }
+.tests-none { margin: 0; padding: var(--space-sm); color: var(--color-muted); font-size: var(--text-sm); }
+
+/* Console: console.* output, variable changes and errors from both scripts, oldest first */
+.console { flex: 1; min-height: 0; overflow: auto; padding: var(--space-2xs) 0; font: var(--text-code)/1.6 var(--font-mono); user-select: text; -webkit-user-select: text; }
+.crow { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: baseline; gap: var(--space-xs); padding: 3px var(--space-sm); }
+.crow + .crow { border-top: 1px solid var(--color-rule); }
+.crow .src { justify-self: start; padding: 0 6px; border-radius: var(--radius-pill); background: var(--color-paper-2); color: var(--color-ink-2); font: var(--text-xs)/1.6 var(--font-body); }
+.crow .msg { color: var(--color-ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.crow.var .msg { color: var(--color-ink-2); }
+.crow.warn .msg { color: var(--color-warn); }
+.crow.error { background: color-mix(in srgb, var(--color-error) 6%, transparent); }
+.crow.error .msg { color: var(--color-error); }
+
+/* a failed script: what stopped it, a way back to the line */
+.script-fail {
+  display: grid; gap: var(--space-2xs); margin: var(--space-sm); padding: var(--space-sm) var(--space-md); border-radius: 10px;
+  background: color-mix(in srgb, var(--color-error) 7%, var(--color-paper)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-error) 30%, transparent);
+}
+.script-fail strong { display: flex; align-items: center; gap: var(--space-xs); color: var(--color-ink); font-weight: 600; }
+.script-fail strong .ico { color: var(--color-error); }
+.script-fail .msg { font: var(--text-sm) var(--font-mono); color: var(--color-error); overflow-wrap: anywhere; }
+.script-fail .acts { display: flex; gap: var(--space-md); margin-top: var(--space-2xs); }
+.response > .res-body > .script-fail + .console { border-top: 1px solid var(--color-rule); }
+
+/* ---------- GraphQL (approved preview: .hallmark/preview/graphql.html) ---------- */
+/* tokens from the existing --j-* colours: types orange, $variables like strings, arguments like keys, enum values like keywords */
+.g-type { color: var(--j-num); }
+.g-var { color: var(--j-str); }
+.g-arg { color: var(--j-key); }
+.g-enum { color: var(--j-bool); }
+
+/* Query tab: the document | Variables or Docs */
+.gql-split { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 36%); gap: var(--space-sm); }
+.gql-col { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: var(--space-xs); }
+.gql-head { display: flex; align-items: center; gap: var(--space-xs); min-height: var(--control); }
+.gql-head .push { margin-left: auto; }
+.gql-head .lbl { color: var(--color-muted); font-size: var(--text-sm); }
+
+/* operation picker: the named operation Send runs; a menu only when the document holds more than one */
+.op-wrap { position: relative; min-width: 0; }
+.op-btn { display: inline-flex; align-items: center; gap: var(--space-2xs); max-width: 100%; min-height: 28px; padding: 0 var(--space-xs); border: 1px solid var(--color-field-edge); border-radius: 6px; background: var(--color-paper); color: var(--color-ink); font: 600 var(--text-sm) var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.op-btn .kind { font-weight: 400; color: var(--j-bool); }
+.op-btn .anon { font-weight: 400; color: var(--color-muted); font-style: italic; }
+.op-btn .ico { width: 14px; height: 14px; color: var(--color-muted); }
+.op-btn:hover, .op-btn[aria-expanded="true"] { background: var(--color-paper-2); }
+.op-btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.op-btn[disabled] { border-color: transparent; background: none; padding-left: 0; cursor: default; }
+.op-btn.op-none { color: var(--color-muted); font-weight: 400; }
+.op-menu { left: 0; right: auto; min-width: 240px; max-height: 320px; overflow: auto; }
+.op-menu button { font: var(--text-sm) var(--font-mono); }
+.op-menu button .kind { width: 12ch; color: var(--j-bool); }
+.op-menu button .name { flex: 1; font-weight: 600; }
+.op-menu button .ico { color: var(--color-ok); }
+.op-menu button .tick-gap { width: 16px; flex-shrink: 0; }
+.op-note { padding: var(--space-2xs) var(--space-sm); max-width: 280px; white-space: normal; color: var(--color-muted); font-size: var(--text-xs); }
+
+/* schema status beside the Variables | Docs switch */
+.schema-state { display: inline-flex; align-items: center; gap: var(--space-2xs); min-width: 0; color: var(--color-muted); font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.schema-state .dot { width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: var(--color-ok); }
+.schema-state.none .dot { background: var(--color-edge-aa); }
+.schema-state.fail .dot { background: var(--color-error); }
+.schema-state .icon-btn { min-width: 24px; min-height: 24px; border-radius: 6px; }
+
+/* Docs: the schema browser */
+.gdoc { flex: 1; min-height: 0; display: flex; flex-direction: column; border: 1px solid var(--color-rule); border-radius: var(--radius-control); overflow: hidden; background: var(--color-paper); }
+.gdoc > .search { margin: var(--space-xs); flex: none; }
+.gdoc-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 0 var(--space-sm) var(--space-2xs); font-size: var(--text-sm); color: var(--color-muted); }
+.gdoc-crumbs .crumb { display: inline-flex; align-items: center; gap: 2px; }
+.gdoc-crumbs button { border: none; background: none; padding: 0; color: var(--color-link); font: inherit; }
+.gdoc-crumbs button:hover { text-decoration: underline; }
+.gdoc-crumbs .ico { width: 12px; height: 12px; }
+.gdoc-crumbs .here { color: var(--color-ink); font-weight: 600; }
+.gdoc-body { flex: 1; min-height: 0; overflow: auto; padding: 0 0 var(--space-xs); }
+.gdoc-title { display: flex; align-items: baseline; gap: var(--space-xs); padding: var(--space-2xs) var(--space-sm) 0; }
+.gdoc-title strong { font: 600 var(--text-md) var(--font-mono); color: var(--j-num); }
+.gdoc-kind { margin-left: var(--space-2xs); padding: 0 6px; border-radius: var(--radius-pill); background: var(--color-paper-2); color: var(--color-ink-2); font: var(--text-xs)/1.6 var(--font-body); }
+.gdoc-title .gdoc-kind { margin-left: 0; }
+.gdoc-desc { margin: var(--space-2xs) var(--space-sm) var(--space-xs); color: var(--color-ink-2); font-size: var(--text-sm); line-height: 1.5; white-space: pre-line; }
+.gdoc-grp { padding: var(--space-xs) var(--space-sm) var(--space-3xs); font-size: var(--text-xs); font-weight: 600; color: var(--color-muted); }
+.gdoc-row { display: block; width: 100%; padding: 6px var(--space-sm); border: none; background: none; text-align: left; color: var(--color-ink); font: var(--text-code)/1.5 var(--font-mono); overflow-wrap: anywhere; }
+.gdoc-row + .gdoc-row { border-top: 1px solid var(--color-rule); }
+button.gdoc-row:hover { background: var(--color-paper-2); }
+.gdoc-row:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.gdoc-row .f { font-weight: 600; }
+.gdoc-row .f.e { color: var(--j-bool); }
+.gdoc-row .a { color: var(--j-key); }
+.gdoc-row .t { color: var(--j-num); }
+.gdoc-row .p { color: var(--color-muted); }
+.gdoc-row .d { display: block; margin-top: 1px; font: var(--text-sm)/1.45 var(--font-body); color: var(--color-muted); white-space: pre-line; }
+.gdoc-row.dep .f { text-decoration: line-through; color: var(--color-muted); }
+.gdoc-row .dep-tag { margin-left: var(--space-2xs); padding: 0 5px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--color-warn) 14%, transparent); color: var(--color-warn); font: var(--text-xs)/1.6 var(--font-body); }
+.gdoc-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs); padding: 0 var(--space-sm); }
+.chip-link { padding: 1px 6px; border: none; border-radius: 4px; background: var(--color-paper-2); font: var(--text-code) var(--font-mono); color: var(--j-num); }
+.chip-link:hover { background: var(--color-paper-3); text-decoration: underline; }
+.chip-link:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.gdoc-chips .more { color: var(--color-muted); font-size: var(--text-sm); }
+
+/* no schema yet / introspection refused */
+.gdoc .empty { padding: var(--space-md); }
+.gdoc .empty span { max-width: 36ch; font-size: var(--text-sm); overflow-wrap: anywhere; }
+.gdoc .empty.fail > .ico { color: var(--color-error); }
+.gdoc .empty .btn { display: inline-flex; align-items: center; gap: var(--space-2xs); }
+
+/* response: GraphQL errors ride on 200 OK, so the count sits right after the status */
+.meta .gql-err { display: inline-flex; align-items: center; padding: 0 7px; border-radius: var(--radius-pill); background: color-mix(in srgb, var(--color-error) 12%, transparent); color: var(--color-error); }
+.gql-errors { margin: var(--space-xs) var(--space-md) 0; display: grid; gap: var(--space-3xs); flex-shrink: 0; max-height: 40%; overflow: auto; }
+.gql-erow { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: baseline; gap: var(--space-xs); padding: var(--space-2xs) var(--space-sm); border-radius: 8px; background: color-mix(in srgb, var(--color-error) 6%, var(--color-paper)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-error) 22%, transparent); font-size: var(--text-sm); }
+.gql-erow > .ico { width: 14px; height: 14px; color: var(--color-error); align-self: center; }
+.gql-erow .msg { color: var(--color-ink); overflow-wrap: anywhere; }
+.gql-erow .path { margin-left: var(--space-2xs); font: var(--text-code) var(--font-mono); color: var(--color-muted); }
+.gql-erow .code-tag { margin-left: var(--space-2xs); font: 600 var(--text-xs) var(--font-mono); color: var(--color-error); }
+.gql-erow .link { white-space: nowrap; }
+.gql-more { padding: 0 var(--space-sm); color: var(--color-muted); font-size: var(--text-sm); }
+
+/* narrow window: Docs and Variables go under the document */
+@media (max-width: 860px) {
+  .gql-split { grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(160px, 1fr); }
+}

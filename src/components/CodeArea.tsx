@@ -8,6 +8,14 @@ interface Props {
   placeholder?: string;
   /** colour JSON tokens in the layer under the text; ⌘/ toggles `//` line comments */
   json?: boolean;
+  /** colour JavaScript tokens instead (scripts); ⌘/ toggles `//` line comments too */
+  js?: boolean;
+  /** colour GraphQL tokens instead; ⌘/ toggles `#` line comments */
+  graphql?: boolean;
+  /** flag this line (1-based), e.g. where a script failed */
+  mark?: number;
+  /** shown over an empty editor; clicks go through to the text */
+  empty?: ReactNode;
   /** floats in the editor's top-right corner (Beautify) */
   tools?: ReactNode;
   label?: string;
@@ -23,17 +31,17 @@ const HIGHLIGHT_LIMIT = 200 * 1024;
  * a highlighted, line-numbered <pre> sits under a transparent <textarea> in one grid cell,
  * so both share one scroll and the caret, selection and typing stay native.
  */
-export function CodeArea({ value, onChange, placeholder, json, tools, label = "Request body", wrap = false }: Props) {
+export function CodeArea({ value, onChange, placeholder, json, js, graphql, mark, empty, tools, label = "Request body", wrap = false }: Props) {
   const html = useMemo(
-    () => highlightLines(value, !!json && value.length <= HIGHLIGHT_LIMIT),
-    [value, json],
+    () => highlightLines(value, value.length > HIGHLIGHT_LIMIT ? false : js ? "js" : graphql ? "graphql" : !!json, mark),
+    [value, json, js, graphql, mark],
   );
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (json && (e.metaKey || e.ctrlKey) && !e.altKey && (e.key === "/" || e.code === "Slash")) {
+    if ((json || js || graphql) && (e.metaKey || e.ctrlKey) && !e.altKey && (e.key === "/" || e.code === "Slash")) {
       e.preventDefault();
       const el = e.currentTarget;
-      const edit = toggleLineComments(value, el.selectionStart, el.selectionEnd);
+      const edit = toggleLineComments(value, el.selectionStart, el.selectionEnd, graphql ? "#" : "//");
       // insertText keeps the change on the native undo stack (⌘Z)
       el.setSelectionRange(edit.from, edit.to);
       if (!document.execCommand("insertText", false, edit.text)) onChange(edit.value);
@@ -51,6 +59,7 @@ export function CodeArea({ value, onChange, placeholder, json, tools, label = "R
   return (
     <div className="editor">
       {tools && <div className="editor-bar">{tools}</div>}
+      {empty && !value && <div className="editor-empty">{empty}</div>}
       <div className={`code-edit${wrap ? " wrap" : ""}`}>
         <div className="code-edit-grid">
           <pre className="code" aria-hidden="true" dangerouslySetInnerHTML={{ __html: html }} />

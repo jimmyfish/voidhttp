@@ -7,9 +7,11 @@ import { ExampleModal } from "./ExampleModal";
 import { ImportModal } from "./ImportModal";
 import { ExportModal } from "./ExportModal";
 import { KVEditor } from "./KVEditor";
-import { Ban, Check, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, Plus, Send, Trash2, TriangleAlert, Type, ico } from "./Icon";
+import { Ban, Check, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, FileBadge, Network, Plus, Send, Trash2, TriangleAlert, Type, ico } from "./Icon";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useUpdates } from "../updates";
+import { CertificatesPane } from "./CertificatesPane";
+import { AboutModal } from "./AboutModal";
 import { RELEASES_URL } from "../lib/updater";
 import { ago } from "../lib/time";
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
@@ -17,6 +19,8 @@ import { CodeArea } from "./CodeArea";
 import { formatVars, parseVars, type VarsFormat } from "../lib/varsFormat";
 import { TAG_COLORS, envStyle, tagName, type TagColor } from "../lib/tags";
 import { systemFonts } from "../lib/fonts";
+import { DNS_PROVIDERS, checkHost, netSettings, useNetProblems, type NetCheck } from "../lib/net";
+import type { NetSettings } from "../types";
 import { BUILTIN, DEFAULT_SCHEME, FAMILIES, SCHEMES, schemeSwatch, type BuiltinId } from "../lib/themes";
 import { PROJECT_COLORS, PROJECT_ICONS, ProjectTile, tileStyle } from "./ProjectIcon";
 
@@ -54,6 +58,8 @@ export function Modals() {
       return <VariablesModal onClose={close} select={modal.select} addVar={modal.addVar} />;
     case "settings":
       return <SettingsModal onClose={close} section={modal.section} />;
+    case "about":
+      return <AboutModal onClose={close} />;
     case "project":
       return <ProjectModal projectId={modal.projectId} onClose={close} />;
     case "import":
@@ -445,8 +451,8 @@ const MONO_FONTS = ["JetBrains Mono", "SF Mono", "Menlo", "Monaco", "Fira Code",
 const UI_SIZES = [12, 13, 14, 15, 16, 17, 18];
 const CODE_SIZES = [11, 12, 13, 14, 15, 16];
 
-/** The one app-wide settings dialog: appearance (theme, fonts) and request defaults. */
-function SettingsModal({ onClose, section: initial }: { onClose: () => void; section?: "appearance" | "requests" | "updates" }) {
+/** The one app-wide settings dialog: appearance (theme, fonts), request defaults, network, certificates and updates. */
+function SettingsModal({ onClose, section: initial }: { onClose: () => void; section?: "appearance" | "requests" | "network" | "certificates" | "updates" }) {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
   const [section, setSection] = useState(initial ?? "appearance");
@@ -476,6 +482,18 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
             <button type="button" aria-current={section === "requests"} onClick={() => setSection("requests")}>
               <Send {...ico} />
               Requests
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current={section === "network"} onClick={() => setSection("network")}>
+              <Network {...ico} />
+              Network
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current={section === "certificates"} onClick={() => setSection("certificates")}>
+              <FileBadge {...ico} />
+              Certificates
             </button>
           </li>
           <li>
@@ -580,6 +598,10 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
           </div>
         ) : section === "updates" ? (
           <UpdatesPane />
+        ) : section === "network" ? (
+          <NetworkPane />
+        ) : section === "certificates" ? (
+          <CertificatesPane onOpenRequests={() => setSection("requests")} />
         ) : (
           <div className="set-pane">
             <h4>Requests</h4>
@@ -637,6 +659,22 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
               </div>
               <div className="set-item">
                 <div className="set-text">
+                  <label htmlFor="set-scripts">Run scripts</label>
+                  <span className="desc">Run pre-request and post-response scripts on each send, including those from imported collections</span>
+                </div>
+                <div className="set-ctl">
+                  <input
+                    id="set-scripts"
+                    className="switch"
+                    type="checkbox"
+                    role="switch"
+                    checked={settings.runScripts !== false}
+                    onChange={(e) => setSettings({ runScripts: e.target.checked })}
+                  />
+                </div>
+              </div>
+              <div className="set-item">
+                <div className="set-text">
                   <label htmlFor="set-keep">Keep responses in history</label>
                   <span className="desc">Status, headers and body of each send, stored on this Mac as received</span>
                 </div>
@@ -681,6 +719,258 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
         </button>
       </footer>
     </Shell>
+  );
+}
+
+/** Settings > Network: secure DNS, a proxy (Cloudflare WARP in proxy mode) and a connection check.
+ * Applies to HTTP, WebSocket and gRPC alike; see src/lib/net.ts and src-tauri/src/net.rs. */
+function NetworkPane() {
+  const raw = useStore((s) => s.settings.network);
+  const setSettings = useStore((s) => s.setSettings);
+  const n = netSettings(raw);
+  const set = (patch: Partial<NetSettings>) => setSettings({ network: { ...raw, ...patch } });
+  const problems = useNetProblems();
+  const dnsProblem = problems.find((p) => p.startsWith("Secure DNS"));
+  const proxyProblem = problems.find((p) => p.startsWith("Proxy"));
+  const other = problems.filter((p) => p !== dnsProblem && p !== proxyProblem);
+
+  const [host, setHost] = useState("");
+  const [testing, setTesting] = useState(false);
+  const [check, setCheck] = useState<NetCheck | string | null>(null);
+  const test = async () => {
+    if (!host.trim() || testing) return;
+    setTesting(true);
+    setCheck(null);
+    try {
+      setCheck(await checkHost(host));
+    } catch (e) {
+      setCheck(String(e));
+    }
+    setTesting(false);
+  };
+
+  return (
+    <div className="set-pane">
+      <h4>Network</h4>
+      <div className="set-group">DNS</div>
+      <div className="set-list">
+        <div className="set-item">
+          <div className="set-text">
+            <label htmlFor="set-dns">Secure DNS</label>
+            <span className="desc">Look up hostnames over HTTPS, like Chrome's secure DNS. Gets past DNS blocking by your ISP.</span>
+          </div>
+          <div className="set-ctl">
+            <input id="set-dns" className="switch" type="checkbox" role="switch" checked={n.secureDns} onChange={(e) => set({ secureDns: e.target.checked })} />
+          </div>
+        </div>
+        {n.secureDns && (
+          <>
+            <div className="set-item set-item--sub">
+              <div className="set-text">
+                <label htmlFor="set-dns-provider">Provider</label>
+                <span className="desc">Who answers the lookups</span>
+              </div>
+              <div className="set-ctl">
+                <Select id="set-dns-provider" className="field set-wide" value={n.provider} onChange={(e) => set({ provider: e.target.value })}>
+                  {DNS_PROVIDERS.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+            {n.provider === "custom" && (
+              <div className="set-item set-item--sub">
+                <div className="set-text">
+                  <label htmlFor="set-dns-url">Server URL</label>
+                  <span className="desc">A DNS-over-HTTPS endpoint (RFC 8484)</span>
+                </div>
+                <div className="set-ctl">
+                  <input
+                    id="set-dns-url"
+                    className="field set-wide"
+                    placeholder="https://dns.example.com/dns-query"
+                    spellCheck={false}
+                    value={n.dohUrl}
+                    onChange={(e) => set({ dohUrl: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+            <div className="set-item set-item--sub">
+              <div className="set-text">
+                <label htmlFor="set-dns-fallback">Fall back to system DNS</label>
+                <span className="desc">When secure DNS has no answer, ask your Mac's DNS. Keeps intranet hosts on your VPN working.</span>
+              </div>
+              <div className="set-ctl">
+                <input id="set-dns-fallback" className="switch" type="checkbox" role="switch" checked={n.fallback} onChange={(e) => set({ fallback: e.target.checked })} />
+              </div>
+            </div>
+            <div className="set-item set-item--sub">
+              <div className="set-text">
+                <label htmlFor="set-dns-system">Always use system DNS for</label>
+                <span className="desc">Intranet domains, comma separated. Lookups for them never leave your Mac.</span>
+              </div>
+              <div className="set-ctl">
+                <input
+                  id="set-dns-system"
+                  className="field set-wide"
+                  placeholder="*.corp.local, *.internal"
+                  spellCheck={false}
+                  value={n.systemDomains}
+                  onChange={(e) => set({ systemDomains: e.target.value })}
+                />
+              </div>
+            </div>
+          </>
+        )}
+        {dnsProblem && (
+          <p className="set-problem" role="alert">
+            <TriangleAlert {...ico} />
+            {dnsProblem}
+          </p>
+        )}
+      </div>
+
+      <div className="set-group">Proxy</div>
+      <div className="set-list">
+        <div className="set-item">
+          <div className="set-text">
+            <span className="set-label" id="set-proxy">
+              Proxy
+            </span>
+            <span className="desc">Send HTTP, WebSocket and gRPC traffic through a proxy</span>
+          </div>
+          <div className="set-ctl">
+            <div className="seg seg--lg" role="group" aria-labelledby="set-proxy">
+              {(
+                [
+                  ["none", "None"],
+                  ["socks5", "SOCKS5"],
+                  ["http", "HTTP"],
+                ] as const
+              ).map(([id, label]) => (
+                <button key={id} type="button" aria-pressed={n.proxy === id} onClick={() => set({ proxy: id })}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        {n.proxy !== "none" && (
+          <>
+            <div className="set-item set-item--sub">
+              <div className="set-text">
+                <label htmlFor="set-proxy-addr">Address</label>
+                <span className="desc">Cloudflare WARP in proxy mode listens on 127.0.0.1:40000. The proxy looks up hostnames itself.</span>
+              </div>
+              <div className="set-ctl">
+                <input
+                  id="set-proxy-addr"
+                  className="field set-wide"
+                  placeholder="127.0.0.1:40000"
+                  spellCheck={false}
+                  value={n.proxyAddr}
+                  onChange={(e) => set({ proxyAddr: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="set-item set-item--sub">
+              <div className="set-text">
+                <label htmlFor="set-proxy-skip">Skip proxy for</label>
+                <span className="desc">Hosts reached directly, comma separated. localhost always is.</span>
+              </div>
+              <div className="set-ctl">
+                <input
+                  id="set-proxy-skip"
+                  className="field set-wide"
+                  placeholder="*.corp.local, 10.0.0.5"
+                  spellCheck={false}
+                  value={n.proxySkip}
+                  onChange={(e) => set({ proxySkip: e.target.value })}
+                />
+              </div>
+            </div>
+          </>
+        )}
+        {proxyProblem && (
+          <p className="set-problem" role="alert">
+            <TriangleAlert {...ico} />
+            {proxyProblem}
+          </p>
+        )}
+      </div>
+      {other.map((p) => (
+        <p key={p} className="set-problem" role="alert">
+          <TriangleAlert {...ico} />
+          {p}
+        </p>
+      ))}
+
+      <div className="set-group">Test</div>
+      <div className="set-list">
+        <div className="set-item">
+          <div className="set-text">
+            <label htmlFor="set-net-host">Check a host</label>
+            <span className="desc">Look up, connect and finish a TLS handshake with the settings above</span>
+          </div>
+          <div className="set-ctl">
+            <form
+              className="net-test"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void test();
+              }}
+            >
+              <input
+                id="set-net-host"
+                className="field"
+                placeholder="api.example.com"
+                spellCheck={false}
+                value={host}
+                onChange={(e) => setHost(e.target.value)}
+              />
+              <button type="submit" className="btn" disabled={testing || !host.trim()}>
+                {testing ? "Testing…" : "Test"}
+              </button>
+            </form>
+          </div>
+        </div>
+        {typeof check === "string" && (
+          <div className="net-result" role="status">
+            <span className="set-status bad">
+              <TriangleAlert {...ico} />
+              {check}
+            </span>
+          </div>
+        )}
+        {check && typeof check !== "string" && (
+          <div className="net-result" role="status">
+            {check.ok ? (
+              <span className="set-status ok">
+                <CircleCheck {...ico} />
+                Reachable · {check.ms} ms
+              </span>
+            ) : (
+              <span className="set-status bad">
+                <TriangleAlert {...ico} />
+                {`${check.steps[check.steps.length - 1]?.name ?? "Check"} failed`}
+              </span>
+            )}
+            <dl className="net-steps">
+              {check.steps.map((st) => (
+                <div key={st.name} className="net-step">
+                  <dt>{st.name}</dt>
+                  <dd className={st.ok ? undefined : "bad"}>{st.detail}</dd>
+                </div>
+              ))}
+            </dl>
+            {check.hint && <span className="net-hint">{check.hint}</span>}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

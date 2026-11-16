@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voidHTTP Socket.IO preview</title>
+<meta name="description" content="Design preview of Socket.IO requests in voidHTTP, before it is applied to the app.">
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./preview.css">
+<link rel="stylesheet" href="./grpc.css">
+<link rel="stylesheet" href="./websocket.css">
+<link rel="stylesheet" href="./socketio.css">
+</head>
+<body>
+<!-- icons: Lucide v0.460.0 (ISC), inlined from lucide-react -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+  <symbol id="i-bookmark-plus" viewBox="0 0 24 24"> <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /> <line x1="12" x2="12" y1="7" y2="13" /> <line x1="15" x2="9" y1="10" y2="10" /></symbol>
+  <symbol id="i-braces" viewBox="0 0 24 24"> <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1" /> <path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1" /></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"> <path d="M20 6 9 17l-5-5" /></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"> <path d="m6 9 6 6 6-6" /></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"> <path d="m15 18-6-6 6-6" /></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"> <path d="m9 18 6-6-6-6" /></symbol>
+  <symbol id="i-circle-check" viewBox="0 0 24 24"> <circle cx="12" cy="12" r="10" /> <path d="m9 12 2 2 4-4" /></symbol>
+  <symbol id="i-circle-dashed" viewBox="0 0 24 24"> <path d="M10.1 2.182a10 10 0 0 1 3.8 0" /> <path d="M13.9 21.818a10 10 0 0 1-3.8 0" /> <path d="M17.609 3.721a10 10 0 0 1 2.69 2.7" /> <path d="M2.182 13.9a10 10 0 0 1 0-3.8" /> <path d="M20.279 17.609a10 10 0 0 1-2.7 2.69" /> <path d="M21.818 10.1a10 10 0 0 1 0 3.8" /> <path d="M3.721 6.391a10 10 0 0 1 2.7-2.69" /> <path d="M6.391 20.279a10 10 0 0 1-2.69-2.7" /></symbol>
+  <symbol id="i-circle-help" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></g></symbol>
+  <symbol id="i-code-xml" viewBox="0 0 24 24"> <path d="m18 16 4-4-4-4" /> <path d="m6 8-4 4 4 4" /> <path d="m14.5 4-5 16" /></symbol>
+  <symbol id="i-columns-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"> <rect width="14" height="14" x="8" y="8" rx="2" ry="2" /> <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></symbol>
+  <symbol id="i-ellipsis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-file-code" viewBox="0 0 24 24"><path d="M10 12.5 8 15l2 2.5"/><path d="m14 12.5 2 2.5-2 2.5"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/></symbol>
+  <symbol id="i-file-up" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"> <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" /></symbol>
+  <symbol id="i-folder-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /></symbol>
+  <symbol id="i-house" viewBox="0 0 24 24"> <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /> <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24"> <path d="M12 3v12" /> <path d="m8 11 4 4 4-4" /> <path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4" /></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"> <line x1="3" x2="21" y1="22" y2="22" /> <line x1="6" x2="6" y1="18" y2="11" /> <line x1="10" x2="10" y1="18" y2="11" /> <line x1="14" x2="14" y1="18" y2="11" /> <line x1="18" x2="18" y1="18" y2="11" /> <polygon points="12 2 20 7 4 7" /></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"> <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" /> <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" /> <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" /></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-lock-open" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"> <line x1="4" x2="20" y1="12" y2="12" /> <line x1="4" x2="20" y1="6" y2="6" /> <line x1="4" x2="20" y1="18" y2="18" /></symbol>
+  <symbol id="i-panel-left-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"> <path d="M5 12h14" /> <path d="M12 5v14" /></symbol>
+  <symbol id="i-refresh-cw" viewBox="0 0 24 24"> <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /> <path d="M21 3v5h-5" /> <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /> <path d="M8 16H3v5" /></symbol>
+  <symbol id="i-scan-search" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/><path d="m16 16-1.9-1.9"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"> <circle cx="11" cy="11" r="8" /> <path d="m21 21-4.3-4.3" /></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"> <rect width="20" height="8" x="2" y="2" rx="2" ry="2" /> <rect width="20" height="8" x="2" y="14" rx="2" ry="2" /> <line x1="6" x2="6.01" y1="6" y2="6" /> <line x1="6" x2="6.01" y1="18" y2="18" /></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"> <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /> <circle cx="12" cy="12" r="3" /></symbol>
+  <symbol id="i-trash-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol>
+  <symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-wand-sparkles" viewBox="0 0 24 24"> <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" /> <path d="m14 7 3 3" /> <path d="M5 6v4" /> <path d="M19 14v4" /> <path d="M10 2v2" /> <path d="M7 8H3" /> <path d="M21 16h-4" /> <path d="M11 3H9" /></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"> <path d="M18 6 6 18" /> <path d="m6 6 12 12" /></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></symbol>
+  <symbol id="i-unplug" viewBox="0 0 24 24"><path d="m19 5 3-3"/><path d="m2 22 3-3"/><path d="M6.3 20.3a2.4 2.4 0 0 0 3.4 0L12 18l-6-6-2.3 2.3a2.4 2.4 0 0 0 0 3.4Z"/><path d="M7.5 13.5 10 11"/><path d="M10.5 16.5 13 14"/><path d="m12 6 6 6 2.3-2.3a2.4 2.4 0 0 0 0-3.4l-2.6-2.6a2.4 2.4 0 0 0-3.4 0Z"/></symbol>
+  <symbol id="i-corner-down-left" viewBox="0 0 24 24"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></symbol>
+  <symbol id="i-list-filter" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+</svg>
+
+<header class="pv-bar">
+  <strong>voidHTTP preview · Socket.IO</strong>
+  <nav class="pv-screens" aria-label="Screens">
+    <a class="btn btn--quiet" href="./index.html" style="min-height:var(--control)">← Base</a>
+  </nav>
+  <div class="pv-theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<div class="pv-stage">
+<div class="app">
+  <div class="app-strip" data-tauri-drag-region>
+    <nav class="ptabs" aria-label="Projects">
+      <button type="button" class="ptab"><svg aria-hidden="true" class="ico"><use href="#i-house"/></svg>Home</button>
+      <span class="ptab-sep" aria-hidden="true"></span>
+      <div class="ptab ptab--project" aria-current="page">
+        <button type="button" class="ptab-main"><span class="proj-tile proj-tile--sm" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>Amarbank</button>
+        <button type="button" class="icon-btn ptab-close" aria-label="Close Amarbank"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
+      </div>
+    </nav>
+    <button type="button" class="icon-btn strip-settings" title="Settings  ⌘," aria-label="Settings"><svg aria-hidden="true" class="ico"><use href="#i-settings"/></svg></button>
+  </div>
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-mark" aria-hidden="true">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke-width="2" style="stroke: var(--color-accent)"/><circle cx="8" cy="8" r="2.25" fill="none" stroke-width="1.5" style="stroke: var(--color-ok)"/></svg>
+    </div>
+    <button type="button" class="rail-item" aria-label="Collections" title="Collections" aria-current="page"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-layers"/></svg></button>
+    <button type="button" class="rail-item" aria-label="History" title="History"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-history"/></svg></button>
+    <button type="button" class="rail-item" aria-label="Variables" title="Variables"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-braces"/></svg></button>
+  </nav>
+
+  <div class="panel">
+    <!-- ===== sidebar: Socket.IO requests live in collections beside HTTP, gRPC and WebSocket ===== -->
+    <aside class="sidebar">
+      <div class="side-resize" role="separator" aria-orientation="vertical" aria-label="Resize sidebar"></div>
+      <div class="side-head"><h2>Collections</h2></div>
+      <div class="side-tools">
+        <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search collections"></div>
+        <button type="button" class="icon-btn icon-btn--outline" title="Import" aria-label="Import"><svg aria-hidden="true" class="ico"><use href="#i-import"/></svg></button>
+        <button type="button" class="icon-btn icon-btn--filled" title="New collection" aria-label="New collection"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+      </div>
+      <div class="tree">
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">trx-service</span><span class="count">(6)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for trx-service" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><span class="name">notification-service</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for notification-service" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px" aria-current="page"><button type="button" class="row-main"><span class="m m-SIO">SIO</span><span class="name">Transfer events</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Transfer events" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-SIO">SIO</span><span class="name">CS chat room</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for CS chat room" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-WS">WS</span><span class="name">Live notifications</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Live notifications" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">Send push</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Send push" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-GRPC">gRPC</span><span class="name">Subscribe device</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Subscribe device" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">Centralized Login</span><span class="count">(4)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Centralized Login" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+      </div>
+    </aside>
+
+    <!-- ===== work area ===== -->
+    <main class="work">
+      <div class="tabsbar">
+        <button type="button" class="icon-btn side-toggle" aria-label="Hide sidebar" title="Hide sidebar  ⌘\"><svg aria-hidden="true" class="ico"><use href="#i-panel-left-close"/></svg></button>
+        <div class="tabs">
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-WS">WS</span><span class="name">Live notifications</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab" aria-current="page"><button type="button" class="tab-main"><span class="m m-SIO">SIO</span><span class="name">Transfer events</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-POST">POST</span><span class="name">Send push</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <button type="button" class="icon-btn tab-add" aria-label="New tab"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+        </div>
+        <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
+        <div class="joined env-group">
+          <button type="button" class="env-picker" aria-label="Environment" style="--env-c: var(--tag-cyan)"><span class="env-dot" aria-hidden="true"></span><span class="env-name">Staging</span><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          <button type="button" class="btn joined-tail" aria-label="Environment menu" title="Manage environments"><svg aria-hidden="true" class="ico"><use href="#i-menu"/></svg></button>
+        </div>
+      </div>
+
+      <!-- request line: SIO in the method menu · server URL · namespace · Connect -->
+      <div class="request-line">
+        <div class="url-field sio-field" data-screen="menu idle settings refused closed">
+          <div class="method-wrap">
+            <button type="button" class="method-btn m-SIO" aria-label="Method: Socket.IO" aria-haspopup="menu" aria-expanded="false">SIO</button>
+            <div class="menu method-menu" role="menu" aria-label="Method" data-screen="menu"><button type="button" role="menuitemradio" class="m-GET" aria-checked="false">GET</button><button type="button" role="menuitemradio" class="m-POST" aria-checked="false">POST</button><button type="button" role="menuitemradio" class="m-PUT" aria-checked="false">PUT</button><button type="button" role="menuitemradio" class="m-PATCH" aria-checked="false">PATCH</button><button type="button" role="menuitemradio" class="m-DELETE" aria-checked="false">DELETE</button><button type="button" role="menuitemradio" class="m-HEAD" aria-checked="false">HEAD</button><button type="button" role="menuitemradio" class="m-OPTIONS" aria-checked="false">OPTIONS</button><hr><button type="button" role="menuitemradio" class="m-GRPC" aria-checked="false">gRPC</button><button type="button" role="menuitemradio" class="m-WS" aria-checked="false">WebSocket</button><button type="button" role="menuitemradio" class="m-SIO" aria-checked="true">Socket.IO</button></div>
+          </div>
+          <div class="url-input">
+            <div class="url-hl" aria-hidden="true"><span class="url-hl-in">https://<span class="tok-var"><i>{{</i>notifHost<i>}}</i></span> </span></div>
+            <input aria-label="Server URL" value="https://{{notifHost}}" spellcheck="false">
+          </div>
+          <span class="gf-sep" aria-hidden="true"></span>
+          <label class="ns-seg"><span class="ns-lbl">Namespace</span><input aria-label="Namespace" value="/transfers" spellcheck="false"></label>
+        </div>
+        <div class="url-field sio-field is-live" data-screen="live filter handshake">
+          <div class="method-wrap">
+            <button type="button" class="method-btn m-SIO" aria-label="Method: Socket.IO" disabled title="Disconnect to change the method">SIO</button>
+          </div>
+          <div class="url-input">
+            <div class="url-hl" aria-hidden="true"><span class="url-hl-in">https://<span class="tok-var"><i>{{</i>notifHost<i>}}</i></span> </span></div>
+            <input aria-label="Server URL" value="https://{{notifHost}}" spellcheck="false" readonly title="Disconnect to change the URL">
+          </div>
+          <span class="gf-sep" aria-hidden="true"></span>
+          <label class="ns-seg"><span class="ns-lbl">Namespace</span><input aria-label="Namespace" value="/transfers" spellcheck="false" readonly></label>
+        </div>
+
+        <button type="button" class="btn btn--primary ws-connect" data-screen="menu idle settings refused closed"><svg aria-hidden="true" class="ico"><use href="#i-plug"/></svg>Connect</button>
+        <button type="button" class="btn ws-disconnect" data-screen="live filter handshake"><svg aria-hidden="true" class="ico"><use href="#i-unplug"/></svg>Disconnect</button>
+
+        <div class="joined">
+          <button type="button" class="btn">Save</button>
+          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
+        </div>
+      </div>
+      <div class="req-title">
+        <span class="name">Transfer events</span>
+        <span class="path">notification-service</span>
+      </div>
+
+      <nav class="subtabs" aria-label="Request">
+        <button type="button" class="subtab" aria-pressed="true" data-screen="menu idle live filter handshake refused closed">Message</button>
+        <button type="button" class="subtab" aria-pressed="false" data-screen="settings">Message</button>
+        <button type="button" class="subtab" aria-pressed="false">Params</button>
+        <button type="button" class="subtab" aria-pressed="false">Headers <span class="n">1</span></button>
+        <button type="button" class="subtab">Auth</button>
+        <button type="button" class="subtab" aria-pressed="false" data-screen="menu idle live filter handshake refused closed">Settings <span class="n">2</span></button>
+        <button type="button" class="subtab" aria-pressed="true" data-screen="settings">Settings <span class="n">2</span></button>
+      </nav>
+
+      <!-- message: event name + arguments; Emit only while connected -->
+      <div class="section" style="flex:1" data-screen="menu idle live filter handshake refused closed">
+        <div class="emit-head">
+          <span class="lbl">Event</span>
+          <input class="ev-input" aria-label="Event name" value="transfer:retry" spellcheck="false" placeholder="event name" list="ev-recent">
+          <datalist id="ev-recent"><option value="transfer:subscribe"><option value="transfer:retry"><option value="balance:get"></datalist>
+          <div class="seg" role="group" aria-label="Format"><button type="button" aria-pressed="false">Text</button><button type="button" aria-pressed="true">JSON</button></div>
+        </div>
+        <div class="editor">
+          <div class="editor-bar"><button type="button" class="btn btn--quiet"><svg aria-hidden="true" class="ico"><use href="#i-wand-sparkles"/></svg>Beautify</button></div>
+          <pre class="code" aria-label="Argument" data-json='{"transfer_id":"trf_77a0c3","reason":"bank_timeout"}'></pre>
+        </div>
+        <div class="composer-bar">
+          <button type="button" class="btn btn--primary" data-screen="live filter handshake"><svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Emit</button>
+          <button type="button" class="btn btn--primary" disabled data-screen="menu idle refused closed"><svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Emit</button>
+          <label class="ack-ctl"><input type="checkbox" class="switch" role="switch" checked>Wait for ack</label>
+          <label class="ack-ctl"><input class="ack-ms" aria-label="Ack timeout in milliseconds" value="5000" inputmode="numeric"><span class="unit">ms</span></label>
+          <span class="hint-text push" data-screen="live filter handshake"><kbd>⌘</kbd> <kbd>Enter</kbd> emits</span>
+          <span class="hint-text push" data-screen="menu idle refused closed">Connect first, then emit events one by one.</span>
+        </div>
+      </div>
+
+      <!-- settings: server version, path, handshake auth (WebSocket transport only) -->
+      <div class="section" style="flex:1" data-screen="settings">
+        <div class="set-list sio-settings">
+          <div class="set-item">
+            <div class="set-text">
+              <span class="set-label" id="sio-ver">Server version</span>
+              <span class="desc">Socket.IO 3 and 4 speak Engine.IO 4; Socket.IO 2 speaks Engine.IO 3.</span>
+            </div>
+            <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="sio-ver"><button type="button" aria-pressed="true">Socket.IO 3 / 4</button><button type="button" aria-pressed="false">Socket.IO 2</button></div></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text">
+              <label class="set-label" for="sio-path">Path</label>
+              <span class="desc">Where the server mounts Socket.IO; <code>/socket.io</code> unless it was changed.</span>
+            </div>
+            <div class="set-ctl"><input id="sio-path" class="field" value="/socket.io" spellcheck="false"></div>
+          </div>
+          <div class="set-item stack">
+            <div class="set-text">
+              <span class="set-label">Handshake auth</span>
+              <span class="desc">Sent as <code>auth</code> when joining the namespace (Socket.IO 3 and later), where the server’s middleware reads it. Variables work here.</span>
+            </div>
+            <pre class="code" aria-label="Handshake auth" data-json='{"token":"{{accessToken}}"}'></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider" role="separator" aria-orientation="horizontal" aria-label="Resize panes"></div>
+
+      <!-- ===== response ===== -->
+      <section class="response" aria-label="Response">
+        <nav class="subtabs" aria-label="Response">
+          <button type="button" class="subtab" aria-pressed="true" data-screen="menu idle settings live filter refused closed">Events <span class="n" data-screen="live filter">8</span><span class="n" data-screen="closed">9</span></button>
+          <button type="button" class="subtab" aria-pressed="false" data-screen="handshake">Events <span class="n">8</span></button>
+          <button type="button" class="subtab" aria-pressed="false" data-screen="menu idle settings live filter refused closed">Handshake</button>
+          <button type="button" class="subtab" aria-pressed="true" data-screen="handshake">Handshake</button>
+
+          <span class="push meta" data-screen="live filter handshake"><span class="live"><span class="live-dot" aria-hidden="true"></span>Connected</span><span class="dim">/transfers</span><span class="dim">2m 14s</span><span class="dim">1.6&nbsp;KB</span></span>
+          <span class="push meta" data-screen="closed"><span class="fail">Disconnected by server</span><span class="dim">5m 02s</span><span class="dim">1.9&nbsp;KB</span></span>
+          <span class="push meta" data-screen="refused"><span class="fail">connect_error</span><span class="dim">/transfers</span><span class="dim">212 ms</span></span>
+          <span class="push" data-screen="menu idle settings"></span>
+        </nav>
+
+        <!-- not connected yet -->
+        <div class="empty" data-screen="menu idle settings">
+          <svg aria-hidden="true" class="ico ico-lg"><use href="#i-plug"/></svg>
+          <strong>Not connected</strong>
+          <span>Connect joins the namespace. Events show up here as they come and go.</span>
+        </div>
+
+        <!-- event toolbar -->
+        <div class="res-tools" data-screen="live filter closed">
+          <div class="seg" role="group" aria-label="Show"><button type="button" aria-pressed="true">All</button><button type="button" aria-pressed="false">Received</button><button type="button" aria-pressed="false">Sent</button></div>
+          <div class="ev-filter-wrap">
+            <button type="button" class="ev-filter" aria-haspopup="menu" aria-expanded="false" data-screen="live closed"><svg aria-hidden="true" class="ico"><use href="#i-list-filter"/></svg>Events: all<svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+            <button type="button" class="ev-filter" aria-haspopup="menu" aria-expanded="true" data-screen="filter"><svg aria-hidden="true" class="ico"><use href="#i-list-filter"/></svg><span class="on">Events: 2 of 4</span><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+            <div class="menu ev-menu" role="menu" aria-label="Events to show" data-screen="filter">
+              <button type="button" role="menuitemcheckbox" aria-checked="false"><span class="tick-gap"></span><code>transfer:subscribe</code><span class="cnt">1 sent</span></button>
+              <button type="button" role="menuitemcheckbox" aria-checked="true"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg><code>transfer:status</code><span class="cnt">2</span></button>
+              <button type="button" role="menuitemcheckbox" aria-checked="true"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg><code>balance:update</code><span class="cnt">1</span></button>
+              <button type="button" role="menuitemcheckbox" aria-checked="false"><span class="tick-gap"></span><code>notice</code><span class="cnt">1</span></button>
+              <hr>
+              <button type="button" role="menuitem"><span class="tick-gap"></span>Show all events</button>
+              <p class="menu-note">Names appear as events arrive.</p>
+            </div>
+          </div>
+          <span style="margin-left:auto"></span>
+          <button type="button" class="icon-btn" title="Copy events as JSON" aria-label="Copy events"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
+          <button type="button" class="icon-btn" title="Clear events" aria-label="Clear events"><svg aria-hidden="true" class="ico"><use href="#i-trash-2"/></svg></button>
+        </div>
+
+        <!-- connected: events, newest last; an ack sits under the emit it answers -->
+        <div class="res-body" data-screen="live filter closed">
+          <div class="stream">
+            <div class="smsg-sys ok"><svg aria-hidden="true" class="ico"><use href="#i-plug"/></svg><span class="t">0.00s</span><span class="s"><span>Joined <b>/transfers</b></span><span>sid <code>Zx9fKq2_bA1cAAAB</code></span><span>websocket</span><span>182 ms</span></span></div>
+
+            <button type="button" class="smsg out" aria-expanded="false" data-screen="live closed"><svg aria-hidden="true" class="ico"><use href="#i-arrow-up"/></svg><span class="n">1</span><span class="t">1.42s</span><span class="p"><span class="ev">transfer:subscribe</span>{"account_id":"acc_19c2a7"}</span></button>
+            <button type="button" class="smsg ack" aria-expanded="false" data-screen="live closed"><svg aria-hidden="true" class="ico"><use href="#i-corner-down-left"/></svg><span class="n">1</span><span class="t">1.47s</span><span class="p"><span class="ack-tag">ack</span>{"ok":true,"topics":["transfer.status","balance"]}</span></button>
+
+            <button type="button" class="smsg in" aria-expanded="true"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">2</span><span class="t">12.80s</span><span class="p"><span class="ev">transfer:status</span>{"transfer_id":"trf_2b91e0","status":"PROCESSING","amount":250000,"currency":"IDR"}</span></button>
+            <div class="smsg-open"><pre class="code" data-json='{"transfer_id":"trf_2b91e0","status":"PROCESSING","amount":250000,"currency":"IDR","at":"2026-11-15T03:14:07Z"}'></pre></div>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">3</span><span class="t">14.03s</span><span class="p"><span class="ev">transfer:status</span>{"transfer_id":"trf_2b91e0","status":"COMPLETED","amount":250000,"currency":"IDR"}</span></button>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">4</span><span class="t">14.05s</span><span class="p"><span class="ev">balance:update</span>{"account_id":"acc_19c2a7","available":4750000,"currency":"IDR"}</span></button>
+            <button type="button" class="smsg in" aria-expanded="false" data-screen="live closed"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">5</span><span class="t">61.20s</span><span class="p"><span class="ev">notice</span>"Maintenance window starts 02:00 WIB", "2026-11-16T19:00:00Z"</span></button>
+
+            <button type="button" class="smsg out" aria-expanded="false" data-screen="live closed"><svg aria-hidden="true" class="ico"><use href="#i-arrow-up"/></svg><span class="n">6</span><span class="t">98.14s</span><span class="p"><span class="ev">transfer:retry</span>{"transfer_id":"trf_77a0c3","reason":"bank_timeout"}</span></button>
+            <div class="smsg-wait ack-wait" data-screen="live"><span class="spinner"></span>Waiting for ack, 2.1 s of 5 s</div>
+            <div class="smsg-wait ack-late" data-screen="closed"><svg aria-hidden="true" class="ico"><use href="#i-clock"/></svg>No ack within 5000 ms</div>
+
+            <div class="smsg-wait" data-screen="live filter"><span class="spinner"></span>Connected, listening for events</div>
+
+            <button type="button" class="smsg in" aria-expanded="false" data-screen="closed"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">7</span><span class="t">301.6s</span><span class="p"><span class="ev">session:expired</span>{"in_seconds":0}</span></button>
+            <div class="smsg-end" role="status" data-screen="closed"><span class="fail">io server disconnect</span><span class="end-text">The server disconnected the socket after 5m 02s</span><button type="button" class="link">Reconnect</button></div>
+          </div>
+        </div>
+
+        <!-- handshake: Engine.IO open, namespace join, the HTTP upgrade -->
+        <div class="res-body" data-screen="handshake">
+          <div class="hs">
+            <div>
+              <h4>Engine.IO open</h4>
+              <dl>
+                <dt>sid</dt><dd>pQ2nA0v8Rk3eAAAC</dd>
+                <dt>upgrades</dt><dd>[]</dd>
+                <dt>pingInterval</dt><dd>25000</dd>
+                <dt>pingTimeout</dt><dd>20000</dd>
+                <dt>maxPayload</dt><dd>1000000</dd>
+              </dl>
+            </div>
+            <div>
+              <h4>Namespace /transfers <span class="ok">joined</span></h4>
+              <dl>
+                <dt>sid</dt><dd>Zx9fKq2_bA1cAAAB</dd>
+                <dt>auth sent</dt><dd>{"token":"••••••••"}</dd>
+              </dl>
+            </div>
+            <div>
+              <h4>Upgrade request</h4>
+              <dl>
+                <dt>GET</dt><dd>/socket.io/?EIO=4&amp;transport=websocket HTTP/1.1</dd>
+                <dt>Host</dt><dd>notif.staging.amarbank.co.id</dd>
+                <dt>Upgrade</dt><dd>websocket</dd>
+                <dt>Sec-WebSocket-Version</dt><dd>13</dd>
+                <dt>X-Device-Id</dt><dd>macbook-jf-01</dd>
+              </dl>
+            </div>
+            <div>
+              <h4>Response <span class="ok">101 Switching Protocols</span></h4>
+              <dl>
+                <dt>Upgrade</dt><dd>websocket</dd>
+                <dt>Connection</dt><dd>Upgrade</dd>
+                <dt>Sec-WebSocket-Accept</dt><dd>s3pPLMBiTxaQ9kYGzzhZRbK+xOo=</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <!-- the namespace refused the join: the server's connect_error stands in for the stream -->
+        <div class="res-body" data-screen="refused">
+          <div class="ws-fail" role="alert">
+            <strong><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg>The server refused namespace /transfers</strong>
+            <span class="msg">connect_error: Not authorized</span>
+            <span class="msg ws-fail-body">{"code":"TOKEN_EXPIRED"}</span>
+            <div class="acts"><span class="muted">The socket opened; the namespace middleware said no.</span><button type="button" class="link">Open handshake auth</button><button type="button" class="link">See handshake</button></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</div>
+
+<script>
+  // JSON → the same line/indent/token spans the app's code view uses
+  const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const TOK = /("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(true|false)|(null)|([{}\[\],:])/g;
+  const line = (s) => {
+    const ind = s.match(/^ */)[0];
+    const body = s.slice(ind.length).replace(TOK, (m, str, colon, num, bool, nul, p) =>
+      str ? (colon ? `<span class="j-key">${esc(str)}</span><span class="j-p">:</span>` : `<span class="j-str">${esc(str)}</span>`)
+      : num ? `<span class="j-num">${m}</span>` : bool ? `<span class="j-bool">${m}</span>` : nul ? `<span class="j-null">${m}</span>` : `<span class="j-p">${esc(p)}</span>`);
+    return `<span class="l">${ind ? `<span class="ind">${ind}</span>` : ""}${body}</span>`;
+  };
+  const pretty = (json) => JSON.stringify(JSON.parse(json), null, 2);
+  document.querySelectorAll("pre[data-json]").forEach((pre) => { pre.innerHTML = pretty(pre.dataset.json).split("\n").map(line).join(""); });
+
+  const setTheme = (t) => {
+    document.documentElement.dataset.theme = t;
+    document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.themeSet === t)));
+  };
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.themeSet)));
+  setTheme(new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light");
+</script>
+<script>
+  // screens: one at a time, kept in the URL hash. An element can belong to several screens.
+  {
+    const all = () => document.querySelectorAll("[data-screen]");
+    const names = new Set([...all()].flatMap((e) => e.dataset.screen.split(" ")));
+    const go = (s) => {
+      all().forEach((el) => { el.hidden = !el.dataset.screen.split(" ").includes(s); });
+      document.querySelectorAll("[data-show]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.show === s)));
+      document.querySelectorAll(".method-btn").forEach((b) => b.setAttribute("aria-expanded", String(s === "menu")));
+      history.replaceState(null, "", "#" + s);
+    };
+    document.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-show]");
+      if (t) { e.preventDefault(); go(t.dataset.show); }    });
+    go("live");
+  }
+</script>
+</body>
+</html>

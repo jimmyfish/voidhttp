@@ -13,6 +13,8 @@ import { Braces, CircleCheck, HistoryIcon, House, Layers, Mark, Settings, Undo2,
 import { DropImport } from "./components/DropImport";
 import { UpdateChip } from "./components/UpdateChip";
 import { useUpdates } from "./updates";
+import { useNetwork } from "./lib/net";
+import { useCerts } from "./lib/certs";
 
 export const SIDEBAR_DEFAULT = 296;
 const SIDEBAR_MIN = 220;
@@ -148,6 +150,8 @@ export default function App() {
   const sideHidden = liveSide?.hidden ?? !!settings.sidebarHidden;
   useTypeTokens();
   useTheme();
+  useNetwork();
+  useCerts();
 
   useEffect(() => {
     useStore.getState().init();
@@ -208,6 +212,14 @@ export default function App() {
       if (s.kind === "available" || busy) u.setPopover(true);
       else useStore.getState().openModal({ kind: "settings", section: "updates" });
     });
+    return () => {
+      unlisten.then((off) => off());
+    };
+  }, []);
+
+  // "About voidHTTP" in the app menu opens our own dialog instead of the native panel
+  useEffect(() => {
+    const unlisten = listen("menu:about", () => useStore.getState().openModal({ kind: "about" }));
     return () => {
       unlisten.then((off) => off());
     };

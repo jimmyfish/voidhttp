@@ -349,6 +349,8 @@ export function scrubRequest<T extends RequestDef>(r: T): T {
       form: blankSecretKv(r.body.form),
       multipart: blankSecretKv(r.body.multipart),
     },
+    // GraphQL variables are a JSON body of their own
+    ...(r.gql && { gql: { ...r.gql, variables: blankSecretJson(r.gql.variables) } }),
   };
 }
 
@@ -567,6 +569,7 @@ export function secretVarNames(c: Collection, ...layers: KV[][]): Set<string> {
     take(cred?.pass);
     for (const el of secretXmlElements(r.body.raw)) take(el.inner);
     blankSecretJson(r.body.raw, take);
+    if (r.gql) blankSecretJson(r.gql.variables, take);
   }
   // a credential variable may be built from other variables: those hold the credential too
   const values = new Map<string, string[]>();

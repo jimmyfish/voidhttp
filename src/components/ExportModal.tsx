@@ -56,6 +56,11 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
   if (!collection) return null;
   const reqs = requestsOf(collection.children);
   const grpc = reqs.filter((r) => r.method === "GRPC").length;
+  const ws = reqs.filter((r) => r.method === "WS").length;
+  const sio = reqs.filter((r) => r.method === "SIO").length;
+  const left = grpc + ws + sio;
+  const leftParts = [grpc && plural(grpc, "gRPC call"), ws && plural(ws, "WebSocket"), sio && plural(sio, "Socket.IO request")].filter(Boolean) as string[];
+  const leftLabel = leftParts.length > 1 ? `${leftParts.slice(0, -1).join(", ")} and ${leftParts[leftParts.length - 1]}` : leftParts.join("");
   const exampleCount = reqs.reduce((n, r) => n + (r.examples?.length ?? 0), 0);
   const fmt = FORMATS.find((f) => f.id === format)!;
   const fileName = fileStem(collection.name) + fmt.suffix;
@@ -118,16 +123,16 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
               </label>
             ))}
           </div>
-          {format !== "void" && grpc > 0 && (
+          {format !== "void" && left > 0 && (
             <div className="xf-warn">
               <TriangleAlert {...ico} />
               <span>
-                {plural(grpc, "gRPC call")} can't be written to {format === "har" ? "HAR" : "Postman v2.1"} and {grpc === 1 ? "is" : "are"} left out.
+                {leftLabel} can't be written to {format === "har" ? "HAR" : "Postman v2.1"} and {left === 1 ? "is" : "are"} left out.
                 {format === "har" && active && ` Variables are filled in from ${active.name}.`}
               </span>
             </div>
           )}
-          {format === "har" && !grpc && (
+          {format === "har" && !left && (
             <div className="xf-warn">
               <TriangleAlert {...ico} />
               <span>Environments are not part of HAR: variables are filled in from {active ? active.name : "the collection"}.</span>

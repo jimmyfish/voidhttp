@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voidHTTP Scripts preview</title>
+<meta name="description" content="Design preview of pre-request and post-response scripts in voidHTTP, before it is applied to the app.">
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./preview.css">
+<link rel="stylesheet" href="./scripts.css">
+</head>
+<body>
+<!-- icons: Lucide v0.460.0 (ISC), inlined from lucide-react -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-bookmark-plus" viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/><line x1="12" x2="12" y1="7" y2="13"/><line x1="15" x2="9" y1="10" y2="10"/></symbol>
+  <symbol id="i-braces" viewBox="0 0 24 24"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-circle-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
+  <symbol id="i-circle-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-code-xml" viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></symbol>
+  <symbol id="i-columns-2" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-ellipsis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+  <symbol id="i-house" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4"/></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></symbol>
+  <symbol id="i-panel-left-close" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-trash-2" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol>
+  <symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-wand-sparkles" viewBox="0 0 24 24"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-file-code" viewBox="0 0 24 24"><path d="M10 12.5 8 15l2 2.5"/><path d="m14 12.5 2 2.5-2 2.5"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/></symbol>
+</svg>
+
+<header class="pv-bar">
+  <strong>voidHTTP preview · Scripts</strong>
+  <nav class="pv-screens" aria-label="Screens">
+    <a class="btn btn--quiet" href="./index.html" style="min-height:var(--control)">← Base</a>
+    <button type="button" data-show="pre">Pre-request</button>
+    <button type="button" data-show="post">Post-response</button>
+    <button type="button" data-show="snippets">Snippets menu</button>
+    <button type="button" data-show="empty">Empty script</button>
+    <button type="button" data-show="tests">Tests result</button>
+    <button type="button" data-show="console">Console</button>
+    <button type="button" data-show="error">Script error</button>
+  </nav>
+  <div class="pv-theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<div class="pv-stage">
+<div class="app">
+  <div class="app-strip" data-tauri-drag-region>
+    <nav class="ptabs" aria-label="Projects">
+      <button type="button" class="ptab"><svg aria-hidden="true" class="ico"><use href="#i-house"/></svg>Home</button>
+      <span class="ptab-sep" aria-hidden="true"></span>
+      <div class="ptab ptab--project" aria-current="page">
+        <button type="button" class="ptab-main"><span class="proj-tile proj-tile--sm" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>Amarbank</button>
+        <button type="button" class="icon-btn ptab-close" aria-label="Close Amarbank"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
+      </div>
+    </nav>
+    <button type="button" class="icon-btn strip-settings" title="Settings  ⌘," aria-label="Settings"><svg aria-hidden="true" class="ico"><use href="#i-settings"/></svg></button>
+  </div>
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-mark" aria-hidden="true">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke-width="2" style="stroke: var(--color-accent)"/><circle cx="8" cy="8" r="2.25" fill="none" stroke-width="1.5" style="stroke: var(--color-ok)"/></svg>
+    </div>
+    <button type="button" class="rail-item" aria-label="Collections" title="Collections" aria-current="page"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-layers"/></svg></button>
+    <button type="button" class="rail-item" aria-label="History" title="History"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-history"/></svg></button>
+    <button type="button" class="rail-item" aria-label="Variables" title="Variables"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-braces"/></svg></button>
+  </nav>
+
+  <div class="panel">
+    <aside class="sidebar">
+      <div class="side-resize" role="separator" aria-orientation="vertical" aria-label="Resize sidebar"></div>
+      <div class="side-head"><h2>Collections</h2></div>
+      <div class="side-tools">
+        <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search collections"></div>
+        <button type="button" class="icon-btn icon-btn--outline" title="Import" aria-label="Import"><svg aria-hidden="true" class="ico"><use href="#i-import"/></svg></button>
+        <button type="button" class="icon-btn icon-btn--filled" title="New collection" aria-label="New collection"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+      </div>
+      <div class="tree">
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><span class="name">trx-service</span><span class="count">(6)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for trx-service" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg><span class="name">Customers</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Customers" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">List customers</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for List customers" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:40px" aria-current="page"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">Create customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Create customer" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">Get a customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Get a customer" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-PATCH">PATCH</span><span class="name">Update customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Update customer" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-DELETE">DEL</span><span class="name">Delete customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Delete customer" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">Centralized Login</span><span class="count">(4)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Centralized Login" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+      </div>
+    </aside>
+
+    <main class="work">
+      <div class="tabsbar">
+        <button type="button" class="icon-btn side-toggle" aria-label="Hide sidebar" title="Hide sidebar  ⌘\"><svg aria-hidden="true" class="ico"><use href="#i-panel-left-close"/></svg></button>
+        <div class="tabs">
+          <div class="tab" aria-current="page"><button type="button" class="tab-main"><span class="m m-POST">POST</span><span class="name">Create customer</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-GET">GET</span><span class="name">List customers</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <button type="button" class="icon-btn tab-add" aria-label="New tab"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+        </div>
+        <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
+        <div class="joined env-group">
+          <button type="button" class="env-picker" aria-label="Environment" style="--env-c: var(--tag-sunflower)"><span class="env-dot" aria-hidden="true"></span><span class="env-name">Staging</span><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          <button type="button" class="btn joined-tail" aria-label="Environment menu" title="Manage environments"><svg aria-hidden="true" class="ico"><use href="#i-menu"/></svg></button>
+        </div>
+      </div>
+
+      <div class="request-line">
+        <div class="url-field">
+          <div class="method-wrap"><button type="button" class="method-btn m-POST" aria-label="Method: POST">POST</button></div>
+          <div class="url-input">
+            <div class="url-hl" aria-hidden="true"><span class="url-hl-in"><span class="tok-var"><i>{{</i>baseUrl<i>}}</i></span>/v1/customers </span></div>
+            <input aria-label="URL" value="{{baseUrl}}/v1/customers" spellcheck="false">
+          </div>
+        </div>
+        <div class="joined send-group">
+          <button type="button" class="btn btn--primary">Send</button>
+          <button type="button" class="btn btn--primary joined-tail" aria-label="More send options"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+        </div>
+        <div class="joined">
+          <button type="button" class="btn">Save</button>
+          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
+        </div>
+      </div>
+      <div class="req-title">
+        <span class="name">Create customer</span>
+        <span class="path">trx-service / Customers</span>
+      </div>
+
+      <!-- Scripts sits after Auth; its count is how many of the two slots hold a script -->
+      <nav class="subtabs" aria-label="Request">
+        <button type="button" class="subtab" aria-pressed="false">Params</button>
+        <button type="button" class="subtab" aria-pressed="false">Body <span class="n">1</span></button>
+        <button type="button" class="subtab" aria-pressed="false">Headers <span class="n">2</span></button>
+        <button type="button" class="subtab" aria-pressed="false">Auth</button>
+        <button type="button" class="subtab" aria-pressed="true">Scripts <span class="n">2</span></button>
+        <button type="button" class="icon-btn push" title="Copy as cURL" aria-label="Copy as cURL"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg></button>
+      </nav>
+
+      <div class="section" style="flex:1">
+        <div class="script-head">
+          <div class="seg" role="group" aria-label="When it runs">
+            <button type="button" data-screen="pre snippets error" aria-pressed="true">Pre-request<span class="has" aria-label="has a script"></span></button>
+            <button type="button" data-screen="post tests console empty" aria-pressed="false">Pre-request<span class="has" aria-label="has a script"></span></button>
+            <button type="button" data-screen="pre snippets error" aria-pressed="false">Post-response<span class="has" aria-label="has a script"></span></button>
+            <button type="button" data-screen="post tests console" aria-pressed="true">Post-response<span class="has" aria-label="has a script"></span></button>
+            <button type="button" data-screen="empty" aria-pressed="true">Post-response</button>
+          </div>
+          <div class="snip-wrap push">
+            <button type="button" class="btn btn--quiet" aria-haspopup="menu" aria-expanded="false">Snippets<svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+            <div class="menu snip-menu" role="menu" aria-label="Snippets" data-screen="snippets">
+              <div class="grp">Variables</div>
+              <button type="button" role="menuitem">Get an environment variable</button>
+              <button type="button" role="menuitem">Set an environment variable</button>
+              <button type="button" role="menuitem">Set a collection variable</button>
+              <button type="button" role="menuitem">Save a response field to a variable</button>
+              <hr>
+              <div class="grp">Tests</div>
+              <button type="button" role="menuitem">Status code is 200</button>
+              <button type="button" role="menuitem">Response time is below 500 ms</button>
+              <button type="button" role="menuitem">Body has a JSON field</button>
+              <button type="button" role="menuitem">Header is present</button>
+              <hr>
+              <div class="grp">Request</div>
+              <button type="button" role="menuitem">Add a header</button>
+              <button type="button" role="menuitem">Log the response</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="editor" data-screen="pre snippets">
+          <pre class="code" aria-label="Pre-request script" data-js="pre"></pre>
+        </div>
+        <div class="editor" data-screen="error">
+          <pre class="code" aria-label="Pre-request script" data-js="pre-bad" data-err-line="5"></pre>
+        </div>
+        <div class="editor" data-screen="post tests console">
+          <pre class="code" aria-label="Post-response script" data-js="post"></pre>
+        </div>
+        <div class="editor" data-screen="empty">
+          <div class="empty">
+            <svg aria-hidden="true" class="ico ico-lg"><use href="#i-file-code"/></svg>
+            <strong>No post-response script</strong>
+            <span>Runs after the response arrives. Check it with <code>pm.test</code>, or save values with <code>pm.environment.set</code>.</span>
+            <span>Start from Snippets, or type here.</span>
+          </div>
+        </div>
+
+        <span class="script-hint" data-screen="pre snippets error">Runs before Send. Changes to <code>pm.request</code> go on the wire; <code>pm.environment.set</code> writes to Staging.</span>
+        <span class="script-hint" data-screen="post tests console empty">Runs after the response arrives. Results show in the Tests and Console tabs.</span>
+      </div>
+
+      <div class="divider" role="separator" aria-orientation="horizontal" aria-label="Resize panes"></div>
+
+      <section class="response" aria-label="Response">
+        <nav class="subtabs" aria-label="Response">
+          <button type="button" class="subtab" data-screen="pre post snippets empty" aria-pressed="true">Body</button>
+          <button type="button" class="subtab" data-screen="tests console error" aria-pressed="false">Body</button>
+          <button type="button" class="subtab" aria-pressed="false">Headers <span class="n">9</span></button>
+          <button type="button" class="subtab" data-screen="pre post snippets empty console" aria-pressed="false">Tests <span class="n fail">3/4</span></button>
+          <button type="button" class="subtab" data-screen="tests" aria-pressed="true">Tests <span class="n fail">3/4</span></button>
+          <button type="button" class="subtab" data-screen="error" aria-pressed="false">Tests</button>
+          <button type="button" class="subtab" data-screen="pre post snippets empty tests" aria-pressed="false">Console <span class="n">4</span></button>
+          <button type="button" class="subtab" data-screen="console" aria-pressed="true">Console <span class="n">4</span></button>
+          <button type="button" class="subtab" data-screen="error" aria-pressed="false">Console <span class="n fail">2</span></button>
+          <span class="push meta" data-screen="pre post snippets empty tests console"><span class="ok">201 Created</span><span class="dim">142 ms</span><span class="dim">412&nbsp;B</span><span class="dim">HTTP/2</span></span>
+          <span class="push meta" data-screen="error"><span class="fail">Not sent</span><span class="dim">pre-request script failed</span></span>
+        </nav>
+
+        <!-- body: unchanged -->
+        <div class="res-tools" data-screen="pre post snippets empty">
+          <div class="seg" role="group" aria-label="View"><button type="button" aria-pressed="true">Pretty</button><button type="button" aria-pressed="false">Raw</button></div>
+          <button type="button" class="icon-btn" style="margin-left:auto" title="Save as example" aria-label="Save as example"><svg aria-hidden="true" class="ico"><use href="#i-bookmark-plus"/></svg></button>
+          <button type="button" class="icon-btn" title="Copy response" aria-label="Copy response"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
+        </div>
+        <div class="res-body" data-screen="pre post snippets empty">
+          <pre class="code" aria-label="Response body" data-json='{"id":"cus_8f2c41","object":"customer","email":"ada@example.com","name":"Ada Lovelace","currency":"EUR","balance":0,"delinquent":false,"created":1794470400}'></pre>
+        </div>
+
+        <!-- tests: one row per pm.test, failed ones say why under the name -->
+        <div class="res-tools" data-screen="tests">
+          <div class="seg" role="group" aria-label="Show"><button type="button" aria-pressed="true">All<span class="c">4</span></button><button type="button" aria-pressed="false">Passed<span class="c">3</span></button><button type="button" aria-pressed="false">Failed<span class="c">1</span></button></div>
+        </div>
+        <div class="res-body" data-screen="tests">
+          <div class="tests">
+            <div class="trow pass"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg><span class="name">Status is 201</span><span class="where">0 ms</span></div>
+            <div class="trow pass"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg><span class="name">Has a customer id</span><span class="where">0 ms</span></div>
+            <div class="trow fail"><svg aria-hidden="true" class="ico"><use href="#i-circle-x"/></svg><span class="name">Currency is IDR</span><span class="where">line 10</span><span class="why">AssertionError: expected 'EUR' to deeply equal 'IDR'</span></div>
+            <div class="trow pass"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg><span class="name">Responds within 500 ms</span><span class="where">0 ms</span></div>
+          </div>
+        </div>
+
+        <!-- console: console.log, variable writes and errors from both scripts, oldest first -->
+        <div class="res-tools" data-screen="console error">
+          <span style="margin-left:auto"></span>
+          <button type="button" class="icon-btn" title="Copy console" aria-label="Copy console"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
+          <button type="button" class="icon-btn" title="Clear console" aria-label="Clear console"><svg aria-hidden="true" class="ico"><use href="#i-trash-2"/></svg></button>
+        </div>
+        <div class="res-body" data-screen="console">
+          <div class="console">
+            <div class="crow var"><span class="t">0.00s</span><span class="src">Pre</span><span class="msg">environment.set <b>requestedAt</b> = "2026-11-16T03:14:07.512Z"</span></div>
+            <div class="crow"><span class="t">0.00s</span><span class="src">Pre</span><span class="msg">sending as ops-bot, idempotency key 3f1c9a42-7d1e-4b8a-9c2f-0e6b5d4a1f73</span></div>
+            <div class="crow"><span class="t">0.15s</span><span class="src">Post</span><span class="msg">{ id: "cus_8f2c41", currency: "EUR" }</span></div>
+            <div class="crow var"><span class="t">0.15s</span><span class="src">Post</span><span class="msg">environment.set <b>customerId</b> = "cus_8f2c41"</span></div>
+          </div>
+        </div>
+        <div class="res-body" data-screen="error">
+          <div class="script-fail">
+            <strong><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg>Pre-request script failed. The request was not sent.</strong>
+            <span class="msg">TypeError: Cannot read properties of undefined (reading 'raw') · line 5</span>
+            <div class="acts"><button type="button" class="link">Go to line 5</button><button type="button" class="link">Send without scripts</button></div>
+          </div>
+          <div class="console">
+            <div class="crow var"><span class="t">0.00s</span><span class="src">Pre</span><span class="msg">environment.set <b>requestedAt</b> = "2026-11-16T03:14:07.512Z"</span></div>
+            <div class="crow err"><span class="t">0.00s</span><span class="src">Pre</span><span class="msg">TypeError: Cannot read properties of undefined (reading 'raw')
+    at line 5:33</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</div>
+
+<script>
+  const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  // JSON → the same line/indent/token spans the app's code view uses
+  const TOK = /("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(true|false)|(null)|([{}\[\],:])/g;
+  const jline = (s) => {
+    const ind = s.match(/^ */)[0];
+    const body = s.slice(ind.length).replace(TOK, (m, str, colon, num, bool, nul, p) =>
+      str ? (colon ? `<span class="j-key">${esc(str)}</span><span class="j-p">:</span>` : `<span class="j-str">${esc(str)}</span>`)
+      : num ? `<span class="j-num">${m}</span>` : bool ? `<span class="j-bool">${m}</span>` : nul ? `<span class="j-null">${m}</span>` : `<span class="j-p">${esc(p)}</span>`);
+    return `<span class="l">${ind ? `<span class="ind">${ind}</span>` : ""}${body}</span>`;
+  };
+  document.querySelectorAll("pre[data-json]").forEach((pre) => { pre.innerHTML = JSON.stringify(JSON.parse(pre.dataset.json), null, 2).split("\n").map(jline).join(""); });
+
+  // JS → line spans; the same small tokenizer ports into src/lib/highlight.ts
+  const KW = /^(const|let|var|if|else|return|function|new|typeof|await|async|for|of|in|true|false|null|undefined|throw|try|catch)$/;
+  const JS = /(\/\/.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\/(?:[^/\\\n]|\\.)+\/[gimsuy]*(?=[,)\s;]))|(\b\d+(?:\.\d+)?\b)|(\b[A-Za-z_$][\w$]*\b)|([{}()[\],;.:=<>!+\-*/&|?]+)/gm;
+  const jsline = (s) => {
+    const ind = s.match(/^ */)[0];
+    const body = s.slice(ind.length).replace(JS, (m, com, str, re, num, id, p) =>
+      com ? `<span class="j-com">${esc(com)}</span>` : str ? `<span class="j-str">${esc(str)}</span>` : re ? `<span class="j-re">${esc(re)}</span>`
+      : num ? `<span class="j-num">${m}</span>` : id ? (KW.test(id) ? `<span class="j-kw">${id}</span>` : id === "pm" || id === "console" ? `<span class="j-pm">${id}</span>` : id)
+      : `<span class="j-p">${esc(p)}</span>`);
+    return `<span class="l">${ind ? `<span class="ind">${ind}</span>` : ""}${body || " "}</span>`;
+  };
+  const SRC = {
+    pre: `// a fresh idempotency key and timestamp on every send
+pm.request.headers.add({
+  key: "Idempotency-Key",
+  value: pm.variables.replaceIn("{{$guid}}"),
+});
+pm.environment.set("requestedAt", new Date().toISOString());
+
+if (!pm.environment.get("token")) {
+  console.warn("no token in Staging, run Login first");
+}
+console.log("sending as", pm.environment.get("operator"));`,
+    "pre-bad": `// sign the body with the shared secret
+const secret = pm.environment.get("signingSecret");
+pm.environment.set("requestedAt", new Date().toISOString());
+
+const payload = pm.request.bodyy.raw + pm.environment.get("requestedAt");
+pm.request.headers.add({ key: "X-Signature", value: payload });`,
+    post: `pm.test("Status is 201", () => {
+  pm.expect(pm.response.code).to.equal(201);
+});
+
+const body = pm.response.json();
+pm.test("Has a customer id", () => {
+  pm.expect(body.id).to.match(/^cus_/);
+});
+pm.test("Currency is IDR", () => {
+  pm.expect(body.currency).to.eql("IDR");
+});
+pm.test("Responds within 500 ms", () => {
+  pm.expect(pm.response.responseTime).to.be.below(500);
+});
+
+console.log({ id: body.id, currency: body.currency });
+pm.environment.set("customerId", body.id);`,
+  };
+  document.querySelectorAll("pre[data-js]").forEach((pre) => {
+    pre.innerHTML = SRC[pre.dataset.js].split("\n").map(jsline).join("");
+    const bad = Number(pre.dataset.errLine);
+    if (bad) pre.querySelectorAll(".l")[bad - 1]?.classList.add("err-line");
+  });
+
+  const setTheme = (t) => {
+    document.documentElement.dataset.theme = t;
+    document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.themeSet === t)));
+  };
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.themeSet)));
+  setTheme(new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light");
+</script>
+<script>
+  // screens: one at a time, kept in the URL hash. An element can belong to several screens.
+  {
+    const all = () => document.querySelectorAll("[data-screen]");
+    const go = (s) => {
+      all().forEach((el) => { el.hidden = !el.dataset.screen.split(" ").includes(s); });
+      document.querySelectorAll("[data-show]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.show === s)));
+      document.querySelector(".snip-wrap > .btn").setAttribute("aria-expanded", String(s === "snippets"));
+      history.replaceState(null, "", `#${s}`);
+    };
+    document.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-show]");
+      if (t) { e.preventDefault(); go(t.dataset.show); }
+    });
+    go(location.hash.slice(1) || "pre");
+  }
+</script>
+</body>
+</html>
