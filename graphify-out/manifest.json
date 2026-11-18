@@ -1,8 +1,8 @@
 {
   "package.json": {
-    "mtime": 1794760267.744075,
-    "seen": 1794760287.5383732,
-    "ast_hash": "f8772aa473af3df5691d0ccaad82062c",
+    "mtime": 1794992614.4358587,
+    "seen": 1794992633.650916,
+    "ast_hash": "cb271b7e966b7da5f187fd60b9922867",
     "semantic_hash": ""
   },
   "src-tauri/Cargo.toml": {
@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "src/components/Icon.tsx": {
-    "mtime": 1794818736.978124,
-    "seen": 1794818792.081325,
-    "ast_hash": "63a8c009b9303f8c543e46b6bcb2d484",
+    "mtime": 1794992552.772456,
+    "seen": 1794992554.343856,
+    "ast_hash": "52c4e9fef78a3a4702b0c3545d0e17e4",
     "semantic_hash": ""
   },
   "src/components/ProjectIcon.tsx": {
