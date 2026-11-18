@@ -24,6 +24,8 @@ import { SioRequestPane } from "./SioPane";
 import { defaultSio, isSio } from "../lib/sio";
 import { KafkaRequestPane } from "./KafkaPane";
 import { defaultKafka, isKafka } from "../lib/kafka";
+import { MqttRequestPane } from "./MqttPane";
+import { defaultMqtt, isMqtt } from "../lib/mqtt";
 import { defaultGql, gqlFromJson, gqlPayload, isGql } from "../lib/graphql";
 import { GqlQueryEditor, OPEN_GQL_LINE, type OpenGqlLine } from "./GqlPane";
 
@@ -169,12 +171,12 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
     </>
   );
   const titlePath = ex ? `${exPath} · example` : saved ? [col!.name, ...folders].join(" / ") : "Not saved";
-  // the method menu, whichever pane shows it: gRPC, WebSocket, Socket.IO and Kafka bring their own settings and a message body;
+  // the method menu, whichever pane shows it: gRPC, WebSocket, Socket.IO, Kafka and MQTT bring their own settings and a message body;
   // GraphQL takes a JSON body that already is one ({ "query": … }), and leaving it keeps its payload as the JSON body
   const pickMethod = (m: string) =>
     m === "GQL"
       ? set({ method: "GQL", gql: req.gql ?? (req.body.mode === "json" ? gqlFromJson(req.body.raw) : null) ?? defaultGql() })
-      : gql && !["GRPC", "WS", "SIO", "KAFKA"].includes(m) && req.body.mode === "none"
+      : gql && !["GRPC", "WS", "SIO", "KAFKA", "MQTT"].includes(m) && req.body.mode === "none"
         ? set({ method: m, body: { ...req.body, mode: "json", raw: gqlPayload(req.gql ?? defaultGql()) } })
         : m === "GRPC"
       ? set({ method: "GRPC", grpc: req.grpc ?? defaultGrpc(req.url), body: { ...req.body, mode: "json" } })
@@ -184,7 +186,9 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
           ? set({ method: "SIO", sio: req.sio ?? defaultSio(), body: { ...req.body, mode: req.body.mode === "text" ? "text" : "json" } })
           : m === "KAFKA"
             ? set({ method: "KAFKA", kafka: req.kafka ?? defaultKafka(), body: { ...req.body, mode: req.body.mode === "text" ? "text" : "json" } })
-            : set({ method: m });
+            : m === "MQTT"
+              ? set({ method: "MQTT", mqtt: req.mqtt ?? defaultMqtt(), body: { ...req.body, mode: req.body.mode === "text" ? "text" : "json" } })
+              : set({ method: m });
 
   if (isGrpc(req))
     return (
@@ -212,6 +216,9 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
         onKind={pickMethod}
       />
     );
+
+  if (isMqtt(req))
+    return <MqttRequestPane tab={tab} grow={grow} lookup={lookup} missing={missing} path={titlePath} saveControls={saveControls} onKind={pickMethod} />;
 
   if (isKafka(req))
     return <KafkaRequestPane tab={tab} grow={grow} lookup={lookup} missing={missing} path={titlePath} saveControls={saveControls} onKind={pickMethod} />;

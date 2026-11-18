@@ -8,6 +8,8 @@ import { WsResponsePane } from "./WsResponse";
 import { isSocket } from "../lib/sio";
 import { isKafka } from "../lib/kafka";
 import { KafkaResponsePane } from "./KafkaResponse";
+import { isMqtt } from "../lib/mqtt";
+import { MqttResponsePane } from "./MqttResponse";
 import { BodyViewer, ExampleBanner, PairsTable, useTabExample } from "./ResponseBody";
 import { RunBanner, RunsButton } from "./Runs";
 import { BookmarkPlus, CircleCheck, CircleX, Copy, Trash2, TriangleAlert, ico } from "./Icon";
@@ -17,6 +19,7 @@ import { OPEN_GQL_LINE, type OpenGqlLine } from "./GqlPane";
 
 export function ResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   if (isKafka(tab.request)) return <KafkaResponsePane tab={tab} grow={grow} />;
+  if (isMqtt(tab.request)) return <MqttResponsePane tab={tab} grow={grow} />;
   if (isSocket(tab.request)) return <WsResponsePane tab={tab} grow={grow} />;
   return isGrpc(tab.request) ? <GrpcResponsePane tab={tab} grow={grow} /> : <HttpResponsePane tab={tab} grow={grow} />;
 }

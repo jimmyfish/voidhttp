@@ -1,0 +1,84 @@
+/* Hallmark · MQTT requests · shape: app screen · genre: modern-minimal · theme: brand · signature: one list for messages received and published, the broker's ack (PUBACK / PUBCOMP) threaded under each publish
+ * reuses app.css, grpc.css, websocket.css, socketio.css and kafka.css as is: request line, method menu, subtabs, editor, composer bar,
+ * stream rows, ack rows, topic chip (.ev), live dot, meta, handshake grid (.hs), refused box, filter menus, settings lists, record detail (.kdetail)
+ * new token: --m-mqtt, the method-label colour for MQTT rows and tabs; FIXED per scheme darkness like --m-gql:
+ * MQTT purple #660066 on light (the protocol's own colour), a light orchid on dark so it stays readable (owner pick: "MQTT purple")
+ * one connection subscribes AND publishes; versions 3.1.1 + 5.0; transports mqtt:// mqtts:// ws:// wss:// */
+
+:root { --m-mqtt: #660066; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --m-mqtt: #e08ee6; } }
+:root[data-theme="dark"] { --m-mqtt: #e08ee6; }
+
+.m-MQTT, .method-menu .m-MQTT { color: var(--m-mqtt); }
+
+/* ---------- request line: the broker URL alone; the scheme picks the transport ---------- */
+.mqtt-field .url-input { flex: 1; }
+.mq-scheme {
+  flex-shrink: 0; align-self: center; margin-right: var(--space-xs); padding: 0 var(--space-2xs); border-radius: 4px;
+  background: var(--color-paper-2); color: var(--color-muted); font: 600 var(--text-xs)/1.7 var(--font-ui); white-space: nowrap;
+}
+
+/* ---------- message tab: topic, QoS, retain in one line; Payload | Properties below ---------- */
+.mq-head { display: flex; align-items: center; gap: var(--space-xs); flex-wrap: wrap; min-height: var(--control); }
+.mq-head .lbl { color: var(--color-muted); font-size: var(--text-sm); }
+.mq-head .lbl.gap { margin-left: var(--space-sm); }
+.mq-head .ev-input { width: 300px; }
+.mq-head .push { margin-left: auto; }
+.mq-check { display: inline-flex; align-items: center; gap: var(--space-xs); color: var(--color-ink-2); font-size: var(--text-sm); }
+/* a slot with content: the same 6px green dot the Scripts seg uses */
+.mq-has { display: inline-block; width: 6px; height: 6px; margin-left: var(--space-2xs); border-radius: 50%; background: var(--color-ok); vertical-align: middle; }
+.seg button[disabled] { opacity: .45; }
+
+/* publish properties (MQTT 5): bordered row list on top, user properties as the usual key/value table under it */
+.mq-props .set-ctl .field.mono { font: var(--text-code) var(--font-mono); }
+.mq-props .set-ctl .field.narrow { width: 96px; text-align: right; }
+.mq-props .set-ctl .unit { color: var(--color-muted); font-size: var(--text-sm); }
+.mq-sub-h { margin: var(--space-xs) 0 0; color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; }
+
+/* ---------- topics tab: one row per subscription, live state on the right ---------- */
+.subs .qos-cell { width: 120px; }
+.subs .state-cell { width: 220px; white-space: nowrap; font-size: var(--text-sm); }
+.subs .state-cell .ok { color: var(--color-ok); font-weight: 600; }
+.subs .state-cell .fail { color: var(--color-error); font-weight: 600; }
+.subs .state-cell .dim { color: var(--color-muted); }
+.subs .opt-cell { width: 40px; }
+.subs .seg button { min-width: 26px; }
+.subs tr.denied .field { color: var(--color-error); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--color-error) 50%, transparent); }
+.subs-foot { display: flex; align-items: center; gap: var(--space-xs); }
+.subs-foot .hint-text { color: var(--color-muted); font-size: var(--text-sm); }
+.subs-foot .hint-text code { font: var(--text-code) var(--font-mono); color: var(--color-ink-2); }
+.subs-foot .push { margin-left: auto; }
+
+/* per-subscription MQTT 5 options: a small menu off the row's "…" */
+.opt-wrap { position: relative; display: inline-flex; }
+.sub-menu { right: 0; left: auto; top: calc(100% + 4px); min-width: 300px; padding: var(--space-2xs) 0; }
+.sub-menu .opt { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-sm); padding: var(--space-2xs) var(--space-sm); }
+.sub-menu .opt .t { color: var(--color-ink); font-size: var(--text-sm); }
+.sub-menu .opt .d { display: block; color: var(--color-muted); font-size: var(--text-xs); }
+.sub-menu hr { margin: var(--space-2xs) 0; border: none; border-top: 1px solid var(--color-rule); }
+.sub-menu .menu-note { margin: 0; padding: var(--space-2xs) var(--space-sm) var(--space-xs); color: var(--color-muted); font-size: var(--text-sm); }
+
+/* ---------- message list ---------- */
+/* QoS and retained: small mono tags after the topic chip, muted so the payload still leads */
+.qtag { display: inline-block; margin-right: var(--space-xs); color: var(--color-muted); font: 600 var(--text-xs)/1.6 var(--font-mono); }
+.rtag { display: inline-block; margin-right: var(--space-xs); padding: 0 var(--space-2xs); border-radius: var(--radius-pill); background: color-mix(in srgb, var(--color-warn) 14%, transparent); color: var(--color-warn); font: 600 var(--text-xs)/1.6 var(--font-ui); }
+.smsg .ev { max-width: 34ch; }
+.smsg.ack .p b { color: var(--color-ink); font-weight: 600; }
+.smsg.ack.q0 .ico, .smsg.ack.q0 .n, .smsg.ack.q0 .ack-tag { color: var(--color-muted); }
+
+/* the subscription line in the stream: which filters the broker granted */
+.smsg-sys .s .grant { color: var(--color-ok); font-weight: 600; }
+.smsg-sys .s .deny { color: var(--color-error); font-weight: 600; }
+.smsg-sys.warn .ico { color: var(--color-warn); }
+
+/* ---------- connection tab ---------- */
+.hs .ok-v { color: var(--color-ok); font-weight: 600; }
+.hs .warn-v { color: var(--color-warn); font-weight: 600; }
+
+/* ---------- last will / auth / settings ---------- */
+.mq-settings .set-ctl .field.mono { font: var(--text-code) var(--font-mono); }
+.mq-settings .set-ctl .field.narrow { width: 96px; text-align: right; }
+.mq-settings .set-ctl .unit { color: var(--color-muted); font-size: var(--text-sm); }
+.mq-settings .set-item.off { opacity: .5; }
+.mq-settings .v5 { margin-left: var(--space-2xs); padding: 0 var(--space-2xs); border-radius: 4px; background: var(--color-paper-2); color: var(--color-muted); font: 600 var(--text-xs)/1.6 var(--font-ui); }
+.will-editor { min-height: 140px; }

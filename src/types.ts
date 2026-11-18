@@ -22,20 +22,21 @@ export interface RequestBody {
 export interface RequestDef {
   id: string;
   name: string;
-  /** An HTTP method, "GQL" for GraphQL over HTTP (see `gql`), "GRPC" for a gRPC call (see `grpc`), "WS" for a WebSocket (see `ws`), "SIO" for Socket.IO (see `sio`) or "KAFKA" for a Kafka topic (see `kafka`). */
+  /** An HTTP method, "GQL" for GraphQL over HTTP (see `gql`), "GRPC" for a gRPC call (see `grpc`), "WS" for a WebSocket (see `ws`), "SIO" for Socket.IO (see `sio`), "KAFKA" for a Kafka topic (see `kafka`) or "MQTT" for an MQTT broker (see `mqtt`). */
   method: string;
-  /** The URL; for gRPC the server address, host:port; for WebSocket a ws:// or wss:// URL; for Kafka the bootstrap brokers. */
+  /** The URL; for gRPC the server address, host:port; for WebSocket a ws:// or wss:// URL; for Kafka the bootstrap brokers; for MQTT the broker, mqtt:// mqtts:// ws:// or wss://. */
   url: string;
   params: KV[];
-  /** HTTP headers; for gRPC the request metadata; for Kafka the produced record's headers. */
+  /** HTTP headers; for gRPC the request metadata; for Kafka the produced record's headers; for MQTT 5 the published message's user properties. */
   headers: KV[];
-  /** For gRPC, `raw` holds the request message as JSON; for WebSocket, the next message to send; for Socket.IO, the next emit's argument; for Kafka, the next produced record's value. */
+  /** For gRPC, `raw` holds the request message as JSON; for WebSocket, the next message to send; for Socket.IO, the next emit's argument; for Kafka, the next produced record's value; for MQTT, the next published payload. */
   body: RequestBody;
   auth: Auth;
   grpc?: GrpcDef;
   ws?: WsDef;
   sio?: SioDef;
   kafka?: KafkaDef;
+  mqtt?: MqttDef;
   gql?: GqlDef;
   /** Postman-style JavaScript run around an HTTP send: `pre` before it, `post` once the response arrives. */
   scripts?: RequestScripts;
@@ -131,6 +132,64 @@ export interface KafkaDef {
   keep: number;
 }
 
+export type MqttQos = 0 | 1 | 2;
+
+/** One row of the Topics tab. */
+export interface MqttSub {
+  id: string;
+  /** a topic filter: + one level, # the rest, $share/<group>/<filter> */
+  filter: string;
+  qos: MqttQos;
+  /** off rows stay in the list but aren't subscribed */
+  enabled: boolean;
+  /** MQTT 5: skip messages this connection published */
+  noLocal: boolean;
+  /** MQTT 5: keep the publisher's retain flag */
+  retainAsPublished: boolean;
+  /** MQTT 5: retained messages on subscribe: 0 send, 1 only for a new subscription, 2 never */
+  retainHandling: 0 | 1 | 2;
+}
+
+export interface MqttDef {
+  version: "5" | "3.1.1";
+  /** where Publish sends the payload (`body.raw`) */
+  topic: string;
+  qos: MqttQos;
+  retain: boolean;
+  /** MQTT 5 publish properties; user properties are the request's `headers` */
+  contentType: string;
+  /** payload format indicator: the payload is UTF-8 text */
+  utf8: boolean;
+  /** seconds; null never expires */
+  messageExpiry: number | null;
+  responseTopic: string;
+  correlation: string;
+  subs: MqttSub[];
+  username: string;
+  password: string;
+  /** empty: a random one on every Connect */
+  clientId: string;
+  cleanStart: boolean;
+  /** MQTT 5, seconds */
+  sessionExpiry: number;
+  /** seconds; 0 sends no pings */
+  keepAlive: number;
+  will: MqttWill;
+  /** messages the list keeps; older ones drop off */
+  keep: number;
+}
+
+export interface MqttWill {
+  enabled: boolean;
+  topic: string;
+  payload: string;
+  json: boolean;
+  qos: MqttQos;
+  retain: boolean;
+  /** MQTT 5, seconds */
+  delay: number;
+}
+
 export interface WsDef {
   /** offered in Sec-WebSocket-Protocol */
   subprotocols: string[];
@@ -140,8 +199,8 @@ export interface WsDef {
 
 export interface WsMessage {
   dir: "in" | "out";
-  /** "binary" holds `data` in base64; Socket.IO: "event", or "ack" answering emit `ackId`; Kafka: "record", or "ack" answering produce `ackId` */
-  kind: "text" | "binary" | "event" | "ack" | "record";
+  /** "binary" holds `data` in base64; Socket.IO: "event", or "ack" answering emit `ackId`; Kafka: "record", or "ack" answering produce `ackId`; MQTT: "publish", or "ack" answering publish `ackId` */
+  kind: "text" | "binary" | "event" | "ack" | "record" | "publish";
   /** the text, or base64 for binary; Socket.IO: the arguments as a JSON array */
   data: string;
   /** Socket.IO: the event name */
@@ -161,15 +220,29 @@ export interface WsMessage {
   /** Kafka: the key as text, or base64 when `keyBin`; absent for a record without a key */
   key?: string;
   keyBin?: boolean;
-  /** Kafka: `data` holds the value in base64 */
+  /** Kafka, MQTT: `data` holds the value (payload) in base64 */
   valueBin?: boolean;
   /** Kafka: a tombstone, a record with no value */
   valueNull?: boolean;
   headers?: { key: string; value: string; bin?: boolean }[];
   /** Kafka ack: the acks setting it was produced with */
   acks?: number;
-  /** Kafka ack: why the produce failed */
+  /** Kafka ack: why the produce failed; MQTT ack: why the publish failed */
   error?: string;
+  /** MQTT: the message's topic */
+  topic?: string;
+  /** MQTT: the QoS it travelled at */
+  qos?: number;
+  /** MQTT: the broker kept it (on a received message: a retained one sent on subscribe) */
+  retain?: boolean;
+  dup?: boolean;
+  /** MQTT 5 properties */
+  props?: MqttMsgProps;
+  /** MQTT ack: "PUBACK" or "PUBREC → PUBCOMP" */
+  ack?: string;
+  packetId?: number;
+  /** MQTT ack: a reason code that isn't plain Success, e.g. "0x10 No matching subscribers" */
+  reason?: string;
   size: number;
   /** ms since the socket opened */
   atMs: number;
@@ -213,6 +286,69 @@ export interface WsResult {
   sio?: SioSession;
   /** Kafka: the cluster, the topic and where reading stands */
   kafka?: KafkaSession;
+  /** MQTT: the broker's answer and the subscriptions */
+  mqtt?: MqttSession;
+}
+
+export interface MqttMsgProps {
+  contentType?: string;
+  utf8?: boolean;
+  messageExpiry?: number;
+  responseTopic?: string;
+  /** text, or base64 when `correlationBin` */
+  correlation?: string;
+  correlationBin?: boolean;
+  user?: { key: string; value: string }[];
+  subscriptionIds?: number[];
+}
+
+/** What the broker said in CONNACK, and what was asked for. See src-tauri/src/mqtt.rs ConnInfo. */
+export interface MqttConnInfo {
+  broker: string;
+  ip?: string;
+  transport: string;
+  path?: string;
+  version: string;
+  clientId: string;
+  randomId: boolean;
+  assignedId: boolean;
+  cleanStart: boolean;
+  keepAlive: number;
+  serverKeepAlive?: number;
+  sessionExpiry: number;
+  sessionPresent: boolean;
+  username?: string;
+  will?: string;
+  maxQos?: number;
+  retainAvailable?: boolean;
+  wildcards?: boolean;
+  shared?: boolean;
+  subIds?: boolean;
+  receiveMax?: number;
+  maxPacketSize?: number;
+  topicAliasMax?: number;
+  responseInfo?: string;
+  reason?: string;
+  user?: { key: string; value: string }[];
+  connectMs: number;
+}
+
+/** A subscription as the broker answered it. */
+export interface MqttSubState {
+  /** the QoS asked for */
+  qos: number;
+  granted?: number;
+  /** "0x87 Not authorized", or why it was never sent */
+  error?: string;
+}
+
+export interface MqttSession {
+  /** the broker accepted */
+  conn?: MqttConnInfo;
+  /** by topic filter */
+  subs: Record<string, MqttSubState>;
+  /** the connection never got to the broker's yes */
+  failed?: { stage: "connect" | "tls" | "ws" | "mqtt" | "refused"; broker: string; message: string; hint?: string; code?: number; elapsedMs: number };
 }
 
 export interface KafkaBroker {

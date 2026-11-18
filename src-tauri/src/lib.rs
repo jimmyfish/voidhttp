@@ -4,6 +4,7 @@ mod fonts;
 mod grpc;
 mod http;
 mod kafka;
+mod mqtt;
 mod net;
 mod script;
 mod store;
@@ -123,6 +124,7 @@ pub fn run() {
         .manage(ws::WsState::default())
         .manage(sio::SioState::default())
         .manage(kafka::KafkaState::default())
+        .manage(mqtt::MqttState::default())
         .invoke_handler(tauri::generate_handler![
             script::run_script,
             http::send_request,
@@ -144,6 +146,10 @@ pub fn run() {
             kafka::kafka_pause,
             kafka::kafka_refresh,
             kafka::kafka_close,
+            mqtt::mqtt_connect,
+            mqtt::mqtt_publish,
+            mqtt::mqtt_subscriptions,
+            mqtt::mqtt_close,
             net::net_configure,
             net::net_test,
             certs::certs_configure,

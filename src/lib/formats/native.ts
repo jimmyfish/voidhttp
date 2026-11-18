@@ -2,9 +2,10 @@
  * voidHTTP's own export: collections and environments exactly as stored, so nothing is lost
  * (gRPC calls, saved examples, environment colours). Ids are made fresh on import.
  */
-import type { Auth, Collection, Environment, GqlDef, GrpcDef, GrpcResult, KafkaDef, KV, MultipartField, RequestNode, RequestScripts, SioDef, TreeNode, WsDef } from "../../types";
+import type { Auth, Collection, Environment, GqlDef, GrpcDef, GrpcResult, KafkaDef, KV, MqttDef, MqttSub, MultipartField, RequestNode, RequestScripts, SioDef, TreeNode, WsDef } from "../../types";
 import { defaultSio } from "../sio";
 import { defaultKafka } from "../kafka";
+import { defaultMqtt } from "../mqtt";
 import { cloneNode, uid } from "../model";
 import { newRequest } from "../model";
 import { dropFilePaths, requestsOf, type Any, type ImportPlan } from "./common";
@@ -87,6 +88,57 @@ function saneKafka(v: Any): KafkaDef | undefined {
     from: v.from === "earliest" ? "earliest" : "latest",
     acks: v.acks === 0 || v.acks === 1 ? v.acks : -1,
     compression: pick(v.compression, ["none", "gzip", "lz4", "snappy", "zstd"] as const, d.compression),
+    keep: typeof v.keep === "number" && Number.isFinite(v.keep) && v.keep > 0 ? Math.floor(v.keep) : d.keep,
+  };
+}
+
+/** MQTT settings with every field of the type the app expects. */
+function saneMqtt(v: Any): MqttDef | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const d = defaultMqtt();
+  const str = (x: unknown, fallback: string) => (typeof x === "string" ? x : fallback);
+  const qos = (x: unknown) => (x === 1 || x === 2 ? x : 0);
+  const int = (x: unknown, fallback: number, max = 4_294_967_295) => (typeof x === "number" && Number.isFinite(x) && x >= 0 ? Math.min(max, Math.floor(x)) : fallback);
+  const w: Any = v.will && typeof v.will === "object" ? v.will : {};
+  const subs: MqttSub[] = Array.isArray(v.subs)
+    ? v.subs
+        .filter((x: Any) => x && typeof x === "object" && typeof x.filter === "string")
+        .map((x: Any) => ({
+          id: typeof x.id === "string" && x.id ? x.id : uid(),
+          filter: x.filter,
+          qos: qos(x.qos),
+          enabled: x.enabled !== false,
+          noLocal: x.noLocal === true,
+          retainAsPublished: x.retainAsPublished === true,
+          retainHandling: x.retainHandling === 1 || x.retainHandling === 2 ? x.retainHandling : 0,
+        }))
+    : [];
+  return {
+    version: v.version === "3.1.1" ? "3.1.1" : "5",
+    topic: str(v.topic, d.topic),
+    qos: qos(v.qos),
+    retain: v.retain === true,
+    contentType: str(v.contentType, ""),
+    utf8: v.utf8 === true,
+    messageExpiry: typeof v.messageExpiry === "number" && v.messageExpiry > 0 ? Math.floor(v.messageExpiry) : null,
+    responseTopic: str(v.responseTopic, ""),
+    correlation: str(v.correlation, ""),
+    subs,
+    username: str(v.username, ""),
+    password: str(v.password, ""),
+    clientId: str(v.clientId, ""),
+    cleanStart: v.cleanStart !== false,
+    sessionExpiry: int(v.sessionExpiry, 0),
+    keepAlive: int(v.keepAlive, d.keepAlive, 65_535),
+    will: {
+      enabled: w.enabled === true,
+      topic: str(w.topic, ""),
+      payload: str(w.payload, ""),
+      json: w.json !== false,
+      qos: qos(w.qos),
+      retain: w.retain === true,
+      delay: int(w.delay, 0),
+    },
     keep: typeof v.keep === "number" && Number.isFinite(v.keep) && v.keep > 0 ? Math.floor(v.keep) : d.keep,
   };
 }
@@ -185,6 +237,7 @@ function sane(n: Any): TreeNode | null {
     ws: saneWs(n.ws),
     sio: saneSio(n.sio),
     kafka: saneKafka(n.kafka),
+    mqtt: saneMqtt(n.mqtt),
     gql: saneGql(n.gql),
     scripts: saneScripts(n.scripts),
     examples: Array.isArray(n.examples)

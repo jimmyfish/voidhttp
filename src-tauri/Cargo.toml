@@ -90,3 +90,5 @@ security-framework = "3"
 [dev-dependencies]
 # Test CA, server and client certificates for the mutual TLS test in certs.rs.
 rcgen = "0.14"
+# MQTT session tests: an in-memory broker on a duplex pipe, keep-alive timers on paused time.
+tokio = { version = "1", features = ["rt", "macros", "io-util", "test-util"] }

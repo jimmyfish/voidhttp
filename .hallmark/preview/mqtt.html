@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voidHTTP MQTT preview</title>
+<meta name="description" content="Design preview of MQTT requests in voidHTTP: connect to a broker, subscribe to topics, publish, see the broker's answer, before it is applied to the app.">
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./preview.css">
+<link rel="stylesheet" href="./grpc.css">
+<link rel="stylesheet" href="./websocket.css">
+<link rel="stylesheet" href="./socketio.css">
+<link rel="stylesheet" href="./graphql.css">
+<link rel="stylesheet" href="./kafka.css">
+<link rel="stylesheet" href="./mqtt.css">
+</head>
+<body>
+<!-- icons: Lucide v0.460.0 (ISC), inlined from lucide-react -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+  <symbol id="i-braces" viewBox="0 0 24 24"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-columns-2" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-corner-down-left" viewBox="0 0 24 24"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></symbol>
+  <symbol id="i-ellipsis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+  <symbol id="i-house" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4"/></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></symbol>
+  <symbol id="i-list-filter" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></symbol>
+  <symbol id="i-panel-left-close" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-refresh-cw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-trash-2" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol>
+  <symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-unplug" viewBox="0 0 24 24"><path d="m19 5 3-3"/><path d="m2 22 3-3"/><path d="M6.3 20.3a2.4 2.4 0 0 0 3.4 0L12 18l-6-6-2.3 2.3a2.4 2.4 0 0 0 0 3.4Z"/><path d="M7.5 13.5 10 11"/><path d="M10.5 16.5 13 14"/><path d="m12 6 6 6 2.3-2.3a2.4 2.4 0 0 0 0-3.4l-2.6-2.6a2.4 2.4 0 0 0-3.4 0Z"/></symbol>
+  <symbol id="i-wand-sparkles" viewBox="0 0 24 24"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+</svg>
+
+<header class="pv-bar">
+  <strong>voidHTTP preview · MQTT</strong>
+  <nav class="pv-screens" aria-label="Screens">
+    <a class="btn btn--quiet" href="./index.html" style="min-height:var(--control)">← Base</a>
+  </nav>
+  <div class="pv-theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<div class="pv-stage">
+<div class="app">
+  <div class="app-strip" data-tauri-drag-region>
+    <nav class="ptabs" aria-label="Projects">
+      <button type="button" class="ptab"><svg aria-hidden="true" class="ico"><use href="#i-house"/></svg>Home</button>
+      <span class="ptab-sep" aria-hidden="true"></span>
+      <div class="ptab ptab--project" aria-current="page">
+        <button type="button" class="ptab-main"><span class="proj-tile proj-tile--sm" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>Acme Bank</button>
+        <button type="button" class="icon-btn ptab-close" aria-label="Close Acme Bank"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
+      </div>
+    </nav>
+    <button type="button" class="icon-btn strip-settings" title="Settings  ⌘," aria-label="Settings"><svg aria-hidden="true" class="ico"><use href="#i-settings"/></svg></button>
+  </div>
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-mark" aria-hidden="true">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke-width="2" style="stroke: var(--color-accent)"/><circle cx="8" cy="8" r="2.25" fill="none" stroke-width="1.5" style="stroke: var(--color-ok)"/></svg>
+    </div>
+    <button type="button" class="rail-item" aria-label="Collections" title="Collections" aria-current="page"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-layers"/></svg></button>
+    <button type="button" class="rail-item" aria-label="History" title="History"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-history"/></svg></button>
+    <button type="button" class="rail-item" aria-label="Variables" title="Variables"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-braces"/></svg></button>
+  </nav>
+
+  <div class="panel">
+    <!-- ===== sidebar: MQTT requests live in collections beside the rest ===== -->
+    <aside class="sidebar">
+      <div class="side-resize" role="separator" aria-orientation="vertical" aria-label="Resize sidebar"></div>
+      <div class="side-head"><h2>Collections</h2></div>
+      <div class="side-tools">
+        <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search collections"></div>
+        <button type="button" class="icon-btn icon-btn--outline" title="Import" aria-label="Import"><svg aria-hidden="true" class="ico"><use href="#i-import"/></svg></button>
+        <button type="button" class="icon-btn icon-btn--filled" title="New collection" aria-label="New collection"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+      </div>
+      <div class="tree">
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><span class="name">atm-fleet</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for atm-fleet" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px" aria-current="page"><button type="button" class="row-main"><span class="m m-MQTT">MQTT</span><span class="name">ATM telemetry</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for ATM telemetry" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-MQTT">MQTT</span><span class="name">Kiosk commands</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Kiosk commands" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">Register device</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Register device" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-KAFKA">KAFKA</span><span class="name">Device events</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Device events" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-WS">WS</span><span class="name">Ops live feed</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Ops live feed" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">transfer-service</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for transfer-service" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+      </div>
+    </aside>
+
+    <!-- ===== work area ===== -->
+    <main class="work">
+      <div class="tabsbar">
+        <button type="button" class="icon-btn side-toggle" aria-label="Hide sidebar" title="Hide sidebar  ⌘\"><svg aria-hidden="true" class="ico"><use href="#i-panel-left-close"/></svg></button>
+        <div class="tabs">
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-POST">POST</span><span class="name">Register device</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab" aria-current="page"><button type="button" class="tab-main"><span class="m m-MQTT">MQTT</span><span class="name">ATM telemetry</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-MQTT">MQTT</span><span class="name">Kiosk commands</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <button type="button" class="icon-btn tab-add" aria-label="New tab"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+        </div>
+        <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
+        <div class="joined env-group">
+          <button type="button" class="env-picker" aria-label="Environment" style="--env-c: var(--tag-cyan)"><span class="env-dot" aria-hidden="true"></span><span class="env-name">Staging</span><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          <button type="button" class="btn joined-tail" aria-label="Environment menu" title="Manage environments"><svg aria-hidden="true" class="ico"><use href="#i-menu"/></svg></button>
+        </div>
+      </div>
+
+      <!-- request line: MQTT in the method menu · broker URL (scheme = transport) · version/transport chip · Connect -->
+      <div class="request-line">
+        <div class="url-field mqtt-field" data-screen="idle menu will auth settings refused taken">
+          <div class="method-wrap">
+            <button type="button" class="method-btn m-MQTT" aria-label="Method: MQTT" aria-haspopup="menu" aria-expanded="false">MQTT</button>
+            <div class="menu method-menu" role="menu" aria-label="Method" data-screen="menu"><button type="button" role="menuitemradio" class="m-GET" aria-checked="false">GET</button><button type="button" role="menuitemradio" class="m-POST" aria-checked="false">POST</button><button type="button" role="menuitemradio" class="m-PUT" aria-checked="false">PUT</button><button type="button" role="menuitemradio" class="m-PATCH" aria-checked="false">PATCH</button><button type="button" role="menuitemradio" class="m-DELETE" aria-checked="false">DELETE</button><button type="button" role="menuitemradio" class="m-HEAD" aria-checked="false">HEAD</button><button type="button" role="menuitemradio" class="m-OPTIONS" aria-checked="false">OPTIONS</button><hr><button type="button" role="menuitemradio" class="m-GQL" aria-checked="false">GraphQL</button><button type="button" role="menuitemradio" class="m-GRPC" aria-checked="false">gRPC</button><button type="button" role="menuitemradio" class="m-WS" aria-checked="false">WebSocket</button><button type="button" role="menuitemradio" class="m-SIO" aria-checked="false">Socket.IO</button><button type="button" role="menuitemradio" class="m-KAFKA" aria-checked="false">Kafka</button><button type="button" role="menuitemradio" class="m-MQTT" aria-checked="true">MQTT</button></div>
+          </div>
+          <div class="url-input">
+            <div class="url-hl" aria-hidden="true"><span class="url-hl-in"><span class="tok-var"><i>{{</i>mqttBroker<i>}}</i></span> </span></div>
+            <input aria-label="Broker URL" value="{{mqttBroker}}" spellcheck="false" placeholder="mqtts://broker.example.com:8883" title="mqtts://mqtt.staging.acme.internal:8883">
+          </div>
+          <span class="mq-scheme" title="From the URL scheme: mqtt:// TCP, mqtts:// TCP + TLS, ws:// WebSocket, wss:// WebSocket + TLS">MQTT 5 · TLS</span>
+        </div>
+        <div class="url-field mqtt-field is-live" data-screen="live props topics submenu conn">
+          <div class="method-wrap">
+            <button type="button" class="method-btn m-MQTT" aria-label="Method: MQTT" disabled title="Disconnect to change the method">MQTT</button>
+          </div>
+          <div class="url-input">
+            <div class="url-hl" aria-hidden="true"><span class="url-hl-in"><span class="tok-var"><i>{{</i>mqttBroker<i>}}</i></span> </span></div>
+            <input aria-label="Broker URL" value="{{mqttBroker}}" spellcheck="false" readonly title="Disconnect to change the broker">
+          </div>
+          <span class="mq-scheme">MQTT 5 · TLS</span>
+        </div>
+
+        <button type="button" class="btn btn--primary ws-connect" data-screen="idle menu will auth settings refused taken"><svg aria-hidden="true" class="ico"><use href="#i-plug"/></svg>Connect</button>
+        <button type="button" class="btn ws-disconnect" data-screen="live props topics submenu conn"><svg aria-hidden="true" class="ico"><use href="#i-unplug"/></svg>Disconnect</button>
+
+        <div class="joined">
+          <button type="button" class="btn">Save</button>
+          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
+        </div>
+      </div>
+      <div class="req-title">
+        <span class="name">ATM telemetry</span>
+        <span class="path">atm-fleet</span>
+      </div>
+
+      <nav class="subtabs" aria-label="Request">
+        <button type="button" class="subtab" data-on="idle menu live props conn refused taken">Message</button>
+        <button type="button" class="subtab" data-on="topics submenu">Topics <span class="n">5</span></button>
+        <button type="button" class="subtab" data-on="auth">Auth</button>
+        <button type="button" class="subtab" data-on="will">Last Will <span class="mq-has" aria-label="on"></span></button>
+        <button type="button" class="subtab" data-on="settings">Settings</button>
+      </nav>
+
+      <!-- message: what Publish sends. Topic, QoS, retain on one line; Payload | Properties (MQTT 5) below -->
+      <div class="section" style="flex:1" data-screen="idle menu live props conn refused taken">
+        <div class="mq-head">
+          <span class="lbl">Topic</span>
+          <input class="ev-input" aria-label="Publish topic" value="atm/0142/cmd/reboot" spellcheck="false" placeholder="devices/42/cmd">
+          <span class="lbl gap" id="mq-qos">QoS</span>
+          <div class="seg" role="group" aria-labelledby="mq-qos" title="0 at most once · 1 at least once · 2 exactly once"><button type="button" aria-pressed="false">0</button><button type="button" aria-pressed="true">1</button><button type="button" aria-pressed="false">2</button></div>
+          <label class="mq-check lbl gap"><input type="checkbox" class="switch" role="switch" aria-label="Retain">Retain</label>
+          <div class="seg push" role="group" aria-label="Part">
+            <button type="button" data-on="idle menu live conn refused taken">Payload</button>
+            <button type="button" data-on="props" title="MQTT 5 only">Properties<span class="mq-has" aria-label="has properties"></span></button>
+          </div>
+        </div>
+
+        <div class="editor" data-screen="idle menu live conn refused taken">
+          <div class="editor-bar"><div class="seg" role="group" aria-label="Format"><button type="button" aria-pressed="false">Text</button><button type="button" aria-pressed="true">JSON</button></div><button type="button" class="btn btn--quiet"><svg aria-hidden="true" class="ico"><use href="#i-wand-sparkles"/></svg>Beautify</button></div>
+          <pre class="code" aria-label="Payload" data-json='{"reason":"cash_jam","requested_by":"ops","delay_s":30}'></pre>
+        </div>
+
+        <!-- MQTT 5 publish properties: hidden behind the seg so the payload keeps the room -->
+        <div data-screen="props" style="display:flex; flex-direction:column; gap:var(--space-sm)">
+          <div class="set-list sio-settings mq-props">
+            <div class="set-item">
+              <div class="set-text"><label class="set-label" for="p-ct">Content type</label><span class="desc">Any string the subscriber understands, usually a MIME type.</span></div>
+              <div class="set-ctl"><input id="p-ct" class="field mono" value="application/json" spellcheck="false"></div>
+            </div>
+            <div class="set-item">
+              <div class="set-text"><span class="set-label" id="p-pf">Payload format</span><span class="desc">UTF-8 tells the broker and subscribers the payload is text.</span></div>
+              <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="p-pf"><button type="button" aria-pressed="false">Bytes</button><button type="button" aria-pressed="true">UTF-8</button></div></div>
+            </div>
+            <div class="set-item">
+              <div class="set-text"><label class="set-label" for="p-rt">Response topic</label><span class="desc">Where the receiver should answer. Subscribe to it in Topics to see the reply.</span></div>
+              <div class="set-ctl"><input id="p-rt" class="field mono" value="atm/0142/cmd/reboot/reply" spellcheck="false"></div>
+            </div>
+            <div class="set-item">
+              <div class="set-text"><label class="set-label" for="p-cd">Correlation data</label><span class="desc">Echoed back with the reply, so you can match the two.</span></div>
+              <div class="set-ctl"><input id="p-cd" class="field mono" value="{{$guid}}" spellcheck="false"></div>
+            </div>
+            <div class="set-item">
+              <div class="set-text"><label class="set-label" for="p-exp">Message expiry</label><span class="desc">The broker drops the message if nobody took it in time. Empty = never.</span></div>
+              <div class="set-ctl"><input id="p-exp" class="field mono narrow" value="" placeholder="never" inputmode="numeric"><span class="unit">seconds</span></div>
+            </div>
+          </div>
+          <p class="mq-sub-h">User properties</p>
+          <table class="kv">
+            <thead><tr><th class="check"><span class="visually-hidden">Enabled</span></th><th>Name</th><th>Value</th><th class="del"><span class="visually-hidden">Remove</span></th></tr></thead>
+            <tbody>
+              <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="requested-by"></td><td><input class="field" value="ops-team"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
+              <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="trace-id"></td><td><input class="field" value="{{traceId}}"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
+              <tr class="add"><td class="check"></td><td><input class="field" placeholder="Name"></td><td><input class="field" placeholder="Value"></td><td class="del"></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="composer-bar">
+          <button type="button" class="btn btn--primary" data-screen="live props conn"><svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Publish</button>
+          <button type="button" class="btn btn--primary" disabled data-screen="idle menu refused taken"><svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Publish</button>
+          <span class="hint-text push" data-screen="live props conn"><kbd>⌘</kbd> <kbd>Enter</kbd> publishes to <code>atm/0142/cmd/reboot</code></span>
+          <span class="hint-text push" data-screen="idle menu refused taken">Connect first, then publish. Subscriptions live in Topics.</span>
+        </div>
+      </div>
+
+      <!-- topics: the subscription list. While connected a change applies at once: on = SUBSCRIBE, off or removed = UNSUBSCRIBE -->
+      <div class="section" style="flex:1" data-screen="topics submenu">
+        <table class="kv subs">
+          <thead><tr><th class="check"><span class="visually-hidden">Subscribed</span></th><th>Topic filter</th><th class="qos-cell">QoS</th><th class="state-cell">Broker</th><th class="opt-cell"><span class="visually-hidden">Options</span></th><th class="del"><span class="visually-hidden">Remove</span></th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="check"><input type="checkbox" checked aria-label="Subscribed"></td>
+              <td><input class="field" value="atm/+/status" spellcheck="false"></td>
+              <td class="qos-cell"><div class="seg" role="group" aria-label="QoS"><button type="button" aria-pressed="false">0</button><button type="button" aria-pressed="true">1</button><button type="button" aria-pressed="false">2</button></div></td>
+              <td class="state-cell"><span class="ok">Granted QoS 1</span></td>
+              <td class="opt-cell"><div class="opt-wrap">
+                <button type="button" class="icon-btn" aria-label="Options for atm/+/status" title="MQTT 5 options" aria-haspopup="menu" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button>
+                <div class="menu sub-menu" role="menu" aria-label="Subscription options" data-screen="submenu">
+                  <div class="opt"><span><span class="t">No local</span><span class="d">Skip messages this connection published itself</span></span><input type="checkbox" class="switch" role="switch" aria-label="No local"></div>
+                  <div class="opt"><span><span class="t">Retain as published</span><span class="d">Keep the retain flag the publisher set</span></span><input type="checkbox" class="switch" role="switch" aria-label="Retain as published"></div>
+                  <hr>
+                  <div class="opt"><span><span class="t">Retained messages</span><span class="d">What the broker sends right after subscribing</span></span>
+                    <div class="seg" role="group" aria-label="Retained messages"><button type="button" aria-pressed="true">Send</button><button type="button" aria-pressed="false">If new</button><button type="button" aria-pressed="false">Never</button></div></div>
+                  <p class="menu-note">MQTT 5 only. A change subscribes again.</p>
+                </div>
+              </div></td>
+              <td class="del"><button type="button" class="icon-btn" aria-label="Remove atm/+/status"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="check"><input type="checkbox" checked aria-label="Subscribed"></td>
+              <td><input class="field" value="atm/0142/telemetry/#" spellcheck="false"></td>
+              <td class="qos-cell"><div class="seg" role="group" aria-label="QoS"><button type="button" aria-pressed="true">0</button><button type="button" aria-pressed="false">1</button><button type="button" aria-pressed="false">2</button></div></td>
+              <td class="state-cell"><span class="ok">Granted QoS 0</span></td>
+              <td class="opt-cell"><button type="button" class="icon-btn" aria-label="Options" title="MQTT 5 options"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></td>
+              <td class="del"><button type="button" class="icon-btn" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="check"><input type="checkbox" checked aria-label="Subscribed"></td>
+              <td><input class="field" value="$share/ops/atm/+/alerts" spellcheck="false"></td>
+              <td class="qos-cell"><div class="seg" role="group" aria-label="QoS"><button type="button" aria-pressed="false">0</button><button type="button" aria-pressed="false">1</button><button type="button" aria-pressed="true">2</button></div></td>
+              <td class="state-cell"><span class="ok">Granted QoS 1</span> <span class="dim">· asked 2</span></td>
+              <td class="opt-cell"><button type="button" class="icon-btn" aria-label="Options" title="MQTT 5 options"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></td>
+              <td class="del"><button type="button" class="icon-btn" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td>
+            </tr>
+            <tr class="denied">
+              <td class="check"><input type="checkbox" checked aria-label="Subscribed"></td>
+              <td><input class="field" value="$SYS/#" spellcheck="false"></td>
+              <td class="qos-cell"><div class="seg" role="group" aria-label="QoS"><button type="button" aria-pressed="true">0</button><button type="button" aria-pressed="false">1</button><button type="button" aria-pressed="false">2</button></div></td>
+              <td class="state-cell"><span class="fail">0x87 Not authorized</span></td>
+              <td class="opt-cell"><button type="button" class="icon-btn" aria-label="Options" title="MQTT 5 options"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></td>
+              <td class="del"><button type="button" class="icon-btn" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td>
+            </tr>
+            <tr class="off">
+              <td class="check"><input type="checkbox" aria-label="Subscribed"></td>
+              <td><input class="field" value="atm/0142/cmd/#" spellcheck="false"></td>
+              <td class="qos-cell"><div class="seg" role="group" aria-label="QoS"><button type="button" aria-pressed="false">0</button><button type="button" aria-pressed="true">1</button><button type="button" aria-pressed="false">2</button></div></td>
+              <td class="state-cell"><span class="dim">Off</span></td>
+              <td class="opt-cell"><button type="button" class="icon-btn" aria-label="Options" title="MQTT 5 options"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></td>
+              <td class="del"><button type="button" class="icon-btn" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td>
+            </tr>
+            <tr class="add"><td class="check"></td><td><input class="field" placeholder="Add a topic filter, e.g. sensors/+/temp"></td><td class="qos-cell"></td><td class="state-cell"></td><td class="opt-cell"></td><td class="del"></td></tr>
+          </tbody>
+        </table>
+        <div class="subs-foot">
+          <span class="hint-text">Changes apply at once while connected. <code>+</code> matches one level, <code>#</code> the rest. <code>$share/group/…</code> shares messages with other clients in the group.</span>
+        </div>
+      </div>
+
+      <!-- last will: what the broker publishes for you when the connection drops without a clean Disconnect -->
+      <div class="section" style="flex:1" data-screen="will">
+        <div class="set-list sio-settings mq-settings">
+          <div class="set-item">
+            <div class="set-text"><span class="set-label">Send a Last Will</span><span class="desc">If voidHTTP drops off without Disconnect, the broker publishes this message for you.</span></div>
+            <div class="set-ctl"><input type="checkbox" class="switch" role="switch" checked aria-label="Send a Last Will"></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="w-topic">Topic</label></div>
+            <div class="set-ctl"><input id="w-topic" class="field mono" value="atm/voidhttp/status" spellcheck="false"></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><span class="set-label" id="w-qos">QoS</span></div>
+            <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="w-qos"><button type="button" aria-pressed="false">0</button><button type="button" aria-pressed="true">1</button><button type="button" aria-pressed="false">2</button></div></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><span class="set-label">Retain</span><span class="desc">Late subscribers still see the will.</span></div>
+            <div class="set-ctl"><input type="checkbox" class="switch" role="switch" checked aria-label="Retain"></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="w-delay">Will delay <span class="v5">MQTT 5</span></label><span class="desc">Wait this long before publishing; a quick reconnect cancels it.</span></div>
+            <div class="set-ctl"><input id="w-delay" class="field mono narrow" value="5" inputmode="numeric"><span class="unit">seconds</span></div>
+          </div>
+        </div>
+        <div class="mq-head"><span class="lbl">Will message</span><div class="seg push" role="group" aria-label="Format"><button type="button" aria-pressed="false">Text</button><button type="button" aria-pressed="true">JSON</button></div></div>
+        <div class="editor will-editor">
+          <pre class="code" aria-label="Will message" data-json='{"state":"OFFLINE","client":"voidhttp","reason":"connection_lost"}'></pre>
+        </div>
+      </div>
+
+      <!-- auth: username + password; TLS comes from the URL scheme, certificates from Settings › Certificates -->
+      <div class="section" style="flex:1" data-screen="auth">
+        <div class="set-list sio-settings mq-settings">
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="a-user">Username</label><span class="desc">Leave both empty for a broker without login.</span></div>
+            <div class="set-ctl"><input id="a-user" class="field mono" value="{{mqttUser}}" spellcheck="false"></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="a-pass">Password</label><span class="desc">Use a variable so the password stays out of exports.</span></div>
+            <div class="set-ctl"><input id="a-pass" class="field mono" value="{{mqttPassword}}" spellcheck="false"></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><span class="set-label">TLS</span><span class="desc">On: the URL starts with <code>mqtts://</code> or <code>wss://</code>. CA and client certificates (mTLS, as AWS IoT Core needs) come from Settings › Certificates.</span></div>
+            <div class="set-ctl"><span class="ok-ico"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span></div>
+          </div>
+        </div>
+        <p class="k-foot">Not built yet: MQTT 5 enhanced authentication (AUTH packets, e.g. SCRAM or Kerberos).</p>
+      </div>
+
+      <!-- settings: version, who we are to the broker, the session -->
+      <div class="section" style="flex:1" data-screen="settings">
+        <div class="set-list sio-settings mq-settings">
+          <div class="set-item">
+            <div class="set-text"><span class="set-label" id="s-ver">MQTT version</span><span class="desc">3.1.1 hides publish properties and the MQTT 5 topic options.</span></div>
+            <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="s-ver"><button type="button" aria-pressed="true">5.0</button><button type="button" aria-pressed="false">3.1.1</button></div></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="s-cid">Client ID</label><span class="desc">Two clients with the same ID kick each other off. Empty = a new random ID on every Connect.</span></div>
+            <div class="set-ctl"><input id="s-cid" class="field mono" value="" placeholder="random: voidhttp + 10 hex digits" spellcheck="false"></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><span class="set-label">Clean start</span><span class="desc">Start fresh: the broker forgets old subscriptions and drops messages it queued for this client ID.</span></div>
+            <div class="set-ctl"><input type="checkbox" class="switch" role="switch" checked aria-label="Clean start"></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="s-exp">Session expiry <span class="v5">MQTT 5</span></label><span class="desc">How long the broker keeps the session after you disconnect. 0 = ends with the connection.</span></div>
+            <div class="set-ctl"><input id="s-exp" class="field mono narrow" value="0" inputmode="numeric"><span class="unit">seconds</span></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="s-ka">Keep alive</label><span class="desc">voidHTTP pings the broker this often when nothing else is sent.</span></div>
+            <div class="set-ctl"><input id="s-ka" class="field mono narrow" value="60" inputmode="numeric"><span class="unit">seconds</span></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="s-keep">Keep in the list</label><span class="desc">Older messages drop off the list. Nothing changes on the broker.</span></div>
+            <div class="set-ctl"><input id="s-keep" class="field mono narrow" value="1000" inputmode="numeric"><span class="unit">messages</span></div>
+          </div>
+        </div>
+        <p class="k-foot">WebSocket brokers: put the path in the URL, e.g. <code>wss://broker.example.com/mqtt</code>. Not built yet: MQTT 3.1 (protocol level 3), topic aliases.</p>
+      </div>
+
+      <div class="divider" role="separator" aria-orientation="horizontal" aria-label="Resize panes"></div>
+
+      <!-- ===== response ===== -->
+      <section class="response" aria-label="Response">
+        <nav class="subtabs" aria-label="Response">
+          <button type="button" class="subtab" data-on="idle menu will auth settings live props topics submenu refused taken">Messages <span class="n" data-screen="live props topics submenu conn taken">9</span></button>
+          <button type="button" class="subtab" data-on="conn">Connection</button>
+
+          <span class="push meta" data-screen="live props topics submenu conn"><span class="live"><span class="live-dot" aria-hidden="true"></span>Connected</span><span class="dim">3 subscriptions</span><span class="dim">4m 12s</span><span class="dim">2.4&nbsp;KB</span></span>
+          <span class="push meta" data-screen="taken"><span class="fail">Session taken over</span><span class="dim">4m 12s</span><span class="dim">2.4&nbsp;KB</span></span>
+          <span class="push meta" data-screen="refused"><span class="fail">0x86 Bad user name or password</span><span class="dim">212 ms</span></span>
+          <span class="push" data-screen="idle menu will auth settings"></span>
+        </nav>
+
+        <!-- not connected yet -->
+        <div class="empty" data-screen="idle menu will auth settings">
+          <svg aria-hidden="true" class="ico ico-lg"><use href="#i-plug"/></svg>
+          <strong>Not connected</strong>
+          <span>Connect subscribes to the filters in Topics. Messages you receive and publish show up here.</span>
+        </div>
+
+        <!-- toolbar: direction, topic filter, search, pause -->
+        <div class="res-tools" data-screen="live props topics submenu taken">
+          <div class="seg" role="group" aria-label="Show"><button type="button" aria-pressed="true">All</button><button type="button" aria-pressed="false">Received</button><button type="button" aria-pressed="false">Published</button></div>
+          <div class="ev-filter-wrap">
+            <button type="button" class="ev-filter" aria-haspopup="menu" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-list-filter"/></svg>Topics: all<svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          </div>
+          <label class="res-search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input placeholder="Topic or payload contains" aria-label="Filter by topic or payload"></label>
+          <span style="margin-left:auto"></span>
+          <button type="button" class="icon-btn" title="Pause the list" aria-label="Pause"><svg aria-hidden="true" class="ico"><use href="#i-pause"/></svg></button>
+          <button type="button" class="icon-btn" title="Copy messages as JSON" aria-label="Copy messages"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
+          <button type="button" class="icon-btn" title="Clear the list" aria-label="Clear the list"><svg aria-hidden="true" class="ico"><use href="#i-trash-2"/></svg></button>
+        </div>
+
+        <!-- connected: newest last; each publish shows the broker's answer under it (QoS 1 PUBACK, QoS 2 PUBREC → PUBCOMP) -->
+        <div class="res-body" data-screen="live props topics submenu taken">
+          <div class="stream">
+            <div class="smsg-sys ok"><svg aria-hidden="true" class="ico"><use href="#i-plug"/></svg><span class="t">0.00s</span><span class="s"><span>Connected to <b>mqtt.staging.acme.internal:8883</b></span> · MQTT 5.0 · TLS 1.3 · clean start · 168 ms</span></div>
+            <div class="smsg-sys warn"><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg><span class="t">0.19s</span><span class="s">Subscribed to <span class="grant">3 of 4</span> · <code>$SYS/#</code> <span class="deny">0x87 Not authorized</span> · <code>$share/ops/atm/+/alerts</code> granted QoS 1, asked 2</span></div>
+
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">1</span><span class="t">0.21s</span><span class="p"><span class="ev">atm/0142/status</span><span class="qtag">Q1</span><span class="rtag">retained</span>{"state":"ONLINE","fw":"4.2.1","uptime_s":86211}</span></button>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">2</span><span class="t">0.21s</span><span class="p"><span class="ev">atm/0388/status</span><span class="qtag">Q1</span><span class="rtag">retained</span>{"state":"OFFLINE","since":"2026-11-18T01:02:44Z"}</span></button>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">3</span><span class="t">2.04s</span><span class="p"><span class="ev">atm/0142/telemetry/cash</span><span class="qtag">Q0</span>{"cassettes":[{"denom":100000,"count":412},{"denom":50000,"count":0}],"total":41200000}</span></button>
+            <button type="button" class="smsg in" aria-expanded="true"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">4</span><span class="t">7.88s</span><span class="p"><span class="ev">atm/0142/telemetry/door</span><span class="qtag">Q0</span>{"door":"OPEN","by":"cash_in_transit","at":"2026-11-18T03:14:07Z"}</span></button>
+            <div class="smsg-open">
+              <dl class="kdetail">
+                <dt>Topic</dt><dd>atm/0142/telemetry/door</dd>
+                <dt>Matched</dt><dd>atm/0142/telemetry/# <span class="dim">· QoS 0</span></dd>
+                <dt>Time</dt><dd>2026-11-18 10:14:07.312 +07:00</dd>
+                <dt>Retained</dt><dd>no</dd>
+                <dt>Properties</dt><dd><span class="hk">content-type:</span> application/json<br><span class="hk">site:</span> JKT-SUD-07 <span class="dim">user property</span><br><span class="hk">fw:</span> 4.2.1 <span class="dim">user property</span></dd>
+              </dl>
+              <p class="kvalue-h">Payload · 64 B</p>
+              <pre class="code" data-json='{"door":"OPEN","by":"cash_in_transit","at":"2026-11-18T03:14:07Z"}'></pre>
+            </div>
+
+            <button type="button" class="smsg out" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-up"/></svg><span class="n">5</span><span class="t">41.20s</span><span class="p"><span class="ev">atm/0142/cmd/reboot</span><span class="qtag">Q1</span>{"reason":"cash_jam","requested_by":"ops","delay_s":30}</span></button>
+            <button type="button" class="smsg ack" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-corner-down-left"/></svg><span class="n">5</span><span class="t">41.22s</span><span class="p"><span class="ack-tag">acked</span><b>PUBACK</b> · packet 7 · 0x00 Success · 22 ms</span></button>
+            <button type="button" class="smsg out" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-up"/></svg><span class="n">6</span><span class="t">58.03s</span><span class="p"><span class="ev">atm/0388/cmd/ping</span><span class="qtag">Q2</span>{"from":"voidhttp"}</span></button>
+            <button type="button" class="smsg ack" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-corner-down-left"/></svg><span class="n">6</span><span class="t">58.08s</span><span class="p"><span class="ack-tag">delivered</span><b>PUBREC → PUBCOMP</b> · packet 8 · 47 ms</span></button>
+            <button type="button" class="smsg out" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-up"/></svg><span class="n">7</span><span class="t">72.10s</span><span class="p"><span class="ev">atm/0142/cmd/beep</span><span class="qtag">Q0</span>{"times":2}</span></button>
+            <div class="smsg ack q0"><svg aria-hidden="true" class="ico"><use href="#i-corner-down-left"/></svg><span class="n">7</span><span class="t">72.10s</span><span class="p"><span class="ack-tag">sent</span>QoS 0 has no ack from the broker</span></div>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">8</span><span class="t">96.47s</span><span class="p"><span class="ev">atm/0388/alerts</span><span class="qtag">Q1</span>{"code":"CASSETTE_LOW","denom":50000,"count":0}</span></button>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">9</span><span class="t">121.90s</span><span class="p"><span class="ev">atm/0142/telemetry/cash</span><span class="qtag">Q0</span>{"cassettes":[{"denom":100000,"count":409},{"denom":50000,"count":0}],"total":40900000}</span></button>
+
+            <div class="smsg-wait" data-screen="live props topics submenu"><span class="spinner"></span>Listening on 3 topic filters</div>
+            <div class="smsg-end" role="status" data-screen="taken"><span class="warn">0x8E Session taken over</span><span class="end-text">Broker closed the connection after 4m 12s: another client connected with client ID <code>ops-console</code>. Leave Client ID empty for a random one.</span><button type="button" class="link">Reconnect</button></div>
+          </div>
+        </div>
+
+        <!-- connection: what we sent in CONNECT, what the broker answered in CONNACK -->
+        <div class="res-body" data-screen="conn">
+          <div class="hs">
+            <div>
+              <h4>CONNECT</h4>
+              <dl>
+                <dt>Broker</dt><dd>mqtt.staging.acme.internal:8883 <span class="dim">(10.20.4.11)</span></dd>
+                <dt>Transport</dt><dd>TCP + TLS 1.3</dd>
+                <dt>Protocol</dt><dd>MQTT 5.0</dd>
+                <dt>Client ID</dt><dd>voidhttp7f3a2c19e0 <span class="dim">random</span></dd>
+                <dt>Clean start</dt><dd>yes</dd>
+                <dt>Keep alive</dt><dd>60 s</dd>
+                <dt>Session expiry</dt><dd>0 <span class="dim">ends with the connection</span></dd>
+                <dt>Username</dt><dd>ops-tester</dd>
+                <dt>Last Will</dt><dd>atm/voidhttp/status · QoS 1 · retained · delay 5 s</dd>
+              </dl>
+            </div>
+            <div>
+              <h4>CONNACK <span class="ok">0x00 Success</span></h4>
+              <dl>
+                <dt>Session present</dt><dd>no</dd>
+                <dt>Maximum QoS</dt><dd>2</dd>
+                <dt>Retain</dt><dd>available</dd>
+                <dt>Wildcards</dt><dd>available</dd>
+                <dt>Shared subscriptions</dt><dd>available</dd>
+                <dt>Receive maximum</dt><dd>32</dd>
+                <dt>Max packet size</dt><dd>1 MB</dd>
+                <dt>Topic alias maximum</dt><dd>10</dd>
+                <dt>Server keep alive</dt><dd><span class="warn-v">30 s</span> <span class="dim">broker lowered it from 60 s</span></dd>
+                <dt>User properties</dt><dd>server: emqx 5.8.1</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONNACK refused: TCP + TLS worked, the login did not -->
+        <div class="res-body" data-screen="refused">
+          <div class="ws-fail" role="alert">
+            <strong><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg>mqtt.staging.acme.internal refused the login</strong>
+            <span class="msg">CONNACK 0x86 Bad User Name or Password</span>
+            <span class="why">The connection and TLS worked; the broker turned down the username or password. Check <code>{{mqttUser}}</code> and <code>{{mqttPassword}}</code> in the Staging environment. On MQTT 3.1.1 the same answer is return code 4.</span>
+            <div class="acts"><button type="button" class="link">Open Auth</button><button type="button" class="link">Open Staging variables</button></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</div>
+
+<script>
+  // JSON → the same line/indent/token spans the app's code view uses
+  const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const TOK = /("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(true|false)|(null)|([{}\[\],:])/g;
+  const line = (s) => {
+    const ind = s.match(/^ */)[0];
+    const body = s.slice(ind.length).replace(TOK, (m, str, colon, num, bool, nul, p) =>
+      str ? (colon ? `<span class="j-key">${esc(str)}</span><span class="j-p">:</span>` : `<span class="j-str">${esc(str)}</span>`)
+      : num ? `<span class="j-num">${m}</span>` : bool ? `<span class="j-bool">${m}</span>` : nul ? `<span class="j-null">${m}</span>` : `<span class="j-p">${esc(p)}</span>`);
+    return `<span class="l">${ind ? `<span class="ind">${ind}</span>` : ""}${body}</span>`;
+  };
+  const pretty = (json) => JSON.stringify(JSON.parse(json), null, 2);
+  document.querySelectorAll("pre[data-json]").forEach((pre) => { pre.innerHTML = pretty(pre.dataset.json).split("\n").map(line).join(""); });
+
+  const setTheme = (t) => {
+    document.documentElement.dataset.theme = t;
+    document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.themeSet === t)));
+  };
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.themeSet)));
+  setTheme(new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light");
+</script>
+<script>
+  // screens: one at a time, kept in the URL hash. [data-screen] = shown on these screens; [data-on] = pressed on these screens
+  {
+    const has = (el, attr, s) => el.dataset[attr].split(" ").includes(s);
+    const go = (s) => {
+      document.querySelectorAll("[data-screen]").forEach((el) => { el.hidden = !has(el, "screen", s); });
+      document.querySelectorAll("[data-on]").forEach((el) => el.setAttribute("aria-pressed", String(has(el, "on", s))));
+      document.querySelectorAll("[data-show]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.show === s)));
+      document.querySelectorAll(".mqtt-field .method-btn:not([disabled])").forEach((b) => b.setAttribute("aria-expanded", String(s === "menu")));
+      document.querySelectorAll(".opt-wrap > .icon-btn").forEach((b) => b.setAttribute("aria-expanded", String(s === "submenu")));
+      history.replaceState(null, "", "#" + s);
+    };
+    document.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-show]");
+      if (t) { e.preventDefault(); go(t.dataset.show); }
+    });
+    const start = location.hash.slice(1);
+    go(document.querySelector(`[data-show="${start}"]`) ? start : "live");
+  }
+</script>
+</body>
+</html>

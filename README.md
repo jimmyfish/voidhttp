@@ -148,6 +148,19 @@ Pick **Kafka**, enter the bootstrap brokers (`host:port`, comma-separated, `{{va
 - **Auth:** SASL PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512, plus TLS. Network and certificate settings below apply to every broker.
 - When something breaks, it says what: a refused login, a missing topic (with the topics that do exist), or a broker that advertises an address your Mac can't reach (the classic Docker and private-VPC trap).
 
+### <img src="docs/assets/icons/router.svg" width="20" height="20" align="top" alt="" /> MQTT
+
+Pick **MQTT**, enter the broker URL and hit Connect. The scheme picks the transport: `mqtt://` (TCP), `mqtts://` (TLS), `ws://` or `wss://` (WebSocket, path `/mqtt` unless you give one). MQTT 5.0 or 3.1.1, your call.
+
+- **One connection subscribes and publishes.** The **Topics** tab is a list of filters (`+` one level, `#` the rest, `$share/group/…` for shared subscriptions), each with its QoS and an on/off switch. While connected, flip a row and it subscribes or unsubscribes right away.
+- Each row says what the broker granted (`Granted QoS 1 · asked 2`) or why it said no (`0x87 Not authorized`). MQTT 5 rows also have No local, Retain as published and what happens to retained messages.
+- **Publish** a Text or JSON payload at QoS 0, 1 or 2, retained or not. MQTT 5 adds content type, payload format, response topic, correlation data, message expiry and user properties.
+- The broker's answer shows under each publish: PUBACK for QoS 1, PUBREC → PUBCOMP for QoS 2, with the reason code when it isn't plain Success (`0x10 No matching subscribers`).
+- Received messages show their topic, QoS and a **retained** tag; open one for its properties and the filter it matched. Filter the list by topic or text, pause it, copy messages as JSON. Binary payloads show as hex.
+- The **Connection** tab shows what went out in CONNECT and what the broker said back in CONNACK: session present, keep alive, maximum QoS, receive maximum, packet size and the rest of its limits.
+- **Last Will** (with an MQTT 5 delay), client ID (random when empty), clean start, session expiry and keep alive all have a home.
+- When it breaks, it says what: wrong password, a broker that only speaks 3.1.1, TLS on a plain port, a WebSocket path that isn't there, or another client kicking you off by using the same client ID.
+
 ### <img src="docs/assets/icons/history.svg" width="20" height="20" align="top" alt="" /> History and examples
 
 - **History** keeps the last 200 requests per project, each response stored on disk exactly as it arrived. Bodies over the size limit (1 MB by default) keep just status and headers.
@@ -196,7 +209,7 @@ Someone sent you a collection? Cool. voidHTTP still doesn't trust it:
 
 <br />
 
-All of these work for HTTP, WebSocket, Socket.IO, Kafka and gRPC alike, and all are off by default.
+All of these work for HTTP, WebSocket, Socket.IO, Kafka, MQTT and gRPC alike, and all are off by default.
 
 - **Secure DNS (DNS over HTTPS)** via Cloudflare, Google, Quad9, AdGuard, or your own DoH URL. Optionally fall back to the system resolver when DoH draws a blank (hello, intranet names on a VPN), and list domains that should always use the system resolver.
 - **Proxy:** SOCKS5 or HTTP, with optional `user:pass@`, plus a skip list. `localhost`, `127.0.0.1` and `::1` always go direct.
@@ -216,7 +229,7 @@ Every shortcut is also listed in **Settings › Shortcuts** (`⌘/Ctrl + /`). Th
 | --- | --- |
 | `⌘/Ctrl + P` | Quick open: fuzzy-search requests, examples and open tabs in the current project by name, folder or URL (`post login` filters by method) |
 | `⌘/Ctrl + Shift + P` | Run an action (or type `>` in quick open): send, save as, zoom, theme, import, settings… each with its shortcut |
-| `⌘/Ctrl + Enter` | Send (or Invoke a gRPC call). On an open client or bidi stream, send the next message. Connect a WebSocket, Socket.IO or Kafka server, or send/emit/produce once it's open |
+| `⌘/Ctrl + Enter` | Send (or Invoke a gRPC call). On an open client or bidi stream, send the next message. Connect a WebSocket, Socket.IO, Kafka or MQTT server, or send/emit/produce/publish once it's open |
 | `⌘/Ctrl + .` | Cancel the request in flight |
 | `⌘/Ctrl + S` | Save to collection |
 | `⌘/Ctrl + Shift + S` | Save as a new request |
@@ -275,13 +288,14 @@ src-tauri/src/grpc.rs     gRPC engine: tonic, dynamic messages (prost-reflect), 
 src-tauri/src/ws.rs       WebSocket engine: tokio-tungstenite over rustls, one live socket per tab
 src-tauri/src/sio.rs      Socket.IO client on the WebSocket engine: Engine.IO 3/4, namespace join, emits, acks
 src-tauri/src/kafka.rs    Kafka client: rskafka's wire protocol over our own connections, reads without a consumer group, produce
+src-tauri/src/mqtt.rs     MQTT client: 3.1.1 and 5.0 over TCP, TLS and WebSocket, live subscriptions, QoS 0/1/2 (packets in mqtt/packet.rs)
 src-tauri/src/certs.rs    the one rustls setup: public + custom CAs, client certificates, Keychain passphrases
 src-tauri/src/net.rs      secure DNS (hickory, DoH), SOCKS5 / HTTP proxy, connection check
 src-tauri/src/store.rs    atomic JSON persistence in ~/.config/voidhttp and the app data dir
 src-tauri/src/files.rs    read and write import/export files (64 MB read limit, atomic writes)
 src-tauri/src/fonts.rs    installed system fonts for Settings
 src/store.ts              app state (zustand) and debounced persistence
-src/lib/                  vars, request preparation, GraphQL (wire body, introspection), gRPC calls and schemas, WebSocket, Socket.IO, Kafka, network settings, cURL, JSONPath, masking, themes
+src/lib/                  vars, request preparation, GraphQL (wire body, introspection), gRPC calls and schemas, WebSocket, Socket.IO, Kafka, MQTT, network settings, cURL, JSONPath, masking, themes
 src/lib/formats/          import and export: Postman, OpenAPI / Swagger, HAR, voidHTTP, pasted commands
 src/components/           UI
 ```
@@ -292,7 +306,7 @@ The longer story is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## <img src="docs/assets/icons/lightbulb.svg" width="24" height="24" align="top" alt="" /> On the wishlist
 
-Not built yet, but on the radar: folder and collection scripts, `pm.sendRequest`, GraphQL subscriptions and autocomplete, Socket.IO long-polling, Kafka consumer groups and Schema Registry (Avro / Protobuf), AWS IAM for MSK, gRPC-Web, OAuth 2 flows, a collection runner, and code generation beyond cURL and grpcurl.
+Not built yet, but on the radar: folder and collection scripts, `pm.sendRequest`, GraphQL subscriptions and autocomplete, Socket.IO long-polling, Kafka consumer groups and Schema Registry (Avro / Protobuf), AWS IAM for MSK, MQTT 5 enhanced auth and topic aliases, gRPC-Web, OAuth 2 flows, a collection runner, and code generation beyond cURL and grpcurl.
 
 Want one of these sooner? Open an issue and make some noise.
 
