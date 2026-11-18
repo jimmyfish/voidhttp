@@ -48,10 +48,10 @@
     "semantic_hash": "e42d647be69a7b6b49eba2f3e81a68ac"
   },
   "src-tauri/tauri.conf.json": {
-    "mtime": 1794807431.3010795,
-    "seen": 1794993118.129298,
-    "ast_hash": "552b78febdab5ef0b3e2dd6394733b36",
-    "semantic_hash": "552b78febdab5ef0b3e2dd6394733b36"
+    "mtime": 1795022190.3939388,
+    "seen": 1795022216.608345,
+    "ast_hash": "d0612c7a5fc39a12d64a02f22d195f05",
+    "semantic_hash": ""
   },
   "src/App.tsx": {
     "mtime": 1794817436.7588902,
@@ -162,9 +162,9 @@
     "semantic_hash": "c757ecb2632d169616e3e1c63ea1a3eb"
   },
   "README.md": {
-    "mtime": 1795019486.2939768,
-    "seen": 1795019494.2613,
-    "ast_hash": "113caf835464fd8f41eaa273ff158c20",
+    "mtime": 1795022207.8736584,
+    "seen": 1795022216.608414,
+    "ast_hash": "30160da2f96a90b7bb498c1ed00edb6d",
     "semantic_hash": ""
   },
   "index.html": {
@@ -678,15 +678,15 @@
     "semantic_hash": "7164701dd561acb6f5204177aca6b210"
   },
   "CONTRIBUTING.md": {
-    "mtime": 1794807431.2927198,
-    "seen": 1794993118.129361,
-    "ast_hash": "0cb171dfb28173e3e1cd9a73ebf10df3",
-    "semantic_hash": "0cb171dfb28173e3e1cd9a73ebf10df3"
+    "mtime": 1795022207.8732762,
+    "seen": 1795022216.608413,
+    "ast_hash": "426b7b3ee981f0369ff909e030c87e88",
+    "semantic_hash": ""
   },
   "CHANGELOG.md": {
-    "mtime": 1795019486.294575,
-    "seen": 1795019494.261298,
-    "ast_hash": "aebf4387fb0a3a9763e5dced5d69c8ad",
+    "mtime": 1795022197.4782107,
+    "seen": 1795022216.6084118,
+    "ast_hash": "adb890d067f384a90f71b31b885bc2c2",
     "semantic_hash": ""
   },
   "CODE_OF_CONDUCT.md": {
@@ -726,9 +726,9 @@
     "semantic_hash": "9e7797b1dd0efb0f42f14c108196b8f2"
   },
   "docs/ARCHITECTURE.md": {
-    "mtime": 1795002995.792325,
-    "seen": 1795003053.1791098,
-    "ast_hash": "422a2d062e88200152750b649f95ef26",
+    "mtime": 1795022215.5730999,
+    "seen": 1795022216.608415,
+    "ast_hash": "d1bc8c5a93f5bd3c4df9c478cbcaa3ff",
     "semantic_hash": ""
   },
   "src/components/AboutModal.tsx": {

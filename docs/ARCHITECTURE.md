@@ -1,6 +1,6 @@
 # Architecture
 
-This page describes how voidHTTP is put together: which side does what, how a request travels, and where data is stored. For the list of files, see the [layout in the README](../README.md#layout).
+This page describes how voidHTTP is put together: which side does what, how a request travels, and where data is stored. For the list of files, see "Where things live" under [Hack on it](../README.md#hack-on-it) in the README.
 
 ## Two halves
 
@@ -9,12 +9,12 @@ voidHTTP is a [Tauri v2](https://v2.tauri.app) app, made of two parts:
 - **The webview (`src/`)**: React, with app state in zustand (`src/store.ts`). It owns the data model, the UI, variable resolution, import and export, and masking. It never opens a network connection itself.
 - **Rust (`src-tauri/src/`)**: every network connection, TLS, DNS and proxy, plus reading and writing files on disk. It does not interpret the workspace; it reads and writes the JSON documents the webview hands it.
 
-The two halves talk only through Tauri commands (`invoke`), registered in `src-tauri/src/lib.rs`. Live connections (gRPC streams, WebSocket, Socket.IO, Kafka, MQTT) also use a Tauri IPC `Channel` to push events back to the webview.
+The two halves talk only through Tauri commands (`invoke`), registered in `src-tauri/src/lib.rs`. Live connections (gRPC streams, WebSocket, Socket.IO, Kafka, MQTT, Pub/Sub) also use a Tauri IPC `Channel` to push events back to the webview.
 
 ```
  webview (React)                                   Rust (tokio)
  ───────────────                                   ────────────
- RequestPane / GrpcPane / WsPane / SioPane / KafkaPane / MqttPane
+ RequestPane / GrpcPane / WsPane / SioPane / KafkaPane / MqttPane / PubsubPane
         │  prepare(): fill {{variables}},
         │  build headers, auth, body
         ▼

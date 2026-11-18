@@ -2,18 +2,14 @@
 
 All notable changes to voidHTTP are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.1.7] - 2026-11-19
 
 ### Added
 
 - **Google Cloud Pub/Sub.** Pick Pub/Sub in the method menu, enter the project ID and a topic, and Connect; one connection publishes and reads. Sign in with a service account key file, Application Default Credentials, a pasted access token or the local emulator; key and ADC can act as another service account (impersonation). The project, topic and subscription fields can be typed or picked from a list (your key or ADC file's project, your gcloud config project, Cloud Resource Manager, the project's topics and subscriptions). The Read tab chooses how messages are read, because Pub/Sub subscribers compete for them: Temporary (voidHTTP's own subscription, deleted on Disconnect, the default), Peek (pull on demand and hand every message straight back), Consume (read and ack, with a warning) or Publish only. Publish Text or JSON data with an ordering key and attributes; the message ID shows under each publish. Received messages show their message ID, ordering key, attributes, publish time and delivery attempt. The Topic tab shows retention, schema, encryption, labels and every subscription on the topic. Settings has a regional endpoint, the ack deadline and how many messages the list keeps. A refused key, a missing topic and an account that may not make the temporary subscription each get their own explanation. Settings > Network and Settings > Certificates apply.
-
 - **MQTT.** Pick MQTT in the method menu, enter the broker URL and Connect: `mqtt://` over TCP, `mqtts://` over TLS, `ws://` and `wss://` over WebSocket (the path defaults to `/mqtt`), MQTT 5.0 or 3.1.1. One connection subscribes and publishes. The Topics tab lists topic filters, each with a QoS and an on/off switch; while connected, a change subscribes or unsubscribes at once, and each row shows what the broker granted or why it said no. MQTT 5 rows also take No local, Retain as published and how retained messages are sent. Publish a Text or JSON payload at QoS 0, 1 or 2, retained or not, with MQTT 5 properties (content type, payload format, response topic, correlation data, message expiry, user properties); the broker's PUBACK, or PUBREC → PUBCOMP, shows under each publish. Received messages show their topic, QoS, a retained tag and their properties; filter the list by topic or text, pause it, and copy messages as JSON. The Connection tab shows what was sent in CONNECT and the broker's CONNACK limits. Last Will (with an MQTT 5 delay), client ID (random when empty), clean start, session expiry and keep alive are under their own tabs. A refused login, the wrong MQTT version, a TLS or WebSocket mismatch, and a session taken over by another client with the same ID each get their own explanation. Settings > Network and Settings > Certificates apply, so mutual TLS (AWS IoT Core) works.
-
 - **Kafka.** Pick Kafka in the method menu, enter the bootstrap brokers and a topic, and Connect. voidHTTP reads every partition straight from its leader without a consumer group and never commits offsets, so services reading the same topic keep every record. Start from the latest or earliest record, the last 100 per partition, a time, or one partition at an offset, and change it from the list's From menu. Produce records with a key (String, JSON, Base64 or Hex), headers and a Text or JSON value, to a partition picked from the key (murmur2, as the Java client does) or one you choose; the partition and offset the broker stored each record at show under it. Settings has acks, compression (gzip, lz4, snappy, zstd), the client ID and how many records the list keeps. Filter the list by partition or text, pause it, and copy records as JSON. The Topic tab shows the brokers, the controller and each partition's leader, replicas, in-sync replicas and offsets. Auth supports SASL PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512 and TLS; Settings > Network and Settings > Certificates apply to every broker. A refused login, a missing topic and a broker advertising an unreachable address each get their own explanation.
-
 - **Table view for JSON responses.** REST, GraphQL and gRPC unary responses get a third view beside Pretty and Raw. The rows come from the biggest array in the body; the path next to the switch shows where they come from, and its menu lists every other array or object, including `$.data[*].items` (that list from every row in one table, with a column saying which row each one came from). Columns are every key, in order; numbers line up right, `null` is spelled out and a missing key stays blank. Click a column to sort it. A nested object or array shows as a chip (`{3}`, `[2]`) that opens it as a table under its row, as deep as it goes, or on its own with Open as table. Search keeps only the matching rows, a `$.path` filter shows its result as a table, and Copy gives tab-separated text that pastes into a spreadsheet. The choice is remembered. Live message lists (gRPC streams, WebSocket, Socket.IO, Kafka, MQTT, Pub/Sub) stay lists.
-
 - **Quick open (⌘P).** Fuzzy-search the requests, examples and open tabs of the current project by name, folder or URL, then press Enter to open one. A method typed as a word (`post login`) filters by method. With nothing typed it lists the open tabs and the requests you sent lately.
 - **Actions (⇧⌘P, or `>` in quick open).** Send, cancel, save as, reopen a closed tab, show or hide the sidebar, zoom, switch theme or layout, import, settings and more, each shown with its shortcut.
 - **Settings > Shortcuts** lists every keyboard shortcut, with a search box. ⌘/ opens it (inside a code editor ⌘/ still comments lines). Shortcuts can't be changed.
@@ -21,8 +17,14 @@ All notable changes to voidHTTP are listed here. The format follows [Keep a Chan
 - **Sidebar keyboard:** ↑ / ↓ move between items (↓ from the search box enters the list), Enter opens, → / ← expand or collapse (⌥ for all), F2 renames, ⌘D duplicates and ⌘⌫ deletes the focused item.
 - **Dev build tag.** `bun tauri dev` and `bun tauri build --debug` show an amber `DEV <commit>` pill left of the Settings gear (a `+` after the commit means uncommitted changes). About and Settings > Updates show the branch and `git describe` version, and update checks are off, so a dev build is never mistaken for, or replaced by, the release from GitHub. Release builds look as before.
 
+### Changed
+
+- Home lists project cards in the order the projects were made, so a card no longer moves each time its project is opened.
+- Icons come from Lucide 1.x. A few look slightly different.
+
 ### Fixed
 
+- `{{variables}}` in a saved example now take their values from the example's collection. Before, the address bar marked them as missing and they were not filled in.
 - Opened messages in WebSocket, Socket.IO, Kafka, MQTT and gRPC stream lists now keep a gap between the text and the line on their left.
 
 ## [0.1.6] - 2026-11-16
@@ -95,6 +97,7 @@ First tagged release.
 - Import from voidHTTP, Postman v2.x, OpenAPI 3 / Swagger 2, HAR, and cURL / grpcurl commands. Export to voidHTTP, Postman v2.1 and HAR.
 - Light and dark themes with colour schemes, system fonts, and compact mode.
 
+[0.1.7]: https://github.com/jimmyfish/voidhttp/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/jimmyfish/voidhttp/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/jimmyfish/voidhttp/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/jimmyfish/voidhttp/compare/v0.1.3...v0.1.4

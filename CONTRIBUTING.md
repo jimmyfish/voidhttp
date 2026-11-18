@@ -14,8 +14,8 @@ Changes should keep voidHTTP what it is:
 
 - **Local first.** No account, no cloud sync, no telemetry, no network calls the user did not ask for (the only exception is the update check, which the user can turn off).
 - **Small.** Use the OS webview. Think twice before adding a dependency, on either side.
-- **Requests run in Rust.** Networking (HTTP, gRPC, WebSocket, Socket.IO, DNS, proxy, TLS) lives in `src-tauri/src/`. The webview prepares requests and shows results.
-- **Imported data is untrusted.** Anything that comes from a file, URL or paste (Postman, OpenAPI, HAR, cURL) must not be able to read local files, choose what gets uploaded, or slip secrets into an export. See "Imported files are treated as untrusted" in the README.
+- **Requests run in Rust.** Networking (HTTP, gRPC, WebSocket, Socket.IO, Kafka, MQTT, Pub/Sub, DNS, proxy, TLS) lives in `src-tauri/src/`. The webview prepares requests and shows results.
+- **Imported data is untrusted.** Anything that comes from a file, URL or paste (Postman, OpenAPI, HAR, cURL) must not be able to read local files, choose what gets uploaded, or slip secrets into an export. See "Imports are treated as sketchy by default" in the README.
 - **Secrets stay out of plain JSON.** Passphrases go to the macOS Keychain; exports blank secret values by default; saved examples mask tokens and personal data.
 
 ## Setup
@@ -40,15 +40,15 @@ bun run typecheck                 # TypeScript
 cd src-tauri && cargo test        # Rust unit tests
 ```
 
-Live tests that need the network (for example the gRPC test against grpcb.in) are skipped by default. Run them with `cargo test -- --ignored live_`.
+Live tests that need the network (for example the gRPC test against grpcb.in) are skipped by default. Run them with `cargo test -- --ignored live_`. The MQTT and Pub/Sub live tests also need a local broker or emulator: set `MQTT_LIVE=<broker host>` (Mosquitto) or `PUBSUB_LIVE=<host:port>` (the Pub/Sub emulator). The setup is in the comments above the tests in `src-tauri/src/mqtt/tests.rs` and `src-tauri/src/pubsub/tests.rs`.
 
 Add a test when you fix a bug in the Rust side or in parsing code (import formats, cURL, JSONPath, variables, masking).
 
 ## Where things live
 
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains how the two halves fit together, and the README has a [layout](README.md#layout) of the main files. In short:
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains how the two halves fit together, and the README lists the main files under [Where things live](README.md#hack-on-it). In short:
 
-- `src-tauri/src/`: Rust engines and persistence (`http.rs`, `grpc.rs`, `ws.rs`, `sio.rs`, `net.rs`, `certs.rs`, `store.rs`, `files.rs`)
+- `src-tauri/src/`: Rust engines and persistence (`http.rs`, `grpc.rs`, `ws.rs`, `sio.rs`, `kafka.rs`, `mqtt.rs`, `pubsub.rs`, `net.rs`, `certs.rs`, `store.rs`, `files.rs`)
 - `src/lib/`: request preparation, variables, protocol clients, masking, themes
 - `src/lib/formats/`: import and export
 - `src/components/`: UI

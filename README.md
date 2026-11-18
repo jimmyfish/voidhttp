@@ -289,7 +289,7 @@ bun run typecheck      # TypeScript check only
 ```
 
 - New icon? `bunx tauri icon app-icon.svg` regenerates the lot.
-- The gRPC live test hits the public test server grpcb.in, so it's skipped by default. Run it with `cargo test -- --ignored live_` inside `src-tauri`.
+- Live tests are skipped by default. The gRPC one hits the public test server grpcb.in; run them with `cargo test -- --ignored live_` inside `src-tauri`. The MQTT and Pub/Sub ones want a local Mosquitto (`MQTT_LIVE=<host>`) or the Pub/Sub emulator (`PUBSUB_LIVE=<host:port>`); setup notes sit above the tests in `mqtt/tests.rs` and `pubsub/tests.rs`.
 
 <details>
 <summary><img src="docs/assets/icons/map.svg" width="18" height="18" align="top" alt="" /> <b>Where things live</b></summary>
