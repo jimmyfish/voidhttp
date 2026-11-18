@@ -28,7 +28,8 @@ export function Home() {
   const st = useStore.getState(); // actions only
 
   const rows = projects.map((p) => ({ meta: p, data: st.projectData(p.id) }));
-  const recentFirst = [...rows].sort((a, b) => b.meta.openedAt - a.meta.openedAt);
+  // creation order: cards keep their place instead of jumping each time a project is opened
+  const byCreated = [...rows].sort((a, b) => a.meta.createdAt - b.meta.createdAt);
 
   // at most 200 entries per project: cheap enough to recompute on every render
   const all = rows.flatMap(({ meta, data }) => data.history.map((h) => ({ ...h, project: meta }))).sort((a, b) => b.at - a.at);
@@ -90,7 +91,7 @@ export function Home() {
         <section aria-labelledby="h-projects">
           <h2 id="h-projects">Projects</h2>
           <div className="projects">
-            {recentFirst.map(({ meta, data }) => (
+            {byCreated.map(({ meta, data }) => (
               <div key={meta.id} className="project-card">
                 <button type="button" className="project-open" aria-label={`Open ${meta.name}`} onClick={() => st.openProject(meta.id)} />
                 <ProjectTile icon={meta.icon} color={meta.color} />

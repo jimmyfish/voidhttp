@@ -276,9 +276,9 @@
     "semantic_hash": ""
   },
   "src/components/Home.tsx": {
-    "mtime": 1794598603.5505874,
-    "seen": 1794598629.566611,
-    "ast_hash": "b0e9470c57dc42989c7b38ca3dca8a87",
+    "mtime": 1794906990.5290775,
+    "seen": 1794906991.8644428,
+    "ast_hash": "d98c6493457ddb2bdfac48326966bdb1",
     "semantic_hash": ""
   },
   "src/components/Icon.tsx": {
@@ -312,15 +312,15 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1794566262.941421,
-    "seen": 1794566373.404874,
-    "ast_hash": "c4109fe585384fc1fc2a1cfae5b1ac2e",
+    "mtime": 1794827978.7304714,
+    "seen": 1794906991.864494,
+    "ast_hash": "3d47cb3403f2a9f0193efc36b2fe4918",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1794566262.941421,
-    "seen": 1794566373.404875,
-    "ast_hash": "c4109fe585384fc1fc2a1cfae5b1ac2e",
+    "mtime": 1794827978.7304714,
+    "seen": 1794906991.864495,
+    "ast_hash": "3d47cb3403f2a9f0193efc36b2fe4918",
     "semantic_hash": ""
   },
   ".claude/settings.json": {

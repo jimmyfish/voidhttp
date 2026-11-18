@@ -1,7 +1,7 @@
-# Graph Report - voidHTTP  (2026-11-16)
+# Graph Report - voidHTTP  (2026-11-17)
 
 ## Corpus Check
-- 116 files · ~225,439 words
+- 116 files · ~225,411 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 27 file(s) not represented in the graph (top: .css 18, (none) 5, .lock 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bebf537b`
+- Built from commit: `c6a402b8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -116,8 +116,8 @@
 5. `uid()` - 38 edges
 6. `ico` - 29 edges
 7. `kv()` - 28 edges
-8. `GrpcRequestPane()` - 27 edges
-9. `stripJsonComments()` - 27 edges
+8. `stripJsonComments()` - 27 edges
+9. `GrpcRequestPane()` - 27 edges
 10. `Parser` - 25 edges
 
 ## Surprising Connections (you probably didn't know these)
@@ -479,7 +479,7 @@ Cohesion: 0.67
 Nodes (3): apply_metadata(), metadata_list(), Kv
 
 ## Knowledge Gaps
-- **47 isolated node(s):** `Latest`, `Earliest`, `Last`, `Time`, `Offset` (+42 more)
+- **47 isolated node(s):** `voidHTTP App Icon`, `#root Mount Element`, `FormUrlEncoded`, `Multipart`, `Text` (+42 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 628 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **19 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -487,16 +487,16 @@ Nodes (3): apply_metadata(), metadata_list(), Kv
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `prepare()` connect `sio.ts` to `ImportModal.tsx`, `useStore`, `har.ts`, `ExportModal.tsx`, `SioPane.tsx`, `Architecture`, `GqlPane.tsx`, `GrpcPane.tsx`, `store.ts`?**
-  _High betweenness centrality (0.059) - this node is a cross-community bridge._
-- **What connects `Latest`, `Earliest`, `Last` to the rest of the system?**
+  _High betweenness centrality (0.062) - this node is a cross-community bridge._
+- **What connects `voidHTTP App Icon`, `#root Mount Element`, `FormUrlEncoded` to the rest of the system?**
   _47 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Rust HTTP Engine` be split into smaller, more focused modules?**
   _Cohesion score 0.07641196013289037 - nodes in this community are weakly interconnected._
-- **Why does `Sending an HTTP request` connect `Architecture` to `sio.ts`?**
-  _High betweenness centrality (0.058) - this node is a cross-community bridge._
+- **Why does `Architecture` connect `Architecture` to `CONTRIBUTING.md`?**
+  _High betweenness centrality (0.061) - this node is a cross-community bridge._
 - **Should `Changelog` be split into smaller, more focused modules?**
   _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
-- **Why does `Architecture` connect `Architecture` to `CONTRIBUTING.md`?**
-  _High betweenness centrality (0.058) - this node is a cross-community bridge._
+- **Why does `Sending an HTTP request` connect `Architecture` to `sio.ts`?**
+  _High betweenness centrality (0.061) - this node is a cross-community bridge._
 - **Should `net.rs` be split into smaller, more focused modules?**
   _Cohesion score 0.08143939393939394 - nodes in this community are weakly interconnected._
