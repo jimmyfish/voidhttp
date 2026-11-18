@@ -274,7 +274,7 @@ function pmRequest(r: Omit<RequestNode, "type" | "examples">): Any {
 function pmItems(nodes: TreeNode[]): Any[] {
   return nodes.flatMap((n): Any[] => {
     if (n.type === "folder") return [{ name: n.name, item: pmItems(n.children) }];
-    if (n.method === "GRPC" || n.method === "WS" || n.method === "SIO" || n.method === "KAFKA" || n.method === "MQTT") return []; // v2.1 has no gRPC, WebSocket, Socket.IO, Kafka or MQTT request
+    if (n.method === "GRPC" || n.method === "WS" || n.method === "SIO" || n.method === "KAFKA" || n.method === "MQTT" || n.method === "PUBSUB") return []; // v2.1 has no gRPC, WebSocket, Socket.IO, Kafka, MQTT or Pub/Sub request
     const event = (["pre", "post"] as const)
       .filter((k) => n.scripts?.[k]?.trim())
       .map((k) => ({ listen: k === "pre" ? "prerequest" : "test", script: { type: "text/javascript", exec: n.scripts![k]!.split("\n") } }));

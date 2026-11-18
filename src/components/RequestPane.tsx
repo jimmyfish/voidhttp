@@ -26,6 +26,8 @@ import { KafkaRequestPane } from "./KafkaPane";
 import { defaultKafka, isKafka } from "../lib/kafka";
 import { MqttRequestPane } from "./MqttPane";
 import { defaultMqtt, isMqtt } from "../lib/mqtt";
+import { PubsubRequestPane } from "./PubsubPane";
+import { defaultPubsub, isPubsub } from "../lib/pubsub";
 import { defaultGql, gqlFromJson, gqlPayload, isGql } from "../lib/graphql";
 import { GqlQueryEditor, OPEN_GQL_LINE, type OpenGqlLine } from "./GqlPane";
 
@@ -176,7 +178,7 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
   const pickMethod = (m: string) =>
     m === "GQL"
       ? set({ method: "GQL", gql: req.gql ?? (req.body.mode === "json" ? gqlFromJson(req.body.raw) : null) ?? defaultGql() })
-      : gql && !["GRPC", "WS", "SIO", "KAFKA", "MQTT"].includes(m) && req.body.mode === "none"
+      : gql && !["GRPC", "WS", "SIO", "KAFKA", "MQTT", "PUBSUB"].includes(m) && req.body.mode === "none"
         ? set({ method: m, body: { ...req.body, mode: "json", raw: gqlPayload(req.gql ?? defaultGql()) } })
         : m === "GRPC"
       ? set({ method: "GRPC", grpc: req.grpc ?? defaultGrpc(req.url), body: { ...req.body, mode: "json" } })
@@ -188,7 +190,9 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
             ? set({ method: "KAFKA", kafka: req.kafka ?? defaultKafka(), body: { ...req.body, mode: req.body.mode === "text" ? "text" : "json" } })
             : m === "MQTT"
               ? set({ method: "MQTT", mqtt: req.mqtt ?? defaultMqtt(), body: { ...req.body, mode: req.body.mode === "text" ? "text" : "json" } })
-              : set({ method: m });
+              : m === "PUBSUB"
+                ? set({ method: "PUBSUB", pubsub: req.pubsub ?? defaultPubsub(), body: { ...req.body, mode: req.body.mode === "text" ? "text" : "json" } })
+                : set({ method: m });
 
   if (isGrpc(req))
     return (
@@ -219,6 +223,9 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
 
   if (isMqtt(req))
     return <MqttRequestPane tab={tab} grow={grow} lookup={lookup} missing={missing} path={titlePath} saveControls={saveControls} onKind={pickMethod} />;
+
+  if (isPubsub(req))
+    return <PubsubRequestPane tab={tab} grow={grow} lookup={lookup} missing={missing} path={titlePath} saveControls={saveControls} onKind={pickMethod} />;
 
   if (isKafka(req))
     return <KafkaRequestPane tab={tab} grow={grow} lookup={lookup} missing={missing} path={titlePath} saveControls={saveControls} onKind={pickMethod} />;

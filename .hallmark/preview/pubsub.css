@@ -1,0 +1,35 @@
+/* Hallmark · Google Cloud Pub/Sub requests · shape: app screen · genre: modern-minimal · theme: brand · signature: one list for messages read and published, the message ID threaded under each publish
+ * reuses app.css, grpc.css, websocket.css, socketio.css, kafka.css, mqtt.css and certificates.css as is: request line, Topic segment (.ns-seg),
+ * method menu, subtabs, editor, composer bar, stream rows, ack rows, live dot, meta, handshake grid (.hs), refused box, settings lists with seg--lg,
+ * .set-notice, .k-foot, record detail (.kdetail), partition/offset slot (.kp, here the message ID), warn pill (.rtag), table (.ktable),
+ * request-line pill (.mq-scheme), and the gRPC method picker (.rpc-menu / .rpc-list / .rpc-group / .rpc-tag / .rpc-foot) for project, topic and subscription lists
+ * new token: --m-pubsub, the method-label colour for Pub/Sub rows and tabs; FIXED per scheme darkness like --m-gql / --m-mqtt.
+ * proposal: Google blue, #1a73e8 on light and #8ab4f8 on dark (owner to confirm; it sits close to the accent). Label PSUB, menu "Pub/Sub". */
+
+:root { --m-pubsub: #1a73e8; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --m-pubsub: #8ab4f8; } }
+:root[data-theme="dark"] { --m-pubsub: #8ab4f8; }
+
+.m-PUBSUB, .method-menu .m-PUBSUB { color: var(--m-pubsub); }
+
+/* ---------- shipped app rules the preview css never needed (src/styles.css), copied as is ---------- */
+.rpc-anchor { position: relative; display: flex; flex: 0 1 380px; min-width: 0; align-self: stretch; }
+.rpc-msg { display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-sm); color: var(--color-muted); font-size: var(--text-sm); }
+
+/* ---------- request line: project ID (typed or picked), sign-in pill, topic (typed or picked) ---------- */
+.pubsub-field .mq-scheme { margin-left: var(--space-xs); }
+.pubsub-field .rpc-anchor { align-items: center; }
+.pubsub-field .rpc-anchor .icon-btn { flex-shrink: 0; }
+.rpc-anchor.ps-anchor { flex: 1; }
+.rpc-anchor.ps-topic { flex: 0 1 260px; }
+.rpc-anchor.ps-topic .ns-seg { flex: 1; padding-right: 0; }
+/* the project and topic lists open under their own field, not at the request line's right edge */
+.ps-anchor .rpc-menu, .ps-topic .rpc-menu { left: 0; right: auto; }
+/* the subscription field in Read: the field, then its list button */
+.rpc-anchor.ps-sub { flex: none; align-items: center; gap: var(--space-2xs); }
+.rpc-list button[disabled] { opacity: .5; cursor: default; }
+
+/* ---------- message list: a waiting row with an icon instead of the spinner (Peek reads only on Pull) ---------- */
+.smsg-wait .ico { width: 14px; height: 14px; }
+.ktable td.wrap { white-space: normal; overflow-wrap: anywhere; }
+.ktable .dim { color: var(--color-muted); }

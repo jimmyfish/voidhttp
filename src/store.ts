@@ -57,6 +57,7 @@ import { gqlAsHttp } from "./lib/graphql";
 import { connectSio, isSio, isSocket, maskAuth, prepareSio, sioClose, sioEmit, sioEmitOf, type PreparedSio, type SioEvent } from "./lib/sio";
 import { connectKafka, defaultKafka, isKafka, kafkaClose, kafkaPause, kafkaProduce, kafkaRefresh, kafkaSeek, prepareKafka, produceOf, type KafkaEvent } from "./lib/kafka";
 import { connectMqtt, defaultMqtt, isMqtt, mqttClose, mqttPublish, mqttSubscriptions, prepareMqtt, publishOf, subsOf, type MqttEvent } from "./lib/mqtt";
+import { connectPubsub, defaultPubsub, isPubsub, preparePubsub, pubsubClose, pubsubPause, pubsubPublish, pubsubPull, pubsubRefresh, publishOf as pubsubMessageOf, type PubsubEvent } from "./lib/pubsub";
 
 const HISTORY_LIMIT = 200;
 /** A gRPC stream keeps this many messages on screen; older ones are counted, not kept. */
@@ -149,6 +150,14 @@ interface State extends ProjectData {
   openKafka(tabId: string): Promise<void>;
   /** MQTT's Connect, reached through openSocket */
   openMqtt(tabId: string): Promise<void>;
+  /** Pub/Sub's Connect, reached through openSocket */
+  openPubsub(tabId: string): Promise<void>;
+  /** Pub/Sub Peek: pull once and hand the messages straight back */
+  pullPubsub(tabId: string): void;
+  /** Pub/Sub: stop or resume reading */
+  pausePubsub(tabId: string, paused: boolean): void;
+  /** Pub/Sub: read the topic and its subscriptions again */
+  refreshPubsub(tabId: string): void;
   /** MQTT: make the broker's subscriptions match the Topics tab (while connected) */
   syncMqttSubs(tabId: string): void;
   /** WebSocket: send the editor's message; Socket.IO: emit the event; Kafka: produce the record */
@@ -289,7 +298,7 @@ const inScript = new Set<string>();
 
 function stopInflight(t: Tab) {
   if (t.inflightId)
-    (isGrpc(t.request) ? grpcCancel : isWs(t.request) ? wsClose : isSio(t.request) ? sioClose : isKafka(t.request) ? kafkaClose : isMqtt(t.request) ? mqttClose : cancel)(t.inflightId).catch(
+    (isGrpc(t.request) ? grpcCancel : isWs(t.request) ? wsClose : isSio(t.request) ? sioClose : isKafka(t.request) ? kafkaClose : isMqtt(t.request) ? mqttClose : isPubsub(t.request) ? pubsubClose : cancel)(t.inflightId).catch(
       () => undefined,
     );
 }
@@ -597,7 +606,7 @@ export const useStore = create<State>((set, get) => {
       const tab = get().tabs.find((t) => t.id === tabId);
       if (tab && isGrpc(tab.request)) return get().callGrpc(tabId);
       // ⌘Enter on a WebSocket or Socket.IO tab: Connect, or send (emit) once it is open
-      if (tab && (isSocket(tab.request) || isKafka(tab.request) || isMqtt(tab.request))) return tab.inflightId ? get().sendSocketMessage(tabId) : get().openSocket(tabId);
+      if (tab && (isSocket(tab.request) || isKafka(tab.request) || isMqtt(tab.request) || isPubsub(tab.request))) return tab.inflightId ? get().sendSocketMessage(tabId) : get().openSocket(tabId);
       if (!tab || tab.inflightId || tab.example) return;
       // the response lands in this project even if another one is open by the time it arrives
       const pid = get().currentProjectId;
@@ -859,6 +868,7 @@ export const useStore = create<State>((set, get) => {
       if (!tab || tab.example || tab.inflightId) return;
       if (isKafka(tab.request)) return get().openKafka(tabId);
       if (isMqtt(tab.request)) return get().openMqtt(tabId);
+      if (isPubsub(tab.request)) return get().openPubsub(tabId);
       const pid = get().currentProjectId;
       const connId = uid();
       const settings = get().settings;
@@ -1094,6 +1104,126 @@ export const useStore = create<State>((set, get) => {
       }
     },
 
+    async openPubsub(tabId) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab || tab.example || tab.inflightId) return;
+      const pid = get().currentProjectId;
+      const connId = uid();
+      const request = structuredClone(tab.request);
+      const def = request.pubsub ?? defaultPubsub();
+      const keep = Math.min(100_000, Math.max(50, Math.floor(def.keep || 1000)));
+      const prepared = preparePubsub(request, get().scopeFor(tabId), get().settings);
+      if (!prepared.project) return get().notify("Enter the Google Cloud project ID");
+      if (!prepared.topic) return get().notify("Enter a topic");
+      if ((prepared.mode === "peek" || prepared.mode === "consume") && !prepared.subscription) return get().notify("Pick the subscription to read in the Read tab");
+      if (prepared.auth.kind === "key" && !prepared.auth.file) return get().notify("Choose the service account key file in the Auth tab");
+      if (prepared.auth.kind === "token" && !prepared.auth.token) return get().notify("Enter an access token in the Auth tab");
+      loadingRun.delete(tabId);
+      const fresh: WsResult = {
+        connId,
+        startedAt: Date.now(),
+        url: prepared.project,
+        messages: [],
+        pubsub: { project: prepared.project, topic: prepared.topic, mode: prepared.mode },
+      };
+      set((s) => ({
+        tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, inflightId: connId, error: undefined, response: undefined, grpc: undefined, fromHistory: undefined, ws: fresh })),
+      }));
+
+      // events land in batches: one state update per frame, however fast messages arrive
+      let queue: PubsubEvent[] = [];
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let latest = fresh;
+      let finished = false;
+      const ref = tab.savedRef?.nodeId;
+      const record = (entry: Omit<HistoryEntry, "id" | "at" | "request">, kept?: (id: string) => HistoryEntry["kept"]) => {
+        const id = uid();
+        applyToProject(pid, (d) => ({ history: [{ id, at: Date.now(), request, ref, ...entry, kept: kept?.(id) }, ...d.history].slice(0, HISTORY_LIMIT) }));
+      };
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        const size = latest.messages.reduce((n, m) => n + (m.dir === "in" ? m.size : 0), 0);
+        const ok = !!latest.pubsub?.info && !latest.pubsub.failed;
+        record({ status: ok ? 0 : undefined, elapsedMs: latest.close?.elapsedMs ?? latest.pubsub?.failed?.elapsedMs, size }, (id) => keepWs(id, latest, get().settings));
+      };
+      const flush = () => {
+        timer = undefined;
+        const batch = queue;
+        queue = [];
+        if (!batch.length) return;
+        let ended = false;
+        const notices: string[] = [];
+        applyToProject(pid, (d) => ({
+          tabs: patchTab(d.tabs, tabId, (t) => {
+            if (t.ws?.connId !== connId) return t;
+            const w: WsResult = { ...t.ws, pubsub: { ...t.ws.pubsub! } };
+            const p = w.pubsub!;
+            const incoming = [];
+            for (const e of batch) {
+              if (e.type === "connected") {
+                p.info = e.info;
+                p.connectedMs = e.elapsedMs;
+              } else if (e.type === "topic") p.info = e.info;
+              else if (e.type === "message") {
+                const { type: _, ...m } = e;
+                incoming.push(m);
+              } else if (e.type === "pulled") {
+                // the pull line sits above the messages it brought: after = how many were in the list before
+                const after = (w.dropped ?? 0) + w.messages.length + incoming.length;
+                p.pulls = [...(p.pulls ?? []), { n: e.n, count: e.count, skipped: e.skipped, atMs: e.atMs, after }];
+              } else if (e.type === "paused") p.paused = e.paused;
+              else if (e.type === "notice") notices.push(e.message);
+              else if (e.type === "failed") {
+                const { type: _, ...f } = e;
+                p.failed = f;
+                ended = true;
+              } else {
+                w.close = { code: 0, reason: e.reason, by: e.by, elapsedMs: e.elapsedMs };
+                ended = true;
+              }
+            }
+            if (incoming.length) {
+              const all = [...w.messages, ...incoming];
+              const over = Math.max(0, all.length - keep);
+              w.messages = over ? all.slice(over) : all;
+              if (over) w.dropped = (w.dropped ?? 0) + over;
+            }
+            latest = w;
+            return ended ? { ...t, ws: w, inflightId: undefined } : { ...t, ws: w };
+          }),
+        }));
+        for (const n of notices) get().notify(n);
+        if (ended) finish();
+      };
+      const onEvent = (e: PubsubEvent) => {
+        queue.push(e);
+        if (e.type === "close" || e.type === "failed" || e.type === "connected" || e.type === "pulled") {
+          clearTimeout(timer);
+          flush();
+        } else if (!timer) timer = setTimeout(flush, 16);
+      };
+
+      try {
+        await connectPubsub(connId, prepared, onEvent);
+        // the close event comes first; should it ever not, end the session rather than spin forever
+        setTimeout(() => {
+          flush();
+          if (!finished) onEvent({ type: "close", by: "lost", reason: "The connection ended without a close", elapsedMs: Date.now() - fresh.startedAt });
+        }, 1500);
+      } catch (e) {
+        clearTimeout(timer);
+        flush();
+        if (finished) return;
+        finished = true;
+        const error = String(e);
+        applyToProject(pid, (d) => ({
+          tabs: patchTab(d.tabs, tabId, (t) => (t.ws?.connId === connId ? { ...t, inflightId: undefined, ws: undefined, error } : t)),
+        }));
+        record({});
+      }
+    },
+
     async openMqtt(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
       if (!tab || tab.example || tab.inflightId) return;
@@ -1216,6 +1346,25 @@ export const useStore = create<State>((set, get) => {
       mqttSubscriptions(tab.inflightId, subs).catch((e) => get().notify(String(e)));
     },
 
+    pullPubsub(tabId) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab?.inflightId || !tab.ws?.pubsub?.info || tab.ws.close) return;
+      const max = Math.min(1000, Math.max(1, Math.floor(tab.request.pubsub?.pullMax || 10)));
+      pubsubPull(tab.inflightId, max).catch((e) => get().notify(String(e)));
+    },
+
+    pausePubsub(tabId, paused) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab?.inflightId || !tab.ws?.pubsub?.info) return;
+      pubsubPause(tab.inflightId, paused).catch((e) => get().notify(String(e)));
+    },
+
+    refreshPubsub(tabId) {
+      const tab = get().tabs.find((t) => t.id === tabId);
+      if (!tab?.inflightId || !tab.ws?.pubsub?.info) return;
+      pubsubRefresh(tab.inflightId).catch((e) => get().notify(String(e)));
+    },
+
     seekKafka(tabId, from) {
       const tab = get().tabs.find((t) => t.id === tabId);
       if (!tab?.inflightId || !tab.ws?.kafka?.cluster) return;
@@ -1236,6 +1385,15 @@ export const useStore = create<State>((set, get) => {
 
     async sendSocketMessage(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
+      if (tab && isPubsub(tab.request)) {
+        if (!tab.inflightId || !tab.ws?.pubsub?.info || tab.ws.close) return;
+        try {
+          await pubsubPublish(tab.inflightId, pubsubMessageOf(tab.request, get().scopeFor(tabId), ++produceSeq));
+        } catch (e) {
+          get().notify(e instanceof Error ? e.message : String(e));
+        }
+        return;
+      }
       if (tab && isMqtt(tab.request)) {
         if (!tab.inflightId || !tab.ws?.mqtt?.conn || tab.ws.close) return;
         try {
@@ -1278,7 +1436,7 @@ export const useStore = create<State>((set, get) => {
 
     closeSocket(tabId) {
       const tab = get().tabs.find((t) => t.id === tabId);
-      if (tab?.inflightId) (isKafka(tab.request) ? kafkaClose : isMqtt(tab.request) ? mqttClose : isSio(tab.request) ? sioClose : wsClose)(tab.inflightId).catch((e) => get().notify(String(e)));
+      if (tab?.inflightId) (isKafka(tab.request) ? kafkaClose : isMqtt(tab.request) ? mqttClose : isPubsub(tab.request) ? pubsubClose : isSio(tab.request) ? sioClose : wsClose)(tab.inflightId).catch((e) => get().notify(String(e)));
     },
 
     clearSocketMessages(tabId) {
@@ -1310,7 +1468,7 @@ export const useStore = create<State>((set, get) => {
       // a gRPC entry keeps its call (messages, status, metadata) in the same file
       const grpc = isGrpc(entry.request) ? (response as unknown as GrpcResult) : undefined;
       // a WebSocket or Socket.IO entry keeps its session (handshake, messages, close) the same way
-      const ws = isSocket(entry.request) || isKafka(entry.request) || isMqtt(entry.request) ? (response as unknown as WsResult) : undefined;
+      const ws = isSocket(entry.request) || isKafka(entry.request) || isMqtt(entry.request) || isPubsub(entry.request) ? (response as unknown as WsResult) : undefined;
       // the tab may have been sent (or closed) while the file was read
       applyToProject(pid, (d) => ({
         tabs: patchTab(d.tabs, tabId, (t) =>
@@ -1338,7 +1496,7 @@ export const useStore = create<State>((set, get) => {
       if (!response) return get().notify("The saved response is missing");
       const fromHistory = { at: entry.at, bodyDropped: entry.kept === "meta", entryId };
       const grpc = isGrpc(entry.request) ? (response as unknown as GrpcResult) : undefined;
-      const ws = isSocket(entry.request) || isKafka(entry.request) || isMqtt(entry.request) ? (response as unknown as WsResult) : undefined;
+      const ws = isSocket(entry.request) || isKafka(entry.request) || isMqtt(entry.request) || isPubsub(entry.request) ? (response as unknown as WsResult) : undefined;
       applyToProject(pid, (d) => ({
         tabs: patchTab(d.tabs, tabId, (t) =>
           t.inflightId

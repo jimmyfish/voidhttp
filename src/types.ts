@@ -22,14 +22,14 @@ export interface RequestBody {
 export interface RequestDef {
   id: string;
   name: string;
-  /** An HTTP method, "GQL" for GraphQL over HTTP (see `gql`), "GRPC" for a gRPC call (see `grpc`), "WS" for a WebSocket (see `ws`), "SIO" for Socket.IO (see `sio`), "KAFKA" for a Kafka topic (see `kafka`) or "MQTT" for an MQTT broker (see `mqtt`). */
+  /** An HTTP method, "GQL" for GraphQL over HTTP (see `gql`), "GRPC" for a gRPC call (see `grpc`), "WS" for a WebSocket (see `ws`), "SIO" for Socket.IO (see `sio`), "KAFKA" for a Kafka topic (see `kafka`), "MQTT" for an MQTT broker (see `mqtt`) or "PUBSUB" for a Google Cloud Pub/Sub topic (see `pubsub`). */
   method: string;
-  /** The URL; for gRPC the server address, host:port; for WebSocket a ws:// or wss:// URL; for Kafka the bootstrap brokers; for MQTT the broker, mqtt:// mqtts:// ws:// or wss://. */
+  /** The URL; for gRPC the server address, host:port; for WebSocket a ws:// or wss:// URL; for Kafka the bootstrap brokers; for MQTT the broker, mqtt:// mqtts:// ws:// or wss://; for Pub/Sub the Google Cloud project ID. */
   url: string;
   params: KV[];
-  /** HTTP headers; for gRPC the request metadata; for Kafka the produced record's headers; for MQTT 5 the published message's user properties. */
+  /** HTTP headers; for gRPC the request metadata; for Kafka the produced record's headers; for MQTT 5 the published message's user properties; for Pub/Sub the published message's attributes. */
   headers: KV[];
-  /** For gRPC, `raw` holds the request message as JSON; for WebSocket, the next message to send; for Socket.IO, the next emit's argument; for Kafka, the next produced record's value; for MQTT, the next published payload. */
+  /** For gRPC, `raw` holds the request message as JSON; for WebSocket, the next message to send; for Socket.IO, the next emit's argument; for Kafka, the next produced record's value; for MQTT, the next published payload; for Pub/Sub, the next published message's data. */
   body: RequestBody;
   auth: Auth;
   grpc?: GrpcDef;
@@ -37,6 +37,7 @@ export interface RequestDef {
   sio?: SioDef;
   kafka?: KafkaDef;
   mqtt?: MqttDef;
+  pubsub?: PubsubDef;
   gql?: GqlDef;
   /** Postman-style JavaScript run around an HTTP send: `pre` before it, `post` once the response arrives. */
   scripts?: RequestScripts;
@@ -98,6 +99,97 @@ export interface SioDef {
   ack: boolean;
   /** how long to wait for it; 0 waits as long as the socket is open */
   ackTimeoutMs: number;
+}
+
+/** How a Pub/Sub tab gets a Google access token. Pub/Sub takes no API keys. */
+export type PubsubAuthKind = "key" | "adc" | "token" | "emulator";
+
+/** How a Pub/Sub tab reads: its own temporary subscription, a look into an existing one that hands
+ *  every message back, an existing one read and acked like a real subscriber, or not at all. */
+export type PubsubMode = "temp" | "peek" | "consume" | "publish";
+
+export interface PubsubDef {
+  /** the topic's short id; the project is the request's `url` */
+  topic: string;
+  /** the next published message's ordering key; empty sends none */
+  orderingKey: string;
+  auth: PubsubAuthKind;
+  /** a service account key file, kept by path only */
+  keyFile: string;
+  /** an Application Default Credentials file; empty = gcloud's default */
+  adcFile: string;
+  /** optional service account to act as (key and ADC) */
+  impersonate: string;
+  /** a bearer access token; best kept in a variable */
+  token: string;
+  /** the Pub/Sub emulator, host:port */
+  emulatorHost: string;
+  /** emulator only: make the topic on Connect when it is missing */
+  createTopic: boolean;
+  mode: PubsubMode;
+  /** peek / consume: the existing subscription's short id */
+  subscription: string;
+  /** temp: an attribute filter, e.g. attributes.eventType = "x" */
+  filter: string;
+  /** temp: messages with the same ordering key arrive in order */
+  ordering: boolean;
+  /** peek: messages per Pull */
+  pullMax: number;
+  /** empty = pubsub.googleapis.com; a regional endpoint keeps messages in that region */
+  endpoint: string;
+  /** seconds a message stays with voidHTTP (temp, consume) */
+  ackDeadline: number;
+  /** messages the list keeps; older ones drop off */
+  keep: number;
+}
+
+/** A subscription on the topic, as the Topic tab lists it. */
+export interface PubsubSubInfo {
+  name: string;
+  delivery: "Pull" | "Push" | "BigQuery" | "Cloud Storage";
+  endpoint?: string;
+  ackDeadline: number;
+  filter?: string;
+  deadLetter?: string;
+  ordering: boolean;
+}
+
+/** What Connect found. See src-tauri/src/pubsub.rs Info. */
+export interface PubsubInfo {
+  project: string;
+  topic: string;
+  endpoint: string;
+  emulator: boolean;
+  /** who it signed in as, when known */
+  identity?: string;
+  authKind: PubsubAuthKind;
+  mode: PubsubMode;
+  /** the subscription being read; temp: the one made for this connection */
+  subscription?: string;
+  deadLetter?: { topic: string; maxAttempts: number };
+  /** e.g. "7 days"; absent when the topic keeps no acked messages */
+  retention?: string;
+  schema?: string;
+  kms?: string;
+  labels: { key: string; value: string }[];
+  /** every subscription on the topic; absent with `subsError` when listing was refused */
+  subscriptions?: PubsubSubInfo[];
+  subsError?: string;
+}
+
+export interface PubsubSession {
+  project: string;
+  topic: string;
+  mode: PubsubMode;
+  /** set once signed in and the topic (and subscription) were found */
+  info?: PubsubInfo;
+  /** ms from Connect until then */
+  connectedMs?: number;
+  paused?: boolean;
+  /** peek: one line per Pull */
+  pulls?: { n: number; count: number; skipped: number; atMs: number; after: number }[];
+  /** the connection never got to reading */
+  failed?: { stage: "auth" | "topic" | "subscription"; message: string; hint?: string; elapsedMs: number };
 }
 
 /** How the Key field's text becomes the record key's bytes. */
@@ -215,12 +307,12 @@ export interface WsMessage {
   partition?: number;
   /** Kafka: the record's offset; an ack's is where the broker stored the record */
   offset?: number;
-  /** Kafka: the record's time, ms since the epoch */
+  /** Kafka: the record's time, ms since the epoch; Pub/Sub: the publish time */
   ts?: number;
-  /** Kafka: the key as text, or base64 when `keyBin`; absent for a record without a key */
+  /** Kafka: the key as text, or base64 when `keyBin`; absent for a record without a key. Pub/Sub: the ordering key */
   key?: string;
   keyBin?: boolean;
-  /** Kafka, MQTT: `data` holds the value (payload) in base64 */
+  /** Kafka, MQTT, Pub/Sub: `data` holds the value (payload) in base64 */
   valueBin?: boolean;
   /** Kafka: a tombstone, a record with no value */
   valueNull?: boolean;
@@ -233,6 +325,12 @@ export interface WsMessage {
   topic?: string;
   /** MQTT: the QoS it travelled at */
   qos?: number;
+  /** Pub/Sub: the message ID (a publish answer's too) */
+  messageId?: string;
+  /** Pub/Sub: the delivery attempt, when the subscription counts them (dead-letter policy) */
+  attempt?: number;
+  /** Pub/Sub: what voidHTTP did with a received message: acked, or handed back (Peek) */
+  handed?: "acked" | "returned";
   /** MQTT: the broker kept it (on a received message: a retained one sent on subscribe) */
   retain?: boolean;
   dup?: boolean;
@@ -288,6 +386,8 @@ export interface WsResult {
   kafka?: KafkaSession;
   /** MQTT: the broker's answer and the subscriptions */
   mqtt?: MqttSession;
+  /** Pub/Sub: the project, topic and subscription being read */
+  pubsub?: PubsubSession;
 }
 
 export interface MqttMsgProps {

@@ -27,8 +27,8 @@ export function cloneRequest(r: RequestDef): RequestDef {
 
 /** Strips tree-only fields so a node can be edited as a plain request. */
 export function toRequestDef(node: RequestDef): RequestDef {
-  const { id, name, method, url, params, headers, body, auth, grpc, ws, sio, kafka, mqtt, gql, scripts } = node;
-  return cloneRequest({ id, name, method, url, params, headers, body, auth, ...(grpc && { grpc }), ...(ws && { ws }), ...(sio && { sio }), ...(kafka && { kafka }), ...(mqtt && { mqtt }), ...(gql && { gql }), ...(scripts && { scripts }) });
+  const { id, name, method, url, params, headers, body, auth, grpc, ws, sio, kafka, mqtt, pubsub, gql, scripts } = node;
+  return cloneRequest({ id, name, method, url, params, headers, body, auth, ...(grpc && { grpc }), ...(ws && { ws }), ...(sio && { sio }), ...(kafka && { kafka }), ...(mqtt && { mqtt }), ...(pubsub && { pubsub }), ...(gql && { gql }), ...(scripts && { scripts }) });
 }
 
 // ---------- tree helpers (immutable) ----------
@@ -185,21 +185,21 @@ export function countRequests(nodes: TreeNode[]): number {
 /** Short method label for tight places: tree, tabs, history. */
 export function methodLabel(m: string): string {
   const u = m.toUpperCase();
-  return u === "DELETE" ? "DEL" : u === "OPTIONS" ? "OPT" : u === "GRPC" ? "gRPC" : u;
+  return u === "DELETE" ? "DEL" : u === "OPTIONS" ? "OPT" : u === "GRPC" ? "gRPC" : u === "PUBSUB" ? "PSUB" : u;
 }
 
 /** A history entry's status as shown: HTTP below 400 is good; for gRPC only code 0 (OK) is. */
 export function entryStatus(h: { request: { method: string }; status?: number }): { text: string; ok: boolean } {
   if (h.status === undefined) return { text: "ERR", ok: false };
   if (h.request.method === "GRPC") return { text: h.status === 0 ? "OK" : String(h.status), ok: h.status === 0 };
-  // Kafka: 0 when the cluster answered and the topic was read; MQTT: 0 when the broker accepted
-  if (h.request.method === "KAFKA" || h.request.method === "MQTT") return { text: h.status === 0 ? "OK" : "ERR", ok: h.status === 0 };
+  // Kafka: 0 when the cluster answered and the topic was read; MQTT: 0 when the broker accepted; Pub/Sub: 0 when signed in and the topic was found
+  if (h.request.method === "KAFKA" || h.request.method === "MQTT" || h.request.method === "PUBSUB") return { text: h.status === 0 ? "OK" : "ERR", ok: h.status === 0 };
   return { text: String(h.status), ok: h.status < 400 };
 }
 
 /** What makes two history entries the same request when neither names its saved request. */
 const runKey = (r: RequestDef) =>
-  r.method === "GRPC" ? `GRPC ${r.url} ${r.grpc?.service}/${r.grpc?.method}` : r.method === "GQL" ? `GQL ${r.url} ${r.gql?.operation ?? ""}` : r.method === "KAFKA" ? `KAFKA ${r.url} ${r.kafka?.topic ?? ""}` : r.method === "MQTT" ? `MQTT ${r.url}` : `${r.method} ${r.url}`;
+  r.method === "GRPC" ? `GRPC ${r.url} ${r.grpc?.service}/${r.grpc?.method}` : r.method === "GQL" ? `GQL ${r.url} ${r.gql?.operation ?? ""}` : r.method === "KAFKA" ? `KAFKA ${r.url} ${r.kafka?.topic ?? ""}` : r.method === "MQTT" ? `MQTT ${r.url}` : r.method === "PUBSUB" ? `PUBSUB ${r.url} ${r.pubsub?.topic ?? ""}` : `${r.method} ${r.url}`;
 
 /**
  * The earlier runs of a tab's request that can be shown again (a response was kept), newest first.

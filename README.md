@@ -161,6 +161,19 @@ Pick **MQTT**, enter the broker URL and hit Connect. The scheme picks the transp
 - **Last Will** (with an MQTT 5 delay), client ID (random when empty), clean start, session expiry and keep alive all have a home.
 - When it breaks, it says what: wrong password, a broker that only speaks 3.1.1, TLS on a plain port, a WebSocket path that isn't there, or another client kicking you off by using the same client ID.
 
+### <img src="docs/assets/icons/cloud.svg" width="20" height="20" align="top" alt="" /> Google Cloud Pub/Sub
+
+Pick **Pub/Sub**, enter the project ID and a topic (or pick them from a list), and hit Connect. One connection publishes and reads.
+
+- **Sign in** with a service account key file, Application Default Credentials (`gcloud auth application-default login`), a pasted access token, or the local emulator. Key and ADC can also **act as a service account** (impersonation), for teams that may not download keys. Key files are kept by path only.
+- **Pick from lists.** The project field offers the project named in your key or ADC file, your gcloud config project and every project Cloud Resource Manager lets you see; the topic and subscription fields list what's in the project. Typing always works, for accounts that may not list.
+- **Read without stealing messages.** Pub/Sub subscribers compete for messages, so the Read tab makes you choose: **Temporary** (voidHTTP makes its own subscription on the topic and deletes it on Disconnect; the default), **Peek** (pull from an existing subscription on demand and hand every message straight back), **Consume** (read and ack, like a real subscriber, with a warning), or **Publish only**.
+- **Publish** Text or JSON data with an ordering key and attributes. The message ID Pub/Sub gave shows under each publish.
+- Received messages show their message ID, ordering key, attributes, publish time and, on subscriptions with a dead-letter policy, the delivery attempt. Filter the list by text, pause it, copy messages as JSON.
+- The **Topic** tab shows the topic's retention, schema, encryption and labels, and every subscription on it: Pull, Push, BigQuery or Cloud Storage, ack deadline, filter and dead-letter topic.
+- Regional endpoints, ack deadline and list size are under Settings. Network and certificate settings below apply.
+- When it breaks, it says what: a key that was deleted or disabled, a topic that isn't in the project, or an account that may not make the temporary subscription (with Peek one click away).
+
 ### <img src="docs/assets/icons/history.svg" width="20" height="20" align="top" alt="" /> History and examples
 
 - **History** keeps the last 200 requests per project, each response stored on disk exactly as it arrived. Bodies over the size limit (1 MB by default) keep just status and headers.
@@ -209,7 +222,7 @@ Someone sent you a collection? Cool. voidHTTP still doesn't trust it:
 
 <br />
 
-All of these work for HTTP, WebSocket, Socket.IO, Kafka, MQTT and gRPC alike, and all are off by default.
+All of these work for HTTP, WebSocket, Socket.IO, Kafka, MQTT, Pub/Sub and gRPC alike, and all are off by default.
 
 - **Secure DNS (DNS over HTTPS)** via Cloudflare, Google, Quad9, AdGuard, or your own DoH URL. Optionally fall back to the system resolver when DoH draws a blank (hello, intranet names on a VPN), and list domains that should always use the system resolver.
 - **Proxy:** SOCKS5 or HTTP, with optional `user:pass@`, plus a skip list. `localhost`, `127.0.0.1` and `::1` always go direct.
@@ -229,7 +242,7 @@ Every shortcut is also listed in **Settings › Shortcuts** (`⌘/Ctrl + /`). Th
 | --- | --- |
 | `⌘/Ctrl + P` | Quick open: fuzzy-search requests, examples and open tabs in the current project by name, folder or URL (`post login` filters by method) |
 | `⌘/Ctrl + Shift + P` | Run an action (or type `>` in quick open): send, save as, zoom, theme, import, settings… each with its shortcut |
-| `⌘/Ctrl + Enter` | Send (or Invoke a gRPC call). On an open client or bidi stream, send the next message. Connect a WebSocket, Socket.IO, Kafka or MQTT server, or send/emit/produce/publish once it's open |
+| `⌘/Ctrl + Enter` | Send (or Invoke a gRPC call). On an open client or bidi stream, send the next message. Connect a WebSocket, Socket.IO, Kafka, MQTT or Pub/Sub server, or send/emit/produce/publish once it's open |
 | `⌘/Ctrl + .` | Cancel the request in flight |
 | `⌘/Ctrl + S` | Save to collection |
 | `⌘/Ctrl + Shift + S` | Save as a new request |
@@ -289,13 +302,14 @@ src-tauri/src/ws.rs       WebSocket engine: tokio-tungstenite over rustls, one l
 src-tauri/src/sio.rs      Socket.IO client on the WebSocket engine: Engine.IO 3/4, namespace join, emits, acks
 src-tauri/src/kafka.rs    Kafka client: rskafka's wire protocol over our own connections, reads without a consumer group, produce
 src-tauri/src/mqtt.rs     MQTT client: 3.1.1 and 5.0 over TCP, TLS and WebSocket, live subscriptions, QoS 0/1/2 (packets in mqtt/packet.rs)
+src-tauri/src/pubsub.rs   Google Cloud Pub/Sub client: REST over reqwest, temporary / peek / consume reads, publish (sign-in in pubsub/auth.rs)
 src-tauri/src/certs.rs    the one rustls setup: public + custom CAs, client certificates, Keychain passphrases
 src-tauri/src/net.rs      secure DNS (hickory, DoH), SOCKS5 / HTTP proxy, connection check
 src-tauri/src/store.rs    atomic JSON persistence in ~/.config/voidhttp and the app data dir
 src-tauri/src/files.rs    read and write import/export files (64 MB read limit, atomic writes)
 src-tauri/src/fonts.rs    installed system fonts for Settings
 src/store.ts              app state (zustand) and debounced persistence
-src/lib/                  vars, request preparation, GraphQL (wire body, introspection), gRPC calls and schemas, WebSocket, Socket.IO, Kafka, MQTT, network settings, cURL, JSONPath, masking, themes
+src/lib/                  vars, request preparation, GraphQL (wire body, introspection), gRPC calls and schemas, WebSocket, Socket.IO, Kafka, MQTT, Pub/Sub, network settings, cURL, JSONPath, masking, themes
 src/lib/formats/          import and export: Postman, OpenAPI / Swagger, HAR, voidHTTP, pasted commands
 src/components/           UI
 ```
@@ -306,7 +320,7 @@ The longer story is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## <img src="docs/assets/icons/lightbulb.svg" width="24" height="24" align="top" alt="" /> On the wishlist
 
-Not built yet, but on the radar: folder and collection scripts, `pm.sendRequest`, GraphQL subscriptions and autocomplete, Socket.IO long-polling, Kafka consumer groups and Schema Registry (Avro / Protobuf), AWS IAM for MSK, MQTT 5 enhanced auth and topic aliases, gRPC-Web, OAuth 2 flows, a collection runner, and code generation beyond cURL and grpcurl.
+Not built yet, but on the radar: folder and collection scripts, `pm.sendRequest`, GraphQL subscriptions and autocomplete, Socket.IO long-polling, Kafka consumer groups and Schema Registry (Avro / Protobuf), AWS IAM for MSK, MQTT 5 enhanced auth and topic aliases, Pub/Sub streaming pull, schemas and Workload Identity Federation, gRPC-Web, OAuth 2 flows, a collection runner, and code generation beyond cURL and grpcurl.
 
 Want one of these sooner? Open an issue and make some noise.
 

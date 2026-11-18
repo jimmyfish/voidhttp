@@ -136,6 +136,8 @@ export function schemeTokens(s: Scheme): Record<string, string> {
     "--m-kafka": dark ? "var(--tag-clouds)" : "var(--tag-asphalt)",
     // MQTT keeps its own purple in every scheme: #660066 on light backgrounds, a light orchid on dark. Owner pick
     "--m-mqtt": dark ? "#e08ee6" : "#660066",
+    // Pub/Sub keeps Google blue in every scheme: #1a73e8 on light backgrounds, #8ab4f8 on dark
+    "--m-pubsub": dark ? "#8ab4f8" : "#1a73e8",
     "--j-key": txt(red),
     "--j-str": txt(green),
     "--j-num": txt(orange),

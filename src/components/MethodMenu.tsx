@@ -71,7 +71,7 @@ export function MethodMenu({
         type="button"
         className={className}
         title={title}
-        aria-label={`Method: ${current === "GQL" ? "GraphQL" : current === "GRPC" ? "gRPC" : current === "WS" ? "WebSocket" : current === "SIO" ? "Socket.IO" : current === "KAFKA" ? "Kafka" : current === "MQTT" ? "MQTT" : current}`}
+        aria-label={`Method: ${current === "GQL" ? "GraphQL" : current === "GRPC" ? "gRPC" : current === "WS" ? "WebSocket" : current === "SIO" ? "Socket.IO" : current === "KAFKA" ? "Kafka" : current === "MQTT" ? "MQTT" : current === "PUBSUB" ? "Pub/Sub" : current}`}
         aria-haspopup="menu"
         aria-expanded={open}
         disabled={disabled}
@@ -89,6 +89,7 @@ export function MethodMenu({
           {item("SIO", "Socket.IO")}
           {item("KAFKA", "Kafka")}
           {item("MQTT", "MQTT")}
+          {item("PUBSUB", "Pub/Sub")}
         </div>
       )}
     </div>

@@ -6,6 +6,7 @@ mod http;
 mod kafka;
 mod mqtt;
 mod net;
+mod pubsub;
 mod script;
 mod store;
 mod sio;
@@ -125,6 +126,7 @@ pub fn run() {
         .manage(sio::SioState::default())
         .manage(kafka::KafkaState::default())
         .manage(mqtt::MqttState::default())
+        .manage(pubsub::PubsubState::default())
         .invoke_handler(tauri::generate_handler![
             script::run_script,
             http::send_request,
@@ -150,6 +152,14 @@ pub fn run() {
             mqtt::mqtt_publish,
             mqtt::mqtt_subscriptions,
             mqtt::mqtt_close,
+            pubsub::pubsub_inspect,
+            pubsub::pubsub_list,
+            pubsub::pubsub_connect,
+            pubsub::pubsub_publish,
+            pubsub::pubsub_pull,
+            pubsub::pubsub_pause,
+            pubsub::pubsub_refresh,
+            pubsub::pubsub_close,
             net::net_configure,
             net::net_test,
             certs::certs_configure,

@@ -65,7 +65,7 @@ select.field { appearance: none; -webkit-appearance: none; padding-right: 32px; 
 /* method labels: coloured text, never a chip */
 .m { font: 700 var(--text-xs)/1 var(--font-body); width: 44px; flex-shrink: 0; color: var(--m-other); }
 .m-GET { color: var(--m-get); } .m-POST { color: var(--m-post); } .m-PUT { color: var(--m-put); }
-.m-PATCH { color: var(--m-patch); } .m-DELETE { color: var(--m-delete); } .m-GRPC { color: var(--m-grpc); } .m-WS { color: var(--m-ws); } .m-SIO { color: var(--m-sio); } .m-KAFKA { color: var(--m-kafka); } .m-MQTT { color: var(--m-mqtt); } .m-GQL { color: var(--m-gql); }
+.m-PATCH { color: var(--m-patch); } .m-DELETE { color: var(--m-delete); } .m-GRPC { color: var(--m-grpc); } .m-WS { color: var(--m-ws); } .m-SIO { color: var(--m-sio); } .m-KAFKA { color: var(--m-kafka); } .m-MQTT { color: var(--m-mqtt); } .m-PUBSUB { color: var(--m-pubsub); } .m-GQL { color: var(--m-gql); }
 .m-HEAD { color: var(--m-head); } .m-OPTIONS { color: var(--m-options); }
 
 /* ---------- shell: rail + panel ---------- */
@@ -1023,7 +1023,7 @@ fieldset.ro { display: contents; }
 .method-menu button[aria-checked="true"] { background: var(--color-paper-2); }
 /* .menu button paints items in ink; the method colours must win over it */
 .method-menu .m-GET { color: var(--m-get); } .method-menu .m-POST { color: var(--m-post); } .method-menu .m-PUT { color: var(--m-put); } .method-menu .m-PATCH { color: var(--m-patch); }
-.method-menu .m-DELETE { color: var(--m-delete); } .method-menu .m-HEAD { color: var(--m-head); } .method-menu .m-OPTIONS { color: var(--m-options); } .method-menu .m-GRPC { color: var(--m-grpc); } .method-menu .m-WS { color: var(--m-ws); } .method-menu .m-SIO { color: var(--m-sio); } .method-menu .m-KAFKA { color: var(--m-kafka); } .method-menu .m-MQTT { color: var(--m-mqtt); } .method-menu .m-GQL { color: var(--m-gql); }
+.method-menu .m-DELETE { color: var(--m-delete); } .method-menu .m-HEAD { color: var(--m-head); } .method-menu .m-OPTIONS { color: var(--m-options); } .method-menu .m-GRPC { color: var(--m-grpc); } .method-menu .m-WS { color: var(--m-ws); } .method-menu .m-SIO { color: var(--m-sio); } .method-menu .m-KAFKA { color: var(--m-kafka); } .method-menu .m-MQTT { color: var(--m-mqtt); } .method-menu .m-PUBSUB { color: var(--m-pubsub); } .method-menu .m-GQL { color: var(--m-gql); }
 .method-menu hr { margin: var(--space-3xs) var(--space-xs); }
 
 /* ---------- import and export (approved preview .hallmark/preview/transfer.html, 2026-11-13) ---------- */
@@ -2035,3 +2035,22 @@ button.build-tag:hover { background: color-mix(in srgb, var(--c) 17%, transparen
 .set-label .build-tag { margin-left: var(--space-2xs); height: 20px; padding: 0 7px 0 6px; vertical-align: 1px; font-size: 10px; }
 .set-label .build-tag .ico { width: 11px; height: 11px; }
 .set-item[aria-disabled="true"] label, .set-item[aria-disabled="true"] .desc { color: var(--color-muted); }
+
+/* ---------- Pub/Sub (approved preview: .hallmark/preview/pubsub.html) ---------- */
+/* request line: project ID (typed or picked), the sign-in pill, the topic (typed or picked); lists are the gRPC method picker */
+.pubsub-field .mq-scheme { margin-left: var(--space-xs); }
+.pubsub-field .rpc-anchor { align-items: center; }
+.pubsub-field .rpc-anchor .icon-btn { flex-shrink: 0; }
+.rpc-anchor.ps-anchor { flex: 1; }
+.rpc-anchor.ps-topic { flex: 0 1 260px; }
+.rpc-anchor.ps-topic .ns-seg { flex: 1; padding-right: 0; }
+/* the project and topic lists open under their own field, not at the request line's right edge */
+.ps-anchor .rpc-menu, .ps-topic .rpc-menu { left: 0; right: auto; }
+/* the subscription field in Read: the field, then its list button */
+.rpc-anchor.ps-sub { flex: none; align-items: center; gap: var(--space-2xs); }
+.rpc-list button[disabled] { opacity: .5; cursor: default; }
+.rpc-list button[disabled]:hover { background: none; }
+/* message list: a waiting row with an icon instead of the spinner (Peek reads only on Pull) */
+.smsg-wait .ico { width: 14px; height: 14px; }
+.ktable td.wrap { white-space: normal; overflow-wrap: anywhere; }
+.ktable .dim { color: var(--color-muted); }

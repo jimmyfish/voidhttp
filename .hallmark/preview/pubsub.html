@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voidHTTP Pub/Sub preview</title>
+<meta name="description" content="Design preview of Google Cloud Pub/Sub requests in voidHTTP: sign in, publish, read a topic without stealing messages, see its subscriptions, before it is applied to the app.">
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./preview.css">
+<link rel="stylesheet" href="./grpc.css">
+<link rel="stylesheet" href="./websocket.css">
+<link rel="stylesheet" href="./socketio.css">
+<link rel="stylesheet" href="./graphql.css">
+<link rel="stylesheet" href="./kafka.css">
+<link rel="stylesheet" href="./mqtt.css">
+<link rel="stylesheet" href="./certificates.css">
+<link rel="stylesheet" href="./pubsub.css">
+</head>
+<body>
+<!-- icons: Lucide v0.460.0 (ISC), inlined from lucide-react -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+  <symbol id="i-braces" viewBox="0 0 24 24"> <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1" /> <path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1" /></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"> <path d="M20 6 9 17l-5-5" /></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"> <path d="m6 9 6 6 6-6" /></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"> <path d="m9 18 6-6-6-6" /></symbol>
+  <symbol id="i-circle-check" viewBox="0 0 24 24"> <circle cx="12" cy="12" r="10" /> <path d="m9 12 2 2 4-4" /></symbol>
+  <symbol id="i-columns-2" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"> <rect width="14" height="14" x="8" y="8" rx="2" ry="2" /> <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></symbol>
+  <symbol id="i-corner-down-left" viewBox="0 0 24 24"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></symbol>
+  <symbol id="i-ellipsis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /></symbol>
+  <symbol id="i-house" viewBox="0 0 24 24"> <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /> <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24"> <path d="M12 3v12" /> <path d="m8 11 4 4 4-4" /> <path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4" /></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"> <line x1="3" x2="21" y1="22" y2="22" /> <line x1="6" x2="6" y1="18" y2="11" /> <line x1="10" x2="10" y1="18" y2="11" /> <line x1="14" x2="14" y1="18" y2="11" /> <line x1="18" x2="18" y1="18" y2="11" /> <polygon points="12 2 20 7 4 7" /></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"> <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" /> <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" /> <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" /></symbol>
+  <symbol id="i-list-filter" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"> <line x1="4" x2="20" y1="12" y2="12" /> <line x1="4" x2="20" y1="6" y2="6" /> <line x1="4" x2="20" y1="18" y2="18" /></symbol>
+  <symbol id="i-panel-left-close" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"> <path d="M5 12h14" /> <path d="M12 5v14" /></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"> <circle cx="11" cy="11" r="8" /> <path d="m21 21-4.3-4.3" /></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"> <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /> <circle cx="12" cy="12" r="3" /></symbol>
+  <symbol id="i-trash-2" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol>
+  <symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-unplug" viewBox="0 0 24 24"><path d="m19 5 3-3"/><path d="m2 22 3-3"/><path d="M6.3 20.3a2.4 2.4 0 0 0 3.4 0L12 18l-6-6-2.3 2.3a2.4 2.4 0 0 0 0 3.4Z"/><path d="M7.5 13.5 10 11"/><path d="M10.5 16.5 13 14"/><path d="m12 6 6 6 2.3-2.3a2.4 2.4 0 0 0 0-3.4l-2.6-2.6a2.4 2.4 0 0 0-3.4 0Z"/></symbol>
+  <symbol id="i-wand-sparkles" viewBox="0 0 24 24"> <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" /> <path d="m14 7 3 3" /> <path d="M5 6v4" /> <path d="M19 14v4" /> <path d="M10 2v2" /> <path d="M7 8H3" /> <path d="M21 16h-4" /> <path d="M11 3H9" /></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"> <path d="M18 6 6 18" /> <path d="m6 6 12 12" /></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-check-check" viewBox="0 0 24 24"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></symbol>
+  <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol>
+  <symbol id="i-folder-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></symbol>
+  <symbol id="i-refresh-cw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></symbol>
+  <symbol id="i-file-key" viewBox="0 0 24 24"><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M4 12v6"/><path d="M4 14h2"/><path d="M9.65 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v4"/><circle cx="4" cy="20" r="2"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+</svg>
+
+<header class="pv-bar">
+  <strong>voidHTTP preview · Pub/Sub</strong>
+  <nav class="pv-screens" aria-label="Screens">
+    <a class="btn btn--quiet" href="./index.html" style="min-height:var(--control)">← Base</a>
+    <button type="button" data-show="menu">Method menu</button>
+    <button type="button" data-show="idle">Not connected</button>
+    <button type="button" data-show="proj-menu">Project list</button>
+    <button type="button" data-show="proj-local">Project: can't list</button>
+    <button type="button" data-show="topic-menu">Topic list</button>
+    <button type="button" data-show="attrs">Attributes</button>
+    <button type="button" data-show="sub-temp">Read: Temporary</button>
+    <button type="button" data-show="sub-peek">Read: Peek</button>
+    <button type="button" data-show="sub-pick">Subscription list</button>
+    <button type="button" data-show="sub-consume">Read: Consume</button>
+    <button type="button" data-show="auth-key">Auth: SA key</button>
+    <button type="button" data-show="auth-adc">Auth: ADC</button>
+    <button type="button" data-show="auth-emu">Auth: Emulator</button>
+    <button type="button" data-show="settings">Settings</button>
+    <button type="button" data-show="live">Reading</button>
+    <button type="button" data-show="peek">Peeking</button>
+    <button type="button" data-show="topic">Topic</button>
+    <button type="button" data-show="denied">No permission</button>
+    <button type="button" data-show="token">Sign-in failed</button>
+  </nav>
+  <div class="pv-theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<div class="pv-stage">
+<div class="app">
+  <div class="app-strip" data-tauri-drag-region>
+    <nav class="ptabs" aria-label="Projects">
+      <button type="button" class="ptab"><svg aria-hidden="true" class="ico"><use href="#i-house"/></svg>Home</button>
+      <span class="ptab-sep" aria-hidden="true"></span>
+      <div class="ptab ptab--project" aria-current="page">
+        <button type="button" class="ptab-main"><span class="proj-tile proj-tile--sm" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>Acme Bank</button>
+        <button type="button" class="icon-btn ptab-close" aria-label="Close Acme Bank"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
+      </div>
+    </nav>
+    <button type="button" class="icon-btn strip-settings" title="Settings  ⌘," aria-label="Settings"><svg aria-hidden="true" class="ico"><use href="#i-settings"/></svg></button>
+  </div>
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-mark" aria-hidden="true">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke-width="2" style="stroke: var(--color-accent)"/><circle cx="8" cy="8" r="2.25" fill="none" stroke-width="1.5" style="stroke: var(--color-ok)"/></svg>
+    </div>
+    <button type="button" class="rail-item" aria-label="Collections" title="Collections" aria-current="page"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-layers"/></svg></button>
+    <button type="button" class="rail-item" aria-label="History" title="History"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-history"/></svg></button>
+    <button type="button" class="rail-item" aria-label="Variables" title="Variables"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-braces"/></svg></button>
+  </nav>
+
+  <div class="panel">
+    <!-- ===== sidebar: Pub/Sub requests live in collections beside HTTP, Kafka and MQTT ===== -->
+    <aside class="sidebar">
+      <div class="side-resize" role="separator" aria-orientation="vertical" aria-label="Resize sidebar"></div>
+      <div class="side-head"><h2>Collections</h2></div>
+      <div class="side-tools">
+        <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search collections"></div>
+        <button type="button" class="icon-btn icon-btn--outline" title="Import" aria-label="Import"><svg aria-hidden="true" class="ico"><use href="#i-import"/></svg></button>
+        <button type="button" class="icon-btn icon-btn--filled" title="New collection" aria-label="New collection"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+      </div>
+      <div class="tree">
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><span class="name">transfer-service</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for transfer-service" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px" aria-current="page"><button type="button" class="row-main"><span class="m m-PUBSUB">PSUB</span><span class="name">Transfer events</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Transfer events" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-PUBSUB">PSUB</span><span class="name">Ledger subscription</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Ledger subscription" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-POST">POST</span><span class="name">Create transfer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Create transfer" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-KAFKA">KAFKA</span><span class="name">Ledger dead letters</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Ledger dead letters" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main"><span class="m m-GRPC">gRPC</span><span class="name">GetTransfer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for GetTransfer" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">notification-service</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for notification-service" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+      </div>
+    </aside>
+
+    <!-- ===== work area ===== -->
+    <main class="work">
+      <div class="tabsbar">
+        <button type="button" class="icon-btn side-toggle" aria-label="Hide sidebar" title="Hide sidebar  ⌘\"><svg aria-hidden="true" class="ico"><use href="#i-panel-left-close"/></svg></button>
+        <div class="tabs">
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-POST">POST</span><span class="name">Create transfer</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab" aria-current="page"><button type="button" class="tab-main"><span class="m m-PUBSUB">PSUB</span><span class="name">Transfer events</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <div class="tab"><button type="button" class="tab-main"><span class="m m-PUBSUB">PSUB</span><span class="name">Ledger subscription</span></button><button type="button" class="icon-btn close" aria-label="Close tab"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></div>
+          <button type="button" class="icon-btn tab-add" aria-label="New tab"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+        </div>
+        <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
+        <div class="joined env-group">
+          <button type="button" class="env-picker" aria-label="Environment" style="--env-c: var(--tag-cyan)"><span class="env-dot" aria-hidden="true"></span><span class="env-name">Staging</span><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+          <button type="button" class="btn joined-tail" aria-label="Environment menu" title="Manage environments"><svg aria-hidden="true" class="ico"><use href="#i-menu"/></svg></button>
+        </div>
+      </div>
+
+      <!-- request line: PUBSUB in the method menu · GCP project ID · how it signs in · topic · Connect -->
+      <div class="request-line">
+        <div class="url-field pubsub-field" data-screen="menu idle attrs sub-temp sub-peek sub-consume auth-key auth-adc auth-emu settings denied token proj-menu proj-local topic-menu sub-pick">
+          <div class="method-wrap">
+            <button type="button" class="method-btn m-PUBSUB" aria-label="Method: Pub/Sub" aria-haspopup="menu" aria-expanded="false">PSUB</button>
+            <div class="menu method-menu" role="menu" aria-label="Method" data-screen="menu"><button type="button" role="menuitemradio" class="m-GET" aria-checked="false">GET</button><button type="button" role="menuitemradio" class="m-POST" aria-checked="false">POST</button><button type="button" role="menuitemradio" class="m-PUT" aria-checked="false">PUT</button><button type="button" role="menuitemradio" class="m-PATCH" aria-checked="false">PATCH</button><button type="button" role="menuitemradio" class="m-DELETE" aria-checked="false">DELETE</button><button type="button" role="menuitemradio" class="m-HEAD" aria-checked="false">HEAD</button><button type="button" role="menuitemradio" class="m-OPTIONS" aria-checked="false">OPTIONS</button><hr><button type="button" role="menuitemradio" class="m-GQL" aria-checked="false">GraphQL</button><button type="button" role="menuitemradio" class="m-GRPC" aria-checked="false">gRPC</button><button type="button" role="menuitemradio" class="m-WS" aria-checked="false">WebSocket</button><button type="button" role="menuitemradio" class="m-SIO" aria-checked="false">Socket.IO</button><button type="button" role="menuitemradio" class="m-KAFKA" aria-checked="false">Kafka</button><button type="button" role="menuitemradio" class="m-MQTT" aria-checked="false">MQTT</button><button type="button" role="menuitemradio" class="m-PUBSUB" aria-checked="true">Pub/Sub</button></div>
+          </div>
+          <!-- project: typed, or picked from what the sign-in files name and what Cloud Resource Manager lists (the gRPC method picker) -->
+          <div class="rpc-anchor ps-anchor">
+            <div class="url-input">
+              <div class="url-hl" aria-hidden="true"><span class="url-hl-in"><span class="tok-var"><i>{{</i>gcpProject<i>}}</i></span> </span></div>
+              <input aria-label="Google Cloud project ID" value="{{gcpProject}}" spellcheck="false" placeholder="Project ID, e.g. acme-staging">
+            </div>
+            <button type="button" class="icon-btn" aria-label="Pick a project" aria-haspopup="listbox" data-open="proj-menu proj-local"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+            <div class="menu rpc-menu" role="dialog" aria-label="Pick a project" data-screen="proj-menu proj-local">
+              <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search projects" aria-label="Search projects"></div>
+              <div class="rpc-list" role="listbox" aria-label="Projects">
+                <div role="group" aria-label="Variable"><div class="rpc-group">Variable</div>
+                <button type="button" role="option" aria-selected="true" aria-current="true"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg><span class="name">{{gcpProject}}</span><span class="rpc-tag">acme-staging</span></button></div>
+                <div role="group" aria-label="From your sign-in"><div class="rpc-group">From your sign-in</div>
+                <button type="button" role="option" aria-selected="false" data-screen="proj-menu"><span class="tick-gap"></span><span class="name">acme-staging</span><span class="rpc-tag">ADC file</span></button>
+                <button type="button" role="option" aria-selected="false" data-screen="proj-local"><span class="tick-gap"></span><span class="name">acme-staging</span><span class="rpc-tag">key file</span></button>
+                <button type="button" role="option" aria-selected="false" data-screen="proj-local"><span class="tick-gap"></span><span class="name">acme-shared-infra</span><span class="rpc-tag">gcloud config</span></button></div>
+                <div role="group" aria-label="Cloud Resource Manager" data-screen="proj-menu"><div class="rpc-group">Cloud Resource Manager</div>
+                <button type="button" role="option" aria-selected="false"><span class="tick-gap"></span><span class="name">acme-dev</span></button>
+                <button type="button" role="option" aria-selected="false"><span class="tick-gap"></span><span class="name">acme-prod</span></button>
+                <button type="button" role="option" aria-selected="false"><span class="tick-gap"></span><span class="name">acme-shared-infra</span></button>
+                <button type="button" role="option" aria-selected="false"><span class="tick-gap"></span><span class="name">acme-data-platform</span></button></div>
+                <div class="rpc-msg" data-screen="proj-local">sa-qa-pubsub may not list projects (resourcemanager.projects.get). Type any project ID.</div>
+              </div>
+              <div class="rpc-foot" data-screen="proj-menu"><svg aria-hidden="true" class="ico"><use href="#i-cloud"/></svg>From Cloud Resource Manager · 10:14<button type="button" class="icon-btn" title="Load again" aria-label="Load again"><svg aria-hidden="true" class="ico"><use href="#i-refresh-cw"/></svg></button></div>
+              <div class="rpc-foot" data-screen="proj-local"><svg aria-hidden="true" class="ico"><use href="#i-file-key"/></svg>From the key file and gcloud config</div>
+            </div>
+          </div>
+          <span class="mq-scheme" title="How voidHTTP signs in. Change it in Auth." data-screen="menu idle attrs sub-temp sub-peek sub-consume auth-key settings denied token proj-local topic-menu sub-pick">Service account</span>
+          <span class="mq-scheme" title="How voidHTTP signs in. Change it in Auth." data-screen="auth-adc proj-menu">ADC · as sa-qa-pubsub</span>
+          <span class="mq-scheme" title="How voidHTTP signs in. Change it in Auth." data-screen="auth-emu">Emulator · localhost:8085</span>
+          <span class="gf-sep" aria-hidden="true"></span>
+          <div class="rpc-anchor ps-topic">
+            <label class="ns-seg"><span class="ns-lbl">Topic</span><input aria-label="Topic" value="transfer-events" spellcheck="false"></label>
+            <button type="button" class="icon-btn" aria-label="Pick a topic" aria-haspopup="listbox" data-open="topic-menu"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+            <div class="menu rpc-menu" role="dialog" aria-label="Pick a topic" data-screen="topic-menu">
+              <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search topics" aria-label="Search topics"></div>
+              <div class="rpc-list" role="listbox" aria-label="Topics">
+                <div role="group" aria-label="acme-staging"><div class="rpc-group">acme-staging</div>
+                <button type="button" role="option" aria-selected="true" aria-current="true"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg><span class="name">transfer-events</span><span class="rpc-tag">4 subscriptions</span></button>
+                <button type="button" role="option" aria-selected="false"><span class="tick-gap"></span><span class="name">transfer-events-dlq</span><span class="rpc-tag">1 subscription</span></button>
+                <button type="button" role="option" aria-selected="false"><span class="tick-gap"></span><span class="name">ledger-postings</span><span class="rpc-tag">2 subscriptions</span></button>
+                <button type="button" role="option" aria-selected="false"><span class="tick-gap"></span><span class="name">notification-requests</span><span class="rpc-tag">3 subscriptions</span></button>
+                <button type="button" role="option" aria-selected="false"><span class="tick-gap"></span><span class="name">payments-callbacks</span><span class="rpc-tag">1 subscription</span></button>
+                <button type="button" role="option" aria-selected="false"><span class="tick-gap"></span><span class="name">audit-log</span><span class="rpc-tag">none</span></button></div>
+              </div>
+              <div class="rpc-foot"><svg aria-hidden="true" class="ico"><use href="#i-cloud"/></svg>6 topics · 10:14<button type="button" class="icon-btn" title="Load again" aria-label="Load again"><svg aria-hidden="true" class="ico"><use href="#i-refresh-cw"/></svg></button></div>
+            </div>
+          </div>
+        </div>
+        <div class="url-field pubsub-field is-live" data-screen="live peek topic">
+          <div class="method-wrap">
+            <button type="button" class="method-btn m-PUBSUB" aria-label="Method: Pub/Sub" disabled title="Disconnect to change the method">PSUB</button>
+          </div>
+          <div class="url-input">
+            <div class="url-hl" aria-hidden="true"><span class="url-hl-in"><span class="tok-var"><i>{{</i>gcpProject<i>}}</i></span> </span></div>
+            <input aria-label="Google Cloud project ID" value="{{gcpProject}}" spellcheck="false" readonly title="Disconnect to change the project">
+          </div>
+          <span class="mq-scheme">Service account</span>
+          <span class="gf-sep" aria-hidden="true"></span>
+          <label class="ns-seg"><span class="ns-lbl">Topic</span><input aria-label="Topic" value="transfer-events" spellcheck="false" readonly title="Disconnect to change the topic"></label>
+        </div>
+
+        <button type="button" class="btn btn--primary ws-connect" data-screen="menu idle attrs sub-temp sub-peek sub-consume auth-key auth-adc auth-emu settings denied token proj-menu proj-local topic-menu sub-pick"><svg aria-hidden="true" class="ico"><use href="#i-plug"/></svg>Connect</button>
+        <button type="button" class="btn ws-disconnect" data-screen="live peek topic"><svg aria-hidden="true" class="ico"><use href="#i-unplug"/></svg>Disconnect</button>
+
+        <div class="joined">
+          <button type="button" class="btn">Save</button>
+          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
+        </div>
+      </div>
+      <div class="req-title">
+        <span class="name">Transfer events</span>
+        <span class="path">transfer-service</span>
+      </div>
+
+      <nav class="subtabs" aria-label="Request">
+        <button type="button" class="subtab" data-on="menu idle live peek topic denied token proj-menu proj-local topic-menu">Message</button>
+        <button type="button" class="subtab" data-on="attrs">Attributes <span class="n">2</span></button>
+        <button type="button" class="subtab" data-on="sub-temp sub-peek sub-consume sub-pick">Read</button>
+        <button type="button" class="subtab" data-on="auth-key auth-adc auth-emu">Auth</button>
+        <button type="button" class="subtab" data-on="settings">Settings</button>
+      </nav>
+
+      <!-- message: ordering key + data. Attributes live in their own tab. Publish only while connected -->
+      <div class="section" style="flex:1" data-screen="menu idle live peek topic denied token proj-menu proj-local topic-menu">
+        <div class="emit-head">
+          <span class="lbl">Ordering key</span>
+          <input class="ev-input" aria-label="Ordering key" value="acc_19c2a7" spellcheck="false" placeholder="none" title="Messages with the same key reach subscribers in order, when the subscription has ordering on">
+          <div class="seg" role="group" aria-label="Format"><button type="button" aria-pressed="false">Text</button><button type="button" aria-pressed="true">JSON</button></div>
+        </div>
+        <div class="editor">
+          <div class="editor-bar"><button type="button" class="btn btn--quiet"><svg aria-hidden="true" class="ico"><use href="#i-wand-sparkles"/></svg>Beautify</button></div>
+          <pre class="code" aria-label="Message data" data-json='{"transfer_id":"trf_77a0c3","status":"RETRY","reason":"bank_timeout","amount":250000,"currency":"IDR"}'></pre>
+        </div>
+        <div class="composer-bar">
+          <button type="button" class="btn btn--primary" data-screen="live peek topic"><svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Publish</button>
+          <button type="button" class="btn btn--primary" disabled data-screen="menu idle denied token proj-menu proj-local topic-menu"><svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Publish</button>
+          <span class="hint-text push" data-screen="live peek topic"><kbd>⌘</kbd> <kbd>Enter</kbd> publishes to <code>transfer-events</code></span>
+          <span class="hint-text push" data-screen="menu idle denied token proj-menu proj-local topic-menu">Connect first, then publish. How messages are read is set in Read.</span>
+        </div>
+      </div>
+
+      <!-- attributes: the message's key/value pairs; subscriptions can filter on them -->
+      <div class="section" style="flex:1" data-screen="attrs">
+        <table class="kv">
+          <thead><tr><th class="check"><span class="visually-hidden">Enabled</span></th><th>Name</th><th>Value</th><th class="del"><span class="visually-hidden">Remove</span></th></tr></thead>
+          <tbody>
+            <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="eventType"></td><td><input class="field" value="transfer.retry"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
+            <tr><td class="check"><input type="checkbox" checked aria-label="Enabled"></td><td><input class="field" value="traceId"></td><td><input class="field" value="{{traceId}}"></td><td class="del"><button type="button" class="icon-btn" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td></tr>
+            <tr class="add"><td class="check"></td><td><input class="field" placeholder="Name"></td><td><input class="field" placeholder="Value"></td><td class="del"></td></tr>
+          </tbody>
+        </table>
+        <p class="k-foot">Up to 100 attributes. Subscription filters such as <code>attributes.eventType = "transfer.retry"</code> match on these.</p>
+      </div>
+
+      <!-- read: how voidHTTP reads the topic. Pub/Sub subscribers compete for messages, so this is a choice, not a default nobody sees -->
+      <div class="section" style="flex:1" data-screen="sub-temp sub-peek sub-consume sub-pick">
+        <div class="set-list sio-settings kafka-settings">
+          <div class="set-item">
+            <div class="set-text">
+              <span class="set-label" id="r-mode">Read</span>
+              <span class="desc" data-screen="sub-temp">voidHTTP makes its own subscription on the topic and deletes it on Disconnect. Your services' subscriptions are not touched.</span>
+              <span class="desc" data-screen="sub-peek sub-pick">Pull from an existing subscription when you press Pull, and hand every message straight back.</span>
+              <span class="desc" data-screen="sub-consume">Read an existing subscription and ack, like a real subscriber.</span>
+            </div>
+            <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="r-mode"><button type="button" data-check="sub-temp">Temporary</button><button type="button" data-check="sub-peek sub-pick">Peek</button><button type="button" data-check="sub-consume">Consume</button><button type="button" aria-pressed="false">Publish only</button></div></div>
+          </div>
+
+          <div class="set-item" data-screen="sub-temp">
+            <div class="set-text"><label class="set-label" for="t-filter">Filter</label><span class="desc">Optional. Only messages whose attributes match reach the list, e.g. <code>attributes.eventType = "transfer.completed"</code>.</span></div>
+            <div class="set-ctl"><input id="t-filter" class="field mono" value="" placeholder="all messages" spellcheck="false"></div>
+          </div>
+          <div class="set-item" data-screen="sub-temp">
+            <div class="set-text"><span class="set-label">Message ordering</span><span class="desc">Messages with the same ordering key arrive in order.</span></div>
+            <div class="set-ctl"><input type="checkbox" class="switch" role="switch" checked aria-label="Message ordering"></div>
+          </div>
+
+          <div class="set-item" data-screen="sub-peek sub-pick sub-consume">
+            <div class="set-text"><label class="set-label" for="p-sub">Subscription</label><span class="desc">A Pull subscription on <code>transfer-events</code>.</span></div>
+            <div class="set-ctl"><div class="rpc-anchor ps-sub"><input id="p-sub" class="field mono" value="transfer-events-ledger" spellcheck="false"><button type="button" class="icon-btn" aria-label="Pick a subscription" aria-haspopup="listbox" data-open="sub-pick"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+                <div class="menu rpc-menu" role="dialog" aria-label="Pick a subscription" data-screen="sub-pick">
+                  <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search subscriptions" aria-label="Search subscriptions"></div>
+                  <div class="rpc-list" role="listbox" aria-label="Subscriptions">
+                    <div role="group" aria-label="transfer-events"><div class="rpc-group">transfer-events</div>
+                    <button type="button" role="option" aria-selected="true" aria-current="true"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg><span class="name">transfer-events-ledger</span><span class="rpc-tag">Pull</span></button>
+                    <button type="button" role="option" aria-selected="false" disabled><span class="tick-gap"></span><span class="name">transfer-events-notify</span><span class="rpc-tag">Push</span></button>
+                    <button type="button" role="option" aria-selected="false" disabled><span class="tick-gap"></span><span class="name">transfer-events-bq</span><span class="rpc-tag">BigQuery</span></button></div>
+                  </div>
+                  <div class="rpc-foot"><svg aria-hidden="true" class="ico"><use href="#i-cloud"/></svg>Only Pull subscriptions can be read<button type="button" class="icon-btn" title="Load again" aria-label="Load again"><svg aria-hidden="true" class="ico"><use href="#i-refresh-cw"/></svg></button></div>
+                </div>
+              </div></div>
+          </div>
+          <div class="set-item" data-screen="sub-peek sub-pick">
+            <div class="set-text"><label class="set-label" for="p-max">Messages per pull</label><span class="desc">Messages already in the list are skipped.</span></div>
+            <div class="set-ctl"><input id="p-max" class="field mono narrow" value="10" inputmode="numeric"><span class="unit">messages</span></div>
+          </div>
+        </div>
+        <p class="k-foot" data-screen="sub-temp">Only messages published after Connect arrive. Needs <code>pubsub.subscriptions.create</code> (Pub/Sub Editor); without it, use Peek. If voidHTTP quits without deleting it, Google removes the subscription after 24 hours unused.</p>
+        <p class="set-notice" role="note" data-screen="sub-peek sub-pick"><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg><span>Each peek counts as a <b>delivery attempt</b>. On a subscription with a dead-letter policy, a message peeked too often moves to the dead-letter topic.</span></p>
+        <p class="set-notice" role="note" data-screen="sub-consume"><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg><span>Messages voidHTTP reads here are <b>acked and gone</b> for every reader of <code>transfer-events-ledger</code>, including the service that owns it. Use a subscription made for testing.</span></p>
+      </div>
+
+      <!-- auth: four ways to get a Google access token; Pub/Sub has no API keys -->
+      <div class="section" style="flex:1" data-screen="auth-key auth-adc auth-emu">
+        <div class="set-list sio-settings kafka-settings">
+          <div class="set-item">
+            <div class="set-text"><span class="set-label" id="a-kind">Credentials</span><span class="desc">How voidHTTP gets a Google access token.</span></div>
+            <div class="set-ctl"><div class="seg seg--lg" role="group" aria-labelledby="a-kind"><button type="button" data-check="auth-key">Service account key</button><button type="button" data-check="auth-adc">Application Default</button><button type="button" aria-pressed="false">Access token</button><button type="button" data-check="auth-emu">Emulator</button></div></div>
+          </div>
+          <div class="set-item" data-screen="auth-key">
+            <div class="set-text"><label class="set-label" for="a-key">Key file</label><span class="desc">Signs in as <code>sa-qa-pubsub@acme-staging.iam.gserviceaccount.com</code>. Kept by path only; the private key never goes into the workspace or an export.</span></div>
+            <div class="set-ctl"><input id="a-key" class="field mono" value="~/keys/acme-staging-sa-qa-pubsub.json" title="~/keys/acme-staging-sa-qa-pubsub.json" spellcheck="false"><button type="button" class="btn">Choose…</button></div>
+          </div>
+          <div class="set-item" data-screen="auth-adc">
+            <div class="set-text"><label class="set-label" for="a-adc">Credentials file</label><span class="desc">Made by <code>gcloud auth application-default login</code>. Signs in as <code>dev@acme.co</code>.</span></div>
+            <div class="set-ctl"><input id="a-adc" class="field mono" value="~/.config/gcloud/application_default_credentials.json" title="~/.config/gcloud/application_default_credentials.json" spellcheck="false"><button type="button" class="btn">Choose…</button></div>
+          </div>
+          <div class="set-item" data-screen="auth-key auth-adc">
+            <div class="set-text"><label class="set-label" for="a-imp">Act as service account</label><span class="desc">Optional. Sign in as yourself, then work as this account; for teams that may not download keys. Needs Service Account Token Creator on it.</span></div>
+            <div class="set-ctl"><input id="a-imp" class="field mono" value="" placeholder="name@project.iam.gserviceaccount.com" spellcheck="false" data-screen="auth-key"><input class="field mono" value="sa-qa-pubsub@acme-staging.iam.gserviceaccount.com" title="sa-qa-pubsub@acme-staging.iam.gserviceaccount.com" spellcheck="false" aria-label="Act as service account" data-screen="auth-adc"></div>
+          </div>
+          <div class="set-item" data-screen="auth-emu">
+            <div class="set-text"><label class="set-label" for="a-emu">Emulator host</label><span class="desc">The local Pub/Sub emulator, same as <code>PUBSUB_EMULATOR_HOST</code>. No sign-in, plain HTTP.</span></div>
+            <div class="set-ctl"><input id="a-emu" class="field mono" value="localhost:8085" spellcheck="false"></div>
+          </div>
+          <div class="set-item" data-screen="auth-emu">
+            <div class="set-text"><span class="set-label">Create the topic if missing</span><span class="desc">The emulator starts empty. Real projects are never changed this way.</span></div>
+            <div class="set-ctl"><input type="checkbox" class="switch" role="switch" checked aria-label="Create the topic if missing"></div>
+          </div>
+        </div>
+        <p class="k-foot">Not built yet: Workload Identity Federation, signing in with Google inside the app.</p>
+      </div>
+
+      <!-- settings: endpoint, ack deadline, list size -->
+      <div class="section" style="flex:1" data-screen="settings">
+        <div class="set-list sio-settings kafka-settings">
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="s-ep">Endpoint</label><span class="desc">A regional endpoint such as <code>asia-southeast2-pubsub.googleapis.com</code> keeps messages in that region.</span></div>
+            <div class="set-ctl"><input id="s-ep" class="field mono" value="pubsub.googleapis.com" spellcheck="false"></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="s-ack">Ack deadline</label><span class="desc">For Temporary and Consume. How long a message stays with voidHTTP before Pub/Sub sends it again.</span></div>
+            <div class="set-ctl"><input id="s-ack" class="field mono narrow" value="60" inputmode="numeric"><span class="unit">seconds</span></div>
+          </div>
+          <div class="set-item">
+            <div class="set-text"><label class="set-label" for="s-keep">Keep in the list</label><span class="desc">Older messages drop off the list. Nothing changes on the topic.</span></div>
+            <div class="set-ctl"><input id="s-keep" class="field mono narrow" value="1000" inputmode="numeric"><span class="unit">messages</span></div>
+          </div>
+        </div>
+        <p class="k-foot">Not built yet: Avro and Protobuf data through Pub/Sub schemas, seeking a subscription to a time or snapshot.</p>
+      </div>
+
+      <div class="divider" role="separator" aria-orientation="horizontal" aria-label="Resize panes"></div>
+
+      <!-- ===== response ===== -->
+      <section class="response" aria-label="Response">
+        <nav class="subtabs" aria-label="Response">
+          <button type="button" class="subtab" data-on="menu idle attrs sub-temp sub-peek sub-consume auth-key auth-adc auth-emu settings live peek denied token proj-menu proj-local topic-menu sub-pick">Messages <span class="n" data-screen="live topic">6</span><span class="n" data-screen="peek">4</span></button>
+          <button type="button" class="subtab" data-on="topic">Topic</button>
+
+          <span class="push meta" data-screen="live topic"><span class="live"><span class="live-dot" aria-hidden="true"></span>Reading</span><span class="dim">voidhttp-7f3a2c</span><span class="dim">2m 14s</span><span class="dim">2.4&nbsp;KB</span></span>
+          <span class="push meta" data-screen="peek"><span class="redir">Peeking</span><span class="dim">transfer-events-ledger</span><span class="dim">2 pulls</span><span class="dim">1.6&nbsp;KB</span></span>
+          <span class="push meta" data-screen="denied"><span class="fail">Permission denied</span><span class="dim">380 ms</span></span>
+          <span class="push meta" data-screen="token"><span class="fail">Sign-in failed</span><span class="dim">210 ms</span></span>
+          <span class="push" data-screen="menu idle attrs sub-temp sub-peek sub-consume auth-key auth-adc auth-emu settings proj-menu proj-local topic-menu sub-pick"></span>
+        </nav>
+
+        <!-- not connected yet -->
+        <div class="empty" data-screen="menu idle attrs sub-temp sub-peek sub-consume auth-key auth-adc auth-emu settings proj-menu proj-local topic-menu sub-pick">
+          <svg aria-hidden="true" class="ico ico-lg"><use href="#i-plug"/></svg>
+          <strong>Not connected</strong>
+          <span>Connect signs in, checks the topic, and starts reading as set in Read. Messages you read and publish show up here.</span>
+          <span class="why">By default voidHTTP reads through its own temporary subscription, so your services' subscriptions keep every message.</span>
+        </div>
+
+        <!-- toolbar: direction, search; Reading pauses, Peeking pulls -->
+        <div class="res-tools" data-screen="live peek">
+          <div class="seg" role="group" aria-label="Show"><button type="button" aria-pressed="true">All</button><button type="button" aria-pressed="false">Received</button><button type="button" aria-pressed="false">Published</button></div>
+          <label class="res-search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input placeholder="Data or attribute contains" aria-label="Filter by data or attribute"></label>
+          <span style="margin-left:auto"></span>
+          <button type="button" class="btn" data-screen="peek"><svg aria-hidden="true" class="ico"><use href="#i-download"/></svg>Pull 10</button>
+          <button type="button" class="icon-btn" title="Pause the list" aria-label="Pause" data-screen="live"><svg aria-hidden="true" class="ico"><use href="#i-pause"/></svg></button>
+          <button type="button" class="icon-btn" title="Copy messages as JSON" aria-label="Copy messages"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
+          <button type="button" class="icon-btn" title="Clear the list" aria-label="Clear the list"><svg aria-hidden="true" class="ico"><use href="#i-trash-2"/></svg></button>
+        </div>
+
+        <!-- reading through a temporary subscription: message ID, ordering key chip, data; a publish shows its message ID under it, then comes back as a read -->
+        <div class="res-body" data-screen="live">
+          <div class="stream">
+            <div class="smsg-sys ok"><svg aria-hidden="true" class="ico"><use href="#i-plug"/></svg><span class="t">0.00s</span><span class="s"><span>Connected to <b>acme-staging</b></span><span>temporary subscription <code>voidhttp-7f3a2c</code> on <code>transfer-events</code></span><span>sa-qa-pubsub</span><span>412 ms</span></span></div>
+
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">1</span><span class="t">3.12s</span><span class="p"><span class="kp">13284711099217</span><span class="ev">acc_19c2a7</span>{"transfer_id":"trf_2b91e0","status":"PROCESSING","amount":250000,"currency":"IDR"}</span></button>
+            <button type="button" class="smsg in" aria-expanded="true"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">2</span><span class="t">4.30s</span><span class="p"><span class="kp">13284711099254</span><span class="ev">acc_5d1e08</span>{"transfer_id":"trf_c40a19","status":"COMPLETED","amount":1200000,"currency":"IDR"}</span></button>
+            <div class="smsg-open">
+              <dl class="kdetail">
+                <dt>Message ID</dt><dd>13284711099254</dd>
+                <dt>Published</dt><dd>2026-11-18 10:14:07.312 +07:00</dd>
+                <dt>Ordering key</dt><dd>acc_5d1e08</dd>
+                <dt>Attributes</dt><dd><span class="hk">eventType:</span> transfer.completed<br><span class="hk">traceId:</span> 4bf92f3577b34da6a3ce929d0e0e4736</dd>
+                <dt>Ack</dt><dd>acked <span class="dim">temporary subscription, nobody else reads it</span></dd>
+              </dl>
+              <p class="kvalue-h">Data</p>
+              <pre class="code" data-json='{"transfer_id":"trf_c40a19","status":"COMPLETED","amount":1200000,"currency":"IDR","at":"2026-11-18T03:14:07Z"}'></pre>
+            </div>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">3</span><span class="t">4.31s</span><span class="p"><span class="kp">13284711099260</span><span class="ev nokey">unordered</span>{"type":"heartbeat","node":"transfer-worker-2"}</span></button>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">4</span><span class="t">9.86s</span><span class="p"><span class="kp">13284711099301</span><span class="ev">acc_19c2a7</span>{"transfer_id":"trf_2b91e0","status":"COMPLETED","amount":250000,"currency":"IDR"}</span></button>
+
+            <button type="button" class="smsg out" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-up"/></svg><span class="n">5</span><span class="t">61.20s</span><span class="p"><span class="ev">acc_19c2a7</span>{"transfer_id":"trf_77a0c3","status":"RETRY","reason":"bank_timeout","amount":250000,"currency":"IDR"}</span></button>
+            <button type="button" class="smsg ack" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-corner-down-left"/></svg><span class="n">5</span><span class="t">61.24s</span><span class="p"><span class="ack-tag">published</span>message ID <b>13284711099388</b> · 2 attributes · 42 ms</span></button>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">6</span><span class="t">61.31s</span><span class="p"><span class="kp">13284711099388</span><span class="ev">acc_19c2a7</span>{"transfer_id":"trf_77a0c3","status":"RETRY","reason":"bank_timeout","amount":250000,"currency":"IDR"}</span></button>
+
+            <div class="smsg-wait"><span class="spinner"></span>Reading, waiting for new messages</div>
+          </div>
+        </div>
+
+        <!-- peeking an existing subscription: one line per pull, nothing acked, delivery attempts shown when the subscription counts them -->
+        <div class="res-body" data-screen="peek">
+          <div class="stream">
+            <div class="smsg-sys ok"><svg aria-hidden="true" class="ico"><use href="#i-eye"/></svg><span class="t">0.00s</span><span class="s"><span>Connected to <b>acme-staging</b></span><span>peeking <code>transfer-events-ledger</code></span><span>nothing is acked</span><span>390 ms</span></span></div>
+
+            <div class="smsg-sys"><svg aria-hidden="true" class="ico"><use href="#i-download"/></svg><span class="t">2.05s</span><span class="s"><span>Pull 1: 3 messages, handed back</span><span>dead-letter after 5 attempts</span></span></div>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">1</span><span class="t">2.05s</span><span class="p"><span class="kp">13284711098874</span><span class="rtag">attempt 1</span><span class="ev">acc_88f210</span>{"posting_id":"pst_01e9","transfer_id":"trf_a8e0d1","debit":"acc_88f210","amount":75000}</span></button>
+            <button type="button" class="smsg in" aria-expanded="true"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">2</span><span class="t">2.05s</span><span class="p"><span class="kp">13284711098902</span><span class="rtag">attempt 4</span><span class="ev">acc_19c2a7</span>{"posting_id":"pst_01ea","transfer_id":"trf_2b91e0","debit":"acc_19c2a7","amount":250000}</span></button>
+            <div class="smsg-open">
+              <dl class="kdetail">
+                <dt>Message ID</dt><dd>13284711098902</dd>
+                <dt>Published</dt><dd>2026-11-18 09:52:40.118 +07:00</dd>
+                <dt>Ordering key</dt><dd>acc_19c2a7</dd>
+                <dt>Attributes</dt><dd><span class="hk">eventType:</span> ledger.posting</dd>
+                <dt>Delivery</dt><dd>attempt 4 of 5 <span class="dim">one more and it moves to transfer-events-dlq</span></dd>
+                <dt>Ack</dt><dd>handed back <span class="dim">ack deadline set to 0</span></dd>
+              </dl>
+              <p class="kvalue-h">Data</p>
+              <pre class="code" data-json='{"posting_id":"pst_01ea","transfer_id":"trf_2b91e0","debit":"acc_19c2a7","credit":"acc_000001","amount":250000,"currency":"IDR"}'></pre>
+            </div>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">3</span><span class="t">2.05s</span><span class="p"><span class="kp">13284711098933</span><span class="rtag">attempt 1</span><span class="ev nokey">unordered</span>{"posting_id":"pst_01eb","transfer_id":"trf_c40a19","debit":"acc_5d1e08","amount":1200000}</span></button>
+
+            <div class="smsg-sys"><svg aria-hidden="true" class="ico"><use href="#i-download"/></svg><span class="t">14.70s</span><span class="s"><span>Pull 2: 4 messages, 3 already shown, handed back</span></span></div>
+            <button type="button" class="smsg in" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-arrow-down"/></svg><span class="n">4</span><span class="t">14.70s</span><span class="p"><span class="kp">13284711099011</span><span class="rtag">attempt 1</span><span class="ev">acc_5d1e08</span>{"posting_id":"pst_01ec","transfer_id":"trf_c40a19","credit":"acc_5d1e08","amount":1200000}</span></button>
+
+            <div class="smsg-wait"><svg aria-hidden="true" class="ico"><use href="#i-eye"/></svg>Pull reads again. Peek never reads on its own.</div>
+          </div>
+        </div>
+
+        <!-- topic: the topic's own settings, then every subscription on it -->
+        <div class="res-body" data-screen="topic">
+          <div class="hs">
+            <div>
+              <h4>transfer-events</h4>
+              <dl>
+                <dt>Name</dt><dd>projects/acme-staging/topics/transfer-events</dd>
+                <dt>Message retention</dt><dd>7 days</dd>
+                <dt>Schema</dt><dd>none</dd>
+                <dt>Encryption</dt><dd>Google-managed key</dd>
+                <dt>Labels</dt><dd>team: payments</dd>
+              </dl>
+            </div>
+            <div>
+              <h4>Subscriptions <span class="dim">4</span></h4>
+              <table class="ktable">
+                <thead><tr><th>Name</th><th>Delivery</th><th class="num">Ack deadline</th><th>Filter</th><th>Dead letter</th></tr></thead>
+                <tbody>
+                  <tr><td>transfer-events-ledger</td><td>Pull</td><td class="num">60 s</td><td class="dim">none</td><td>transfer-events-dlq · 5</td></tr>
+                  <tr><td>transfer-events-notify</td><td>Push · notify.acme.internal</td><td class="num">30 s</td><td class="wrap">attributes.eventType = "transfer.completed"</td><td class="dim">none</td></tr>
+                  <tr><td>transfer-events-bq</td><td>BigQuery · payments.transfers</td><td class="num">n/a</td><td class="dim">none</td><td class="dim">none</td></tr>
+                  <tr><td>voidhttp-7f3a2c <span class="rpc-tag rpc-tag--stream">yours</span></td><td>Pull</td><td class="num">60 s</td><td class="dim">none</td><td class="dim">none</td></tr>
+                </tbody>
+              </table>
+              <p class="hs-note">Peek and Consume work on Pull subscriptions only. <b>yours</b> is deleted on Disconnect.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- signed in, but the account may not create the temporary subscription -->
+        <div class="res-body" data-screen="denied">
+          <div class="ws-fail" role="alert">
+            <strong><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg>Couldn't make the temporary subscription</strong>
+            <span class="msg">PERMISSION_DENIED: User not authorized to perform this action. (pubsub.subscriptions.create on projects/acme-staging)</span>
+            <span class="why">Sign-in worked. <code>sa-qa-pubsub@acme-staging.iam.gserviceaccount.com</code> may not create subscriptions in this project. Ask for Pub/Sub Editor, or Peek an existing subscription (Pub/Sub Subscriber is enough).</span>
+            <div class="acts"><button type="button" class="link" data-show="sub-peek">Peek instead</button><button type="button" class="link">Publish only</button><button type="button" class="link" data-show="auth-key">Open Auth</button></div>
+          </div>
+        </div>
+
+        <!-- the key itself was refused: nothing reached Pub/Sub -->
+        <div class="res-body" data-screen="token">
+          <div class="ws-fail" role="alert">
+            <strong><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg>Couldn't get an access token</strong>
+            <span class="msg">oauth2.googleapis.com: invalid_grant: Invalid JWT Signature.</span>
+            <span class="why">Google refused the key in <code>~/keys/acme-staging-sa-qa-pubsub.json</code>. The key was most likely deleted or disabled in IAM. Make a new key, or sign in with Application Default and act as the service account.</span>
+            <div class="acts"><button type="button" class="link" data-show="auth-key">Open Auth</button></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</div>
+
+<script>
+  // JSON → the same line/indent/token spans the app's code view uses
+  const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const TOK = /("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(true|false)|(null)|([{}\[\],:])/g;
+  const line = (s) => {
+    const ind = s.match(/^ */)[0];
+    const body = s.slice(ind.length).replace(TOK, (m, str, colon, num, bool, nul, p) =>
+      str ? (colon ? `<span class="j-key">${esc(str)}</span><span class="j-p">:</span>` : `<span class="j-str">${esc(str)}</span>`)
+      : num ? `<span class="j-num">${m}</span>` : bool ? `<span class="j-bool">${m}</span>` : nul ? `<span class="j-null">${m}</span>` : `<span class="j-p">${esc(p)}</span>`);
+    return `<span class="l">${ind ? `<span class="ind">${ind}</span>` : ""}${body}</span>`;
+  };
+  const pretty = (json) => JSON.stringify(JSON.parse(json), null, 2);
+  document.querySelectorAll("pre[data-json]").forEach((pre) => { pre.innerHTML = pretty(pre.dataset.json).split("\n").map(line).join(""); });
+
+  const setTheme = (t) => {
+    document.documentElement.dataset.theme = t;
+    document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.themeSet === t)));
+  };
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.themeSet)));
+  setTheme(new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light");
+</script>
+<script>
+  // screens: one at a time, kept in the URL hash. An element can belong to several screens.
+  // data-on = subtab pressed on these screens; data-check = mode card / seg button chosen on that screen (and clicking it goes there)
+  {
+    const go = (s) => {
+      document.querySelectorAll("[data-screen]").forEach((el) => { el.hidden = !el.dataset.screen.split(" ").includes(s); });
+      document.querySelectorAll("[data-on]").forEach((el) => el.setAttribute("aria-pressed", String(el.dataset.on.split(" ").includes(s))));
+      document.querySelectorAll("[data-check]").forEach((el) => el.setAttribute(el.getAttribute("role") === "radio" ? "aria-checked" : "aria-pressed", String(el.dataset.check.split(" ").includes(s))));
+      document.querySelectorAll("[data-show]").forEach((b) => b.closest(".pv-bar") && b.setAttribute("aria-pressed", String(b.dataset.show === s)));
+      document.querySelectorAll("[data-open]").forEach((b) => b.setAttribute("aria-expanded", String(b.dataset.open.split(" ").includes(s))));
+      document.querySelectorAll(".method-btn").forEach((b) => b.setAttribute("aria-expanded", String(s === "menu")));
+      history.replaceState(null, "", "#" + s);
+    };
+    document.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-show], [data-check], [data-open]");
+      if (t) { e.preventDefault(); go((t.dataset.show ?? t.dataset.check ?? t.dataset.open).split(" ")[0]); }
+    });
+    const start = location.hash.slice(1);
+    go(document.querySelector(`[data-show="${start}"]`) ? start : "live");
+  }
+</script>
+</body>
+</html>

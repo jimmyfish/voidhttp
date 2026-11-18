@@ -60,8 +60,9 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
   const sio = reqs.filter((r) => r.method === "SIO").length;
   const kafka = reqs.filter((r) => r.method === "KAFKA").length;
   const mqtt = reqs.filter((r) => r.method === "MQTT").length;
-  const left = grpc + ws + sio + kafka + mqtt;
-  const leftParts = [grpc && plural(grpc, "gRPC call"), ws && plural(ws, "WebSocket"), sio && plural(sio, "Socket.IO request"), kafka && plural(kafka, "Kafka request"), mqtt && plural(mqtt, "MQTT request")].filter(Boolean) as string[];
+  const pubsub = reqs.filter((r) => r.method === "PUBSUB").length;
+  const left = grpc + ws + sio + kafka + mqtt + pubsub;
+  const leftParts = [grpc && plural(grpc, "gRPC call"), ws && plural(ws, "WebSocket"), sio && plural(sio, "Socket.IO request"), kafka && plural(kafka, "Kafka request"), mqtt && plural(mqtt, "MQTT request"), pubsub && plural(pubsub, "Pub/Sub request")].filter(Boolean) as string[];
   const leftLabel = leftParts.length > 1 ? `${leftParts.slice(0, -1).join(", ")} and ${leftParts[leftParts.length - 1]}` : leftParts.join("");
   const exampleCount = reqs.reduce((n, r) => n + (r.examples?.length ?? 0), 0);
   const fmt = FORMATS.find((f) => f.id === format)!;

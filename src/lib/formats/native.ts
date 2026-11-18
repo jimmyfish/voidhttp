@@ -2,10 +2,11 @@
  * voidHTTP's own export: collections and environments exactly as stored, so nothing is lost
  * (gRPC calls, saved examples, environment colours). Ids are made fresh on import.
  */
-import type { Auth, Collection, Environment, GqlDef, GrpcDef, GrpcResult, KafkaDef, KV, MqttDef, MqttSub, MultipartField, RequestNode, RequestScripts, SioDef, TreeNode, WsDef } from "../../types";
+import type { Auth, Collection, Environment, GqlDef, GrpcDef, GrpcResult, KafkaDef, KV, MqttDef, MqttSub, MultipartField, PubsubDef, RequestNode, RequestScripts, SioDef, TreeNode, WsDef } from "../../types";
 import { defaultSio } from "../sio";
 import { defaultKafka } from "../kafka";
 import { defaultMqtt } from "../mqtt";
+import { defaultPubsub } from "../pubsub";
 import { cloneNode, uid } from "../model";
 import { newRequest } from "../model";
 import { dropFilePaths, requestsOf, type Any, type ImportPlan } from "./common";
@@ -89,6 +90,34 @@ function saneKafka(v: Any): KafkaDef | undefined {
     acks: v.acks === 0 || v.acks === 1 ? v.acks : -1,
     compression: pick(v.compression, ["none", "gzip", "lz4", "snappy", "zstd"] as const, d.compression),
     keep: typeof v.keep === "number" && Number.isFinite(v.keep) && v.keep > 0 ? Math.floor(v.keep) : d.keep,
+  };
+}
+
+/** Pub/Sub settings with every field of the type the app expects. */
+function sanePubsub(v: Any): PubsubDef | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const d = defaultPubsub();
+  const str = (x: unknown, fallback: string) => (typeof x === "string" ? x : fallback);
+  const pick = <T extends string>(x: unknown, all: readonly T[], fallback: T): T => (all.includes(x as T) ? (x as T) : fallback);
+  const int = (x: unknown, fallback: number, min: number, max: number) => (typeof x === "number" && Number.isFinite(x) ? Math.min(max, Math.max(min, Math.floor(x))) : fallback);
+  return {
+    topic: str(v.topic, d.topic),
+    orderingKey: str(v.orderingKey, ""),
+    auth: pick(v.auth, ["key", "adc", "token", "emulator"] as const, d.auth),
+    keyFile: str(v.keyFile, ""),
+    adcFile: str(v.adcFile, ""),
+    impersonate: str(v.impersonate, ""),
+    token: str(v.token, ""),
+    emulatorHost: str(v.emulatorHost, d.emulatorHost),
+    createTopic: v.createTopic !== false,
+    mode: pick(v.mode, ["temp", "peek", "consume", "publish"] as const, d.mode),
+    subscription: str(v.subscription, ""),
+    filter: str(v.filter, ""),
+    ordering: v.ordering === true,
+    pullMax: int(v.pullMax, d.pullMax, 1, 1000),
+    endpoint: str(v.endpoint, ""),
+    ackDeadline: int(v.ackDeadline, d.ackDeadline, 10, 600),
+    keep: int(v.keep, d.keep, 50, 100_000),
   };
 }
 
@@ -238,6 +267,7 @@ function sane(n: Any): TreeNode | null {
     sio: saneSio(n.sio),
     kafka: saneKafka(n.kafka),
     mqtt: saneMqtt(n.mqtt),
+    pubsub: sanePubsub(n.pubsub),
     gql: saneGql(n.gql),
     scripts: saneScripts(n.scripts),
     examples: Array.isArray(n.examples)

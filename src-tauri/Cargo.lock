@@ -6269,6 +6269,7 @@ dependencies = [
  "protox",
  "rcgen",
  "reqwest 0.12.28",
+ "ring",
  "rquickjs",
  "rskafka",
  "rustls",

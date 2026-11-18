@@ -24,6 +24,7 @@ The two halves talk only through Tauri commands (`invoke`), registered in `src-t
  src/lib/sio.ts    invoke("sio_connect", Channel)▶ sio.rs    Engine.IO / Socket.IO on ws.rs
  src/lib/kafka.ts  invoke("kafka_connect", Channel)▶ kafka.rs rskafka protocol, own connections
  src/lib/mqtt.ts   invoke("mqtt_connect", Channel) ▶ mqtt.rs  own MQTT 3.1.1 / 5.0 packets
+ src/lib/pubsub.ts invoke("pubsub_connect", Channel)▶ pubsub.rs Pub/Sub REST over reqwest
         ▲                                                 │
         │  response / Channel events                      ├─ net.rs    DNS (system or DoH), proxy
         └─────────────────────────────────────────────────┤
@@ -40,13 +41,14 @@ The two halves talk only through Tauri commands (`invoke`), registered in `src-t
 
 ## Live connections
 
-gRPC streams, WebSocket, Socket.IO, Kafka and MQTT keep a connection open per tab:
+gRPC streams, WebSocket, Socket.IO, Kafka, MQTT and Pub/Sub keep a connection open per tab:
 
 - `*_connect` / `grpc_invoke` starts a task that runs until the connection ends. Messages, acks, errors and the close arrive in the webview through the IPC `Channel`.
-- `ws_send`, `sio_emit`, `kafka_produce`, `kafka_seek`, `kafka_pause`, `kafka_refresh`, `mqtt_publish`, `mqtt_subscriptions`, `grpc_send`, `grpc_end`, `*_close` and `grpc_cancel` reach the running task through a command queue, keyed by the tab's ID.
+- `ws_send`, `sio_emit`, `kafka_produce`, `kafka_seek`, `kafka_pause`, `kafka_refresh`, `mqtt_publish`, `mqtt_subscriptions`, `pubsub_publish`, `pubsub_pull`, `pubsub_pause`, `pubsub_refresh`, `grpc_send`, `grpc_end`, `*_close` and `grpc_cancel` reach the running task through a command queue, keyed by the tab's ID.
 - `sio.rs` reuses the WebSocket connection code and adds the Engine.IO (v3 and v4) and Socket.IO packet layer on top: namespace join, events, binary attachments and acks.
 - `kafka.rs` uses rskafka only for the wire protocol (messages, record batches, compression, SASL) and opens every broker connection itself through `net.rs` and `certs.rs`. It reads each partition from its leader without a consumer group and never commits offsets. Produce picks the partition from the key with murmur2, as the Java client does.
 - `mqtt.rs` speaks MQTT 3.1.1 and 5.0 with its own packet code (`mqtt/packet.rs`, both directions, so the tests can play broker). The link is TCP, TLS or WebSocket (`mqtt` subprotocol), all opened through `net.rs` and `certs.rs`. `mqtt_subscriptions` takes the whole Topics list and the session subscribes or unsubscribes the difference; filters the broker refused aren't sent again until their options change. QoS 1 and 2 flows (PUBACK, PUBREC / PUBREL / PUBCOMP) run in both directions, keep-alive pings follow the broker's Server Keep Alive, and a DISCONNECT from the broker (e.g. 0x8E Session taken over) ends the session with its reason.
+- `pubsub.rs` talks to Google Cloud Pub/Sub's REST API through a reqwest client built like `http.rs`'s, so `net.rs` and `certs.rs` apply. `pubsub/auth.rs` turns a service account key (a JWT signed with ring), an Application Default Credentials file, an impersonation target or a pasted token into an access token, cached until shortly before it expires. Reading depends on the tab's mode: Temporary makes a `voidhttp-…` subscription with a 24-hour expiry and deletes it on close; Consume pulls and acks an existing subscription; Peek pulls only on `pubsub_pull` and sets every ack deadline back to 0, so the messages go straight back. Pulls run in their own task so a long poll never holds up a publish. `pubsub_inspect` (local files only) and `pubsub_list` fill the project, topic and subscription pickers.
 - `grpc.rs` loads method schemas through server reflection (v1, then v1alpha) or compiles `.proto` files in-process with protox, then encodes and decodes JSON messages with prost-reflect.
 
 ## Network and TLS
@@ -54,7 +56,7 @@ gRPC streams, WebSocket, Socket.IO, Kafka and MQTT keep a connection open per ta
 Every engine opens connections through the same two modules, so Settings apply to every kind of request:
 
 - **`net.rs`**: looks up hostnames with the system resolver or with DNS over HTTPS (hickory-resolver), optionally falling back to the system resolver. Connects directly or through a SOCKS5 or HTTP proxy. `localhost`, `127.0.0.1` and `::1` are always direct. `net_configure` swaps in the new setup and clears the pooled HTTP clients; `net_test` runs the step-by-step connection check.
-- **`certs.rs`**: builds the one rustls `ClientConfig` used by HTTP, WebSocket, Kafka, MQTT, gRPC and the connection check. It trusts the public roots plus the CA `.pem` files from Settings, and picks a client certificate by host and port. Client-certificate passphrases are read from the macOS Keychain.
+- **`certs.rs`**: builds the one rustls `ClientConfig` used by HTTP, WebSocket, Kafka, MQTT, Pub/Sub, gRPC and the connection check. It trusts the public roots plus the CA `.pem` files from Settings, and picks a client certificate by host and port. Client-certificate passphrases are read from the macOS Keychain.
 
 ## State and persistence
 
