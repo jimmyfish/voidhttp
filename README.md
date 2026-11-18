@@ -82,6 +82,7 @@ You get 15 requests in 5 folders, with JSON, form and multipart bodies, bearer a
 - **Bodies:** JSON (with `//` comments, stripped before sending, you're welcome), text, XML, `x-www-form-urlencoded`, and `multipart/form-data` with text and file fields.
 - **Responses:** status, time, size, HTTP version, headers, pretty JSON, raw view, and image preview.
 - **Filter the response** with plain text (jump between matches) or a JSONPath query starting with `$` (Goessner / jsonpath-plus dialect, filters included). Copy grabs only what you filtered.
+- **See a JSON response as a table.** Pretty | Raw | Table on REST, GraphQL and gRPC unary responses (live message lists stay lists). The rows come from the biggest array in the body, or any other array or object you pick, including `$.data[*].items` (every item of every row in one table). Sort by a column, open nested objects and arrays under their row or as their own table, search to keep only matching rows, and copy the table as tab-separated text for a spreadsheet.
 - **Huge responses won't melt your laptop:** highlighting turns off above 512 KB and rendering is truncated above 4 MB.
 - **Paste a cURL** into the address bar and it becomes a request. Copy as cURL goes the other way.
 - Shared in-memory cookie jar, and a Cancel button for when the server just… doesn't.

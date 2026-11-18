@@ -1,7 +1,9 @@
 /** Icons: Lucide (lucide-react), one stroke weight everywhere. The app mark is voidHTTP's own. */
 export {
   ArrowDown,
+  ArrowDownWideNarrow,
   ArrowUp,
+  ArrowUpNarrowWide,
   Ban,
   Bookmark,
   BookmarkPlus,
@@ -78,6 +80,7 @@ export {
   Settings,
   SlidersHorizontal,
   SunMoon,
+  Table2,
   Trash2,
   TriangleAlert,
   Type,

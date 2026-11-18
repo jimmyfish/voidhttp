@@ -2054,3 +2054,113 @@ button.build-tag:hover { background: color-mix(in srgb, var(--c) 17%, transparen
 .smsg-wait .ico { width: 14px; height: 14px; }
 .ktable td.wrap { white-space: normal; overflow-wrap: anywhere; }
 .ktable .dim { color: var(--color-muted); }
+
+/* ---------- Table view of a static JSON response (REST, GraphQL, gRPC unary) ----------
+ * approved 2026-11-18 from .hallmark/preview/table.html. Live message lists (gRPC streams, WebSocket, Socket.IO,
+ * Kafka, MQTT, Pub/Sub) never get it (owner). Values use the code view's --j-* colours; no new colour tokens. */
+/* ---------- path trail: where the rows come from ($ › data › [2] › address) ---------- */
+.jt-trail { display: inline-flex; align-items: center; gap: 2px; min-width: 0; font: var(--text-sm) var(--font-mono); color: var(--color-muted); }
+.jt-trail button { min-height: 24px; padding: 0 var(--space-2xs); border: none; border-radius: 4px; background: none; color: var(--color-link); font: inherit; }
+.jt-trail button:hover { background: var(--color-paper-3); }
+.jt-trail button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.jt-trail [aria-current] { padding: 0 var(--space-2xs); color: var(--color-ink); font-weight: 600; }
+.jt-trail .ico { width: 12px; height: 12px; color: var(--color-gutter); }
+
+/* the "Rows from" menu: every array or object in the body that can be a table */
+.jt-pick-menu { left: 0; right: auto; min-width: 300px; }
+.jt-pick-menu button { font-size: var(--text-sm); }
+.jt-pick-menu code { font: var(--text-code) var(--font-mono); color: var(--color-ink); }
+.jt-pick-menu .what { margin-left: auto; padding-left: var(--space-md); color: var(--color-muted); }
+.jt-pick-menu .ico.ok { color: var(--color-link); }
+.jt-pick-menu .slot { width: 16px; flex: none; }
+
+/* ---------- the table ---------- */
+.jt-wrap { flex: 1; min-height: 0; overflow: auto; border-radius: var(--radius-control) var(--radius-control) 0 0; }
+.jt { border-collapse: separate; border-spacing: 0; min-width: 100%; font: var(--text-code)/1.65 var(--font-mono); font-variant-numeric: tabular-nums; }
+.jt th, .jt td { padding: var(--space-3xs) var(--space-sm); border-bottom: 1px solid var(--color-rule); text-align: left; white-space: nowrap; }
+.jt th + th, .jt td + td { border-left: 1px solid var(--color-rule); }
+.jt td { max-width: 280px; overflow: hidden; text-overflow: ellipsis; color: var(--color-ink); }
+.jt.wrap td { max-width: 420px; white-space: normal; overflow-wrap: anywhere; vertical-align: top; }
+
+/* head stays put while the rows scroll; the index column stays put while the columns scroll */
+.jt thead th { position: sticky; top: 0; z-index: 2; background: var(--color-paper); }
+.jt .ix { position: sticky; left: 0; z-index: 1; background: var(--color-paper); width: 1%; text-align: right; color: var(--color-gutter); }
+.jt thead .ix { z-index: 3; }
+.jt > tbody > tr:not(.jt-sub):hover > td { background: var(--color-paper-3); }
+
+/* column head: name, then a sort arrow that shows on hover and stays when sorted */
+.jt th { padding: 0; font: 600 var(--text-sm) var(--font-ui); color: var(--color-muted); }
+.jt th.ix { padding: var(--space-3xs) var(--space-sm); font: 400 var(--text-code) var(--font-mono); color: var(--color-gutter); }
+.jt th button {
+  display: flex; align-items: center; gap: var(--space-2xs); width: 100%; min-height: 28px; padding: 0 var(--space-sm);
+  border: none; background: none; color: inherit; font: inherit; text-align: left; white-space: nowrap;
+}
+.jt th button:hover { color: var(--color-ink); background: var(--color-paper-3); }
+.jt th button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.jt th .ico { width: 12px; height: 12px; opacity: 0; }
+.jt th button:hover .ico { opacity: .6; }
+.jt th[aria-sort] button { color: var(--color-ink); }
+.jt th[aria-sort] .ico { opacity: 1; color: var(--color-link); }
+.jt th.num button { justify-content: flex-end; }
+.jt td.num { text-align: right; }
+
+/* values: same colours as the code view, strings without quotes, null spelled out, a missing key left blank */
+.jt td.null { color: var(--j-bool); font-style: italic; }
+.jt td.str { color: var(--j-str); }
+.jt td.num { color: var(--j-num); }
+.jt td.bool { color: var(--j-bool); }
+.jt td.key { color: var(--j-key); }
+.jt td.empty-str { color: var(--color-gutter); }
+
+/* an object or array inside a cell: a chip that opens it as its own table */
+.jt-nest {
+  display: inline-flex; align-items: center; gap: 2px; min-height: 20px; padding: 0 6px; border: 1px solid var(--color-rule); border-radius: 4px;
+  background: var(--color-paper-2); color: var(--color-ink-2); font: var(--text-sm) var(--font-mono); line-height: 1;
+}
+.jt-nest:hover { border-color: var(--color-link); color: var(--color-link); }
+.jt-nest:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.jt-nest .br { color: var(--color-muted); }
+.jt-nest:hover .br { color: inherit; }
+.jt-nest + .peek { margin-left: var(--space-xs); color: var(--color-muted); }
+
+/* search: matching rows stay, the rest go; matches marked like the code view */
+.jt mark.hit { background: var(--color-hit); color: inherit; border-radius: 2px; }
+.jt mark.hit.cur { background: var(--color-hit-cur); box-shadow: 0 0 0 1px var(--color-hit-edge); }
+
+/* deeper levels: a chip opens its table in a row of its own under the row, behind a left rule (like an opened stream message);
+ * each level indents once more, "Open as table" jumps into it with the trail */
+.jt-nest[aria-expanded="true"] { border-color: var(--color-link); background: var(--color-accent-soft); color: var(--color-link); }
+.jt-nest[aria-expanded="true"] .br { color: inherit; }
+.jt tr.jt-sub > td { max-width: none; overflow: visible; padding: 0 var(--space-sm) var(--space-xs) 0; white-space: normal; background: var(--color-paper); }
+.jt tr.jt-sub > td.ix { background: var(--color-paper); }
+.jt-subwrap { margin-left: var(--space-2xs); padding-left: var(--space-sm); border-left: 2px solid var(--color-rule); }
+.jt-subhead { display: flex; align-items: center; gap: var(--space-xs); min-height: 28px; color: var(--color-muted); font: var(--text-sm) var(--font-ui); }
+.jt-subhead code { font: 600 var(--text-sm) var(--font-mono); color: var(--color-ink); }
+.jt-subhead .btn { min-height: 24px; padding: 0 var(--space-xs); font-size: var(--text-sm); display: inline-flex; align-items: center; gap: var(--space-2xs); }
+.jt-subhead .btn .ico { width: 14px; height: 14px; }
+.jt .jt { min-width: 0; border: 1px solid var(--color-rule); border-radius: 6px; }
+.jt .jt thead th, .jt .jt .ix { position: static; }
+.jt .jt tr:last-child > td { border-bottom: none; }
+.jt th > .th { display: flex; align-items: center; min-height: 28px; padding: 0 var(--space-sm); }
+.jt th.num > .th { justify-content: flex-end; }
+/* a fanned-out row ($.data[*].hobbies) says which parent it came from */
+.jt td.from { color: var(--color-gutter); }
+.jt td.from span { color: var(--color-muted); }
+
+/* "Showing 500 of 12,480 rows" under the table */
+.res-body .truncated { margin: 0; padding: var(--space-2xs) var(--space-sm); border-top: 1px solid var(--color-rule); font-size: var(--text-sm); }
+
+/* the Table segment when the body is not JSON */
+.res-tools .seg button[disabled] { cursor: not-allowed; }
+
+/* the trail's picker button and a JSONPath result's label */
+.jt-trail .icon-btn { min-width: 24px; min-height: 24px; color: var(--color-muted); }
+.jt-trail .icon-btn .ico { width: 14px; height: 14px; color: inherit; }
+.jt-trail [aria-current] { display: inline-flex; align-items: center; gap: var(--space-2xs); }
+.jt-trail [aria-current] .ico { color: var(--color-muted); }
+/* an empty array or object, or a search that left no rows */
+.jt-none { margin: 0; padding: var(--space-md); color: var(--color-muted); font-size: var(--text-sm); text-align: center; }
+/* a nested array cut at 500 rows */
+.jt td.more { color: var(--color-muted); font: var(--text-sm) var(--font-ui); }
+/* in an example, values masked when it was saved */
+.jt .masked { border-radius: 3px; background: var(--color-paper-3); box-shadow: inset 0 0 0 1px var(--color-rule); }

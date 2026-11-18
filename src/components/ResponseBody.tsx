@@ -3,7 +3,9 @@ import type { Example, Tab } from "../types";
 import { findNode, formatBytes } from "../lib/model";
 import { highlightLines } from "../lib/highlight";
 import { compile, query } from "../lib/jsonpath";
+import { isNested } from "../lib/jsonTable";
 import { useStore } from "../store";
+import { TableTrail, TableView, useJsonTable } from "./JsonTable";
 import { Bookmark, ChevronDown, ChevronUp, CircleHelp, Copy, EyeOff, Filter, Search, WrapText, X, ico } from "./Icon";
 
 /** Above this size lines are not split or highlighted, to keep the UI snappy. */
@@ -30,6 +32,8 @@ interface Filtered {
   error?: boolean;
   /** undefined when the filter could not run: the full body stays on screen */
   text?: string;
+  /** what the filter found, for the Table view */
+  value?: unknown;
 }
 
 export const when = (ts: number) =>
@@ -95,8 +99,9 @@ export function PairsTable({ rows, empty = "None" }: { rows: { key: string; valu
 }
 
 /**
- * A text body with Pretty/Raw, wrap, copy, and the search / JSONPath filter bar.
- * `tools` sit before Copy (Save as example).
+ * A text body with Pretty/Raw/Table, wrap, copy, and the search / JSONPath filter bar.
+ * `tools` sit before Copy (Save as example). Only static responses use it (HTTP, GraphQL, gRPC unary),
+ * so only they get Table; live message lists (streams, WebSocket, Kafka, MQTT, Pub/Sub) never do.
  */
 export function BodyViewer({
   tabId,
@@ -112,7 +117,7 @@ export function BodyViewer({
   example?: boolean;
   tools?: React.ReactNode;
 }) {
-  const [view, setView] = useState<"pretty" | "raw">("pretty");
+  const savedView = useStore((s) => s.settings.responseView ?? "pretty");
   const [showAll, setShowAll] = useState(false);
   const [filter, setFilterState] = useState(() => filters.get(tabId) ?? "");
   const [help, setHelp] = useState(false);
@@ -121,6 +126,7 @@ export function BodyViewer({
   const notify = useStore((s) => s.notify);
   const wrap = useStore((s) => s.settings.wrapResponseBody ?? true);
   const setSettings = useStore((s) => s.setSettings);
+  const setView = (v: "pretty" | "raw" | "table") => setSettings({ responseView: v });
   const codeRef = useRef<HTMLPreElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const helpRef = useRef<HTMLSpanElement>(null);
@@ -134,6 +140,18 @@ export function BodyViewer({
   const isPath = q.trimStart().startsWith("$");
   const search = !isPath && q.trim() ? q : "";
 
+  // the body as JSON, once: Pretty formats it and Table draws it
+  const parsed = useMemo((): { value: unknown } | null => {
+    if (!/json/i.test(contentType) && !/^\s*[[{]/.test(body)) return null;
+    try {
+      return { value: JSON.parse(body) };
+    } catch {
+      return null;
+    }
+  }, [body, contentType]);
+  // Table needs an object or an array; anything else opens in Pretty without changing the saved choice
+  const tableable = !!parsed && isNested(parsed.value);
+  const view = savedView === "table" && !tableable ? "pretty" : savedView;
   const filtered = useMemo((): Filtered | null => {
     if (!isPath) return null;
     let path;
@@ -142,38 +160,33 @@ export function BodyViewer({
     } catch (e) {
       return { status: (e as Error).message, error: true };
     }
-    let root: unknown;
-    try {
-      root = JSON.parse(body);
-    } catch {
-      return { status: "Response is not JSON", error: true };
-    }
-    const found = query(root, path);
+    if (!parsed) return { status: "Response is not JSON", error: true };
+    const found = query(parsed.value, path);
     const status = found.length === 0 ? "No match" : found.length === 1 ? "1 result" : `${found.length} results`;
-    if (path.singular && found.length === 0) return { status, text: "" };
+    if (path.singular && found.length === 0) return { status, text: "", value: undefined };
     const value = path.singular ? found[0] : found;
-    return { status, text: view === "pretty" ? JSON.stringify(value, null, 2) : JSON.stringify(value) };
-  }, [body, isPath, q, view]);
+    return { status, text: view === "raw" ? JSON.stringify(value) : JSON.stringify(value, null, 2), value };
+  }, [parsed, isPath, q, view]);
+
+  const ok = filtered && !filtered.error;
+  const table = useJsonTable(tabId, view === "table" ? (ok ? filtered.value : parsed?.value) : undefined, !!ok, search);
 
   const rendered = useMemo(() => {
+    if (view === "table") return { text: "", html: "", truncated: false };
     let text = body;
     let isJson = false;
     if (filtered?.text !== undefined) {
       text = filtered.text;
       isJson = true;
-    } else if (view === "pretty" && (/json/i.test(contentType) || /^\s*[[{]/.test(text))) {
-      try {
-        text = JSON.stringify(JSON.parse(text), null, 2);
-        isJson = true;
-      } catch {
-        /* not JSON after all */
-      }
+    } else if (view === "pretty" && parsed) {
+      text = JSON.stringify(parsed.value, null, 2);
+      isJson = true;
     }
     const truncated = !showAll && text.length > RENDER_LIMIT;
     if (truncated) text = text.slice(0, RENDER_LIMIT);
     const html = text.length <= LINES_LIMIT ? highlightLines(text, isJson) : null;
     return { text, html, truncated };
-  }, [body, contentType, showAll, view, filtered]);
+  }, [body, parsed, showAll, view, filtered]);
 
   // The body is written here, not by React, so search marks can be laid into it.
   useLayoutEffect(() => {
@@ -218,6 +231,12 @@ export function BodyViewer({
 
   const copyBody = async () => {
     try {
+      if (table) {
+        // tab-separated, so it pastes into a spreadsheet as columns
+        await navigator.clipboard.writeText(table.tsv());
+        notify("Table copied");
+        return;
+      }
       await navigator.clipboard.writeText(rendered.text);
       notify(filtered?.text !== undefined ? "Filtered result copied" : "Response copied");
     } catch (e) {
@@ -240,6 +259,12 @@ export function BodyViewer({
         {filtered.status}
       </span>
     );
+  else if (search && table)
+    status = (
+      <span className="rf-status" role="status">
+        {table.status}
+      </span>
+    );
   else if (search)
     status = (
       <span className="rf-status" role="status">
@@ -257,7 +282,18 @@ export function BodyViewer({
           <button type="button" aria-pressed={view === "raw"} onClick={() => setView("raw")}>
             Raw
           </button>
+          <button
+            type="button"
+            aria-pressed={view === "table"}
+            disabled={!tableable}
+            title={tableable ? undefined : "Table needs a JSON object or array"}
+            onClick={() => setView("table")}
+          >
+            Table
+          </button>
         </div>
+        {table && <TableTrail m={table} />}
+        <span className="push" />
         <button
           type="button"
           className="icon-btn"
@@ -269,16 +305,32 @@ export function BodyViewer({
           <WrapText {...ico} />
         </button>
         {tools}
-        <button type="button" className="icon-btn" title="Copy response" aria-label="Copy response" onClick={copyBody}>
+        <button
+          type="button"
+          className="icon-btn"
+          title={table ? "Copy table (tab-separated, pastes into a spreadsheet)" : "Copy response"}
+          aria-label={table ? "Copy table" : "Copy response"}
+          onClick={copyBody}
+        >
           <Copy {...ico} />
         </button>
       </div>
       <div className="res-body">
-        <pre
-          ref={codeRef}
-          className={`code${rendered.html === null ? " plain" : ""}${wrap ? "" : " nowrap"}`}
-          aria-label={filtered?.text !== undefined ? "Filtered response body" : "Response body"}
-        />
+        {table ? (
+          <TableView key={JSON.stringify(table.path)} m={table} wrap={wrap} example={example} />
+        ) : view === "table" ? (
+          // a JSONPath result that is not an object or array
+          <div className="empty">
+            <strong>{ok && filtered.value !== undefined ? "Not a table" : "No match"}</strong>
+            <span>{ok && filtered.value !== undefined ? "The filter found a single value. Pretty shows it." : "The filter found nothing."}</span>
+          </div>
+        ) : (
+          <pre
+            ref={codeRef}
+            className={`code${rendered.html === null ? " plain" : ""}${wrap ? "" : " nowrap"}`}
+            aria-label={filtered?.text !== undefined ? "Filtered response body" : "Response body"}
+          />
+        )}
         <div className="res-filter">
           <span className="rf-icon">{typedPath ? <Filter {...ico} size={14} /> : <Search {...ico} size={14} />}</span>
           <input
@@ -297,7 +349,7 @@ export function BodyViewer({
                 e.preventDefault();
                 if (filter) setFilter("");
                 else e.currentTarget.blur();
-              } else if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && search) {
+              } else if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && search && !table) {
                 e.preventDefault();
                 step(e.shiftKey ? -1 : 1);
               }
@@ -305,7 +357,7 @@ export function BodyViewer({
           />
           {!filter && <kbd>⌘F</kbd>}
           {status}
-          {search && (
+          {search && !table && (
             <>
               <button type="button" className="icon-btn" title="Previous match (⇧Enter)" aria-label="Previous match" disabled={!hits} onClick={() => step(-1)}>
                 <ChevronUp {...ico} />

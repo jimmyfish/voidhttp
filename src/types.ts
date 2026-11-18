@@ -699,6 +699,8 @@ export interface Settings {
   /** Soft-wrap long lines in the request body editor (default off) and the response body (default on). */
   wrapRequestBody?: boolean;
   wrapResponseBody?: boolean;
+  /** How static response bodies open: Pretty (default), Raw or Table; remembered between responses and launches. */
+  responseView?: "pretty" | "raw" | "table";
   /** Run pre-request and post-response scripts on send (default on). */
   runScripts?: boolean;
   /** Look for a new version when the app opens (default on). */
