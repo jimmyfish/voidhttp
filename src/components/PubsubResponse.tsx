@@ -6,6 +6,7 @@ import { hexDump, hexPreview } from "../lib/ws";
 import { b64ToHex, recordTime } from "../lib/kafka";
 import { defaultPubsub } from "../lib/pubsub";
 import { useStore } from "../store";
+import { LayoutSwitch } from "./LayoutSwitch";
 import { RunBanner, RunsButton } from "./Runs";
 import { ArrowDown, ArrowUp, Copy, CornerDownLeft, Download, Eye, Pause, Play, Plug, RefreshCw, Search, Trash2, TriangleAlert, ico, icoLg } from "./Icon";
 
@@ -47,16 +48,22 @@ export function PubsubResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
 
   if (tab.error)
     return shell(
-      <div className="error-box" role="alert">
-        <strong>Could not connect</strong>
-        <span className="msg">{tab.error}</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="error-box" role="alert">
+          <strong>Could not connect</strong>
+          <span className="msg">{tab.error}</span>
+        </div>
+      </>,
     );
   if (!w?.pubsub)
     return shell(
       <>
         <div className="res-head">
           <RunsButton tab={tab} />
+          <LayoutSwitch />
         </div>
         <div className="empty">
           <Plug {...icoLg} />
@@ -70,10 +77,15 @@ export function PubsubResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   const live = !!tab.inflightId;
   if (!p.info && !p.failed)
     return shell(
-      <div className="empty" role="status">
-        <div className="spinner" />
-        <span>Signing in…</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="empty" role="status">
+          <div className="spinner" />
+          <span>Signing in…</span>
+        </div>
+      </>,
     );
 
   const count = (w.dropped ?? 0) + w.messages.filter((m) => m.kind === "record").length;
@@ -89,6 +101,7 @@ export function PubsubResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
         </button>
         <StatusLine w={w} p={p} live={live} />
         {!live && <RunsButton tab={tab} />}
+        <LayoutSwitch />
       </nav>
       {p.failed ? <Failed tab={tab} p={p} /> : sub === "topic" ? <TopicView tab={tab} info={p.info!} live={live} /> : <MessageList tab={tab} w={w} p={p} live={live} />}
     </>,

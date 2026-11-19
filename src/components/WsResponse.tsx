@@ -5,6 +5,7 @@ import { highlightLines } from "../lib/highlight";
 import { CLOSE_NAMES, closeOk, hexDump, hexPreview } from "../lib/ws";
 import { argsPreview, refusedHint } from "../lib/sio";
 import { useStore } from "../store";
+import { LayoutSwitch } from "./LayoutSwitch";
 import { RunBanner, RunsButton } from "./Runs";
 import { ArrowDown, ArrowUp, Check, ChevronDown, Clock, Copy, CornerDownLeft, ListFilter, Plug, Trash2, TriangleAlert, ico, icoLg } from "./Icon";
 
@@ -58,16 +59,22 @@ export function WsResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
 
   if (tab.error)
     return shell(
-      <div className="error-box" role="alert">
-        <strong>Could not connect</strong>
-        <span className="msg">{tab.error}</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="error-box" role="alert">
+          <strong>Could not connect</strong>
+          <span className="msg">{tab.error}</span>
+        </div>
+      </>,
     );
   if (!w)
     return shell(
       <>
         <div className="res-head">
           <RunsButton tab={tab} />
+          <LayoutSwitch />
         </div>
         <div className="empty">
           <Plug {...icoLg} />
@@ -82,10 +89,15 @@ export function WsResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
     );
   if (!w.handshake)
     return shell(
-      <div className="empty" role="status">
-        <div className="spinner" />
-        <span>Connecting…</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="empty" role="status">
+          <div className="spinner" />
+          <span>Connecting…</span>
+        </div>
+      </>,
     );
 
   const live = !!tab.inflightId;
@@ -102,6 +114,7 @@ export function WsResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
         </button>
         <StatusLine w={w} live={live} />
         {!live && <RunsButton tab={tab} />}
+        <LayoutSwitch />
       </nav>
       {sub === "handshake" ? (
         <Handshake w={w} />

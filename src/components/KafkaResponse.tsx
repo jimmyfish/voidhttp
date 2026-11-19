@@ -5,6 +5,7 @@ import { highlightLines } from "../lib/highlight";
 import { hexDump, hexPreview } from "../lib/ws";
 import { b64ToHex, recordTime, seekLabel } from "../lib/kafka";
 import { useStore } from "../store";
+import { LayoutSwitch } from "./LayoutSwitch";
 import { RunBanner, RunsButton } from "./Runs";
 import { useDismiss } from "./useDismiss";
 import {
@@ -66,16 +67,22 @@ export function KafkaResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
 
   if (tab.error)
     return shell(
-      <div className="error-box" role="alert">
-        <strong>Could not connect</strong>
-        <span className="msg">{tab.error}</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="error-box" role="alert">
+          <strong>Could not connect</strong>
+          <span className="msg">{tab.error}</span>
+        </div>
+      </>,
     );
   if (!w?.kafka)
     return shell(
       <>
         <div className="res-head">
           <RunsButton tab={tab} />
+          <LayoutSwitch />
         </div>
         <div className="empty">
           <Plug {...icoLg} />
@@ -89,10 +96,15 @@ export function KafkaResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   const live = !!tab.inflightId;
   if (!k.cluster && !k.failed)
     return shell(
-      <div className="empty" role="status">
-        <div className="spinner" />
-        <span>Connecting to the cluster…</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="empty" role="status">
+          <div className="spinner" />
+          <span>Connecting to the cluster…</span>
+        </div>
+      </>,
     );
 
   const count = (w.dropped ?? 0) + w.messages.filter((m) => m.kind === "record").length;
@@ -108,6 +120,7 @@ export function KafkaResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
         </button>
         <StatusLine w={w} k={k} live={live} />
         {!live && <RunsButton tab={tab} />}
+        <LayoutSwitch />
       </nav>
       {k.failed ? (
         <Failed k={k} />

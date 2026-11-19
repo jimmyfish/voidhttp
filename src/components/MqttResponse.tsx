@@ -6,6 +6,7 @@ import { hexDump, hexPreview } from "../lib/ws";
 import { recordTime } from "../lib/kafka";
 import { reasonWords, topicMatches } from "../lib/mqtt";
 import { useStore } from "../store";
+import { LayoutSwitch } from "./LayoutSwitch";
 import { RunBanner, RunsButton } from "./Runs";
 import { useDismiss } from "./useDismiss";
 import { ArrowDown, ArrowUp, Check, ChevronDown, Copy, CornerDownLeft, ListFilter, Pause, Play, Plug, Search, Trash2, TriangleAlert, ico, icoLg } from "./Icon";
@@ -49,16 +50,22 @@ export function MqttResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
 
   if (tab.error)
     return shell(
-      <div className="error-box" role="alert">
-        <strong>Could not connect</strong>
-        <span className="msg">{tab.error}</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="error-box" role="alert">
+          <strong>Could not connect</strong>
+          <span className="msg">{tab.error}</span>
+        </div>
+      </>,
     );
   if (!w?.mqtt)
     return shell(
       <>
         <div className="res-head">
           <RunsButton tab={tab} />
+          <LayoutSwitch />
         </div>
         <div className="empty">
           <Plug {...icoLg} />
@@ -71,10 +78,15 @@ export function MqttResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   const live = !!tab.inflightId;
   if (!m.conn && !m.failed && !w.close)
     return shell(
-      <div className="empty" role="status">
-        <div className="spinner" />
-        <span>Connecting to the broker…</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="empty" role="status">
+          <div className="spinner" />
+          <span>Connecting to the broker…</span>
+        </div>
+      </>,
     );
 
   const count = (w.dropped ?? 0) + w.messages.filter((x) => x.kind === "publish").length;
@@ -90,6 +102,7 @@ export function MqttResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
         </button>
         <StatusLine w={w} m={m} live={live} />
         {!live && <RunsButton tab={tab} />}
+        <LayoutSwitch />
       </nav>
       {m.failed ? <Failed m={m} /> : sub === "connection" && m.conn ? <ConnectionView c={m.conn} /> : <MessageList tab={tab} w={w} m={m} live={live} />}
     </>,

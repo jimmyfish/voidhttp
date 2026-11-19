@@ -4,6 +4,7 @@ import { formatBytes } from "../lib/model";
 import { highlightLines } from "../lib/highlight";
 import { useStore } from "../store";
 import { BodyViewer, ExampleBanner, PairsTable, useTabExample } from "./ResponseBody";
+import { LayoutSwitch } from "./LayoutSwitch";
 import { RunBanner, RunsButton } from "./Runs";
 import { ArrowDown, ArrowUp, BookmarkPlus, Copy, Trash2, ico } from "./Icon";
 
@@ -52,16 +53,22 @@ export function GrpcResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
 
   if (tab.error)
     return shell(
-      <div className="error-box" role="alert">
-        <strong>Could not call the method</strong>
-        <span className="msg">{tab.error}</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="error-box" role="alert">
+          <strong>Could not call the method</strong>
+          <span className="msg">{tab.error}</span>
+        </div>
+      </>,
     );
   if (!g)
     return shell(
       <>
         <div className="res-head">
           <RunsButton tab={tab} />
+          <LayoutSwitch />
         </div>
         <div className="empty">
           <strong>No response yet</strong>
@@ -75,10 +82,15 @@ export function GrpcResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
   const streamed = g.stream !== "unary";
   if (!streamed && !g.end)
     return shell(
-      <div className="empty" role="status">
-        <div className="spinner" />
-        <span>Calling…</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="empty" role="status">
+          <div className="spinner" />
+          <span>Calling…</span>
+        </div>
+      </>,
     );
 
   return shell(
@@ -112,6 +124,7 @@ export function GrpcResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
         </button>
         <StatusLine g={g} live={!!tab.inflightId} />
         {!tab.inflightId && <RunsButton tab={tab} />}
+        <LayoutSwitch />
       </nav>
 
       {sub === "metadata" ? (

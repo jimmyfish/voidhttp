@@ -9,7 +9,6 @@ import {
   ArrowLeftToLine,
   ArrowRightToLine,
   Bookmark,
-  Columns2,
   CopyX,
   Menu,
   PanelLeftClose,
@@ -17,7 +16,6 @@ import {
   Pin,
   PinOff,
   Plus,
-  Rows2,
   X,
   ico,
 } from "./Icon";
@@ -28,7 +26,6 @@ export function TabsBar() {
   const environments = useStore((s) => s.environments);
   const activeEnvironmentId = useStore((s) => s.activeEnvironmentId);
   const sidebarHidden = useStore((s) => !!s.settings.sidebarHidden);
-  const split = useStore((s) => s.settings.layout === "split");
   const s = useStore.getState(); // actions only
   const pins = tabs.filter((t) => t.pinned);
   const rest = tabs.filter((t) => !t.pinned);
@@ -160,15 +157,6 @@ export function TabsBar() {
         <RowMenu anchor={menuAnchor} at={{ x: menu.x, y: menu.y }} label={`Tab ${menuTab.request.name}`} items={menuItems(menuTab)} onClose={() => setMenu(null)} />
       )}
 
-      <button
-        type="button"
-        className="icon-btn layout-toggle"
-        title={split ? "Response below the request" : "Response beside the request"}
-        aria-label={split ? "Stacked layout" : "Side by side layout"}
-        onClick={() => s.setSettings({ layout: split ? "stacked" : "split" })}
-      >
-        {split ? <Rows2 {...ico} /> : <Columns2 {...ico} />}
-      </button>
       <EnvMenu environments={environments} activeId={activeEnvironmentId} onPick={(id) => s.setActiveEnvironment(id)}>
         <button
           type="button"

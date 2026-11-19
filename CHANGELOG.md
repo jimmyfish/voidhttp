@@ -11,6 +11,7 @@ All notable changes to voidHTTP are listed here. The format follows [Keep a Chan
 
 ### Changed
 
+- The layout switch moved from the tab bar into the response bar, at its far right. It is a two-button switch (response below, response on the right) with the current layout highlighted, so it no longer reads as splitting the window. It shows for every protocol and state, including while sending and after an error. ⌘K and the keyboard shortcut still toggle it.
 - Request tabs are at most 200px wide. When the strip is crowded, every tab shrinks down to 120px and long names end in "…", with the full name and URL in the tooltip; the strip no longer shows a scrollbar, and a mouse wheel scrolls it sideways.
 
 ## [0.1.7] - 2026-11-19

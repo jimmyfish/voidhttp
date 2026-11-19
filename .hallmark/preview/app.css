@@ -364,12 +364,9 @@ select.field { appearance: none; -webkit-appearance: none; padding-right: 32px; 
 .divider[aria-orientation="vertical"] { width: 12px; height: auto; cursor: col-resize; border-top: none; border-left: 3px solid var(--color-rule); }
 .divider[aria-orientation="vertical"]::after { width: 4px; height: 16px; background-size: 4px 6px; background-repeat: repeat-y; }
 .divider[aria-orientation="vertical"]:hover { border-left-color: var(--color-accent); }
-/* tabs bar toggles: sidebar on the far left, layout beside the environment */
+/* tabs bar toggle: sidebar on the far left */
 .side-toggle { align-self: flex-end; margin-bottom: 5px; flex-shrink: 0; } /* on the tab text line, like .tab-add */
-.layout-toggle { align-self: center; flex-shrink: 0; } /* centred with the environment picker beside it */
 .side-toggle { margin-right: calc(var(--space-sm) * -1 + var(--space-2xs)); }
-.layout-toggle { margin-left: auto; }
-.layout-toggle + .env-group { margin-left: var(--space-2xs); }
 /* a text button that reads as a link: tinted underline that firms up and lifts on hover */
 .link {
   display: inline; padding: 0; border: none; background: none; font: inherit; color: var(--color-link); cursor: pointer;
@@ -783,6 +780,11 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
 .runs-btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 /* the pill's row when there is no response yet: same spot as in the response bar */
 .res-head { display: flex; justify-content: flex-end; padding: var(--space-xs) var(--space-md) 0; flex-shrink: 0; }
+/* response position: below or beside the request, at the far end of the response bar */
+.layout-switch { flex-shrink: 0; align-self: center; margin-left: var(--space-xs); }
+.subtabs .layout-switch { margin-left: calc(var(--space-xs) - var(--space-lg)); } /* the bar's gap is for tabs; sit close to the History pill */
+.layout-switch button { display: inline-flex; align-items: center; justify-content: center; padding: 0 var(--space-2xs); }
+.layout-switch .ico { width: 14px; height: 14px; }
 /* rows: when, then status */
 .runs-menu { width: 300px; overflow-y: auto; }
 .runs-menu > button[role="menuitemradio"] { justify-content: space-between; gap: var(--space-md); flex-shrink: 0; }

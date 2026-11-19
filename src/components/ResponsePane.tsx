@@ -13,6 +13,7 @@ import { MqttResponsePane } from "./MqttResponse";
 import { isPubsub } from "../lib/pubsub";
 import { PubsubResponsePane } from "./PubsubResponse";
 import { BodyViewer, ExampleBanner, PairsTable, useTabExample } from "./ResponseBody";
+import { LayoutSwitch } from "./LayoutSwitch";
 import { RunBanner, RunsButton } from "./Runs";
 import { BookmarkPlus, CircleCheck, CircleX, Copy, Trash2, TriangleAlert, ico } from "./Icon";
 import { OPEN_SCRIPT, hasScript, type OpenScript } from "../lib/script";
@@ -50,17 +51,27 @@ function HttpResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
 
   if (tab.inflightId)
     return shell(
-      <div className="empty" role="status">
-        <div className="spinner" />
-        <span>Sending…</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="empty" role="status">
+          <div className="spinner" />
+          <span>Sending…</span>
+        </div>
+      </>,
     );
   if (tab.error)
     return shell(
-      <div className="error-box" role="alert">
-        <strong>Could not get a response</strong>
-        <span className="msg">{tab.error}</span>
-      </div>,
+      <>
+        <div className="res-head">
+          <LayoutSwitch />
+        </div>
+        <div className="error-box" role="alert">
+          <strong>Could not get a response</strong>
+          <span className="msg">{tab.error}</span>
+        </div>
+      </>,
     );
   if (!res && run?.failed?.src === "pre")
     return shell(
@@ -70,6 +81,7 @@ function HttpResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
             <span className="fail">Not sent</span>
             <span className="dim">pre-request script failed</span>
           </span>
+          <LayoutSwitch />
         </nav>
         <div className="res-body">
           <ScriptFail run={run} tabId={tab.id} />
@@ -82,6 +94,7 @@ function HttpResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
       <>
         <div className="res-head">
           <RunsButton tab={tab} />
+          <LayoutSwitch />
         </div>
         <div className="empty">
           <strong>No response yet</strong>
@@ -158,6 +171,7 @@ function HttpResponsePane({ tab, grow }: { tab: Tab; grow: number }) {
           <span className="dim">{res.httpVersion.replace(/^HTTP\/([23])\.0$/, "HTTP/$1")}</span>
         </span>
         <RunsButton tab={tab} />
+        <LayoutSwitch />
       </nav>
 
       {sub === "tests" && scripted ? (
