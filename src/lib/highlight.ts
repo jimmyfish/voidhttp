@@ -66,10 +66,46 @@ function jsRuns(src: string): [string, string][] {
   return runs;
 }
 
-/** JavaScript as `.l` lines, each run cut at its line breaks so a span never crosses a line. */
-function jsLines(src: string): string[] {
+// comment | CDATA | <?…?> or <!DOCTYPE …> | tag: "<" or "</", name, attributes, ">" or "/>" | entity
+// attributes stop at the next "<" (not allowed in a value), so a stray quote cannot swallow the rest of the document
+const XML_TOKEN =
+  /(<!--[\s\S]*?(?:-->|$))|(<!\[CDATA\[[\s\S]*?(?:\]\]>|$))|(<[?!][^<>]*>?)|(<\/?)([A-Za-z_][\w:.-]*)((?:[^<>"'/]|\/(?!>)|"[^"<]*"?|'[^'<]*'?)*)(\/?>)?|(&(?:#x?[\da-fA-F]+|[A-Za-z]\w*);)/g;
+// inside a tag: attribute name | quoted value | "="
+const XML_ATTR = /([A-Za-z_][\w:.-]*)|("[^"<]*"?|'[^'<]*'?)|(=)/g;
+
+/** Tiny XML / HTML tokenizer: [class, text] runs over the whole source (comments, CDATA and tags may span lines). */
+function xmlRuns(src: string): [string, string][] {
+  const runs: [string, string][] = [];
+  let last = 0;
+  for (const m of src.matchAll(XML_TOKEN)) {
+    const i = m.index ?? 0;
+    if (i > last) runs.push(["", src.slice(last, i)]);
+    if (m[1] || m[3]) runs.push(["j-com", m[0]]);
+    else if (m[2]) runs.push(["j-str", m[0]]);
+    else if (m[8]) runs.push(["j-num", m[0]]);
+    else {
+      runs.push(["j-p", m[4]], ["j-kw", m[5]]);
+      const attrs = m[6] ?? "";
+      let at = 0;
+      for (const a of attrs.matchAll(XML_ATTR)) {
+        const j = a.index ?? 0;
+        if (j > at) runs.push(["", attrs.slice(at, j)]);
+        runs.push([a[1] ? "j-key" : a[2] ? "j-str" : "j-p", a[0]]);
+        at = j + a[0].length;
+      }
+      if (at < attrs.length) runs.push(["", attrs.slice(at)]);
+      if (m[7]) runs.push(["j-p", m[7]]);
+    }
+    last = i + m[0].length;
+  }
+  if (last < src.length) runs.push(["", src.slice(last)]);
+  return runs;
+}
+
+/** Runs as `.l` lines, each run cut at its line breaks so a span never crosses a line. */
+function runLines(runs: [string, string][]): string[] {
   const lines: string[] = [""];
-  for (const [cls, text] of jsRuns(src)) {
+  for (const [cls, text] of runs) {
     text.split("\n").forEach((part, k) => {
       if (k > 0) lines.push("");
       if (part) lines[lines.length - 1] += cls ? `<span class="${cls}">${esc(part)}</span>` : esc(part);
@@ -119,14 +155,14 @@ const line = (lead: string, body: string, cls = "l") => `<span class="${cls}">${
 
 /**
  * One `.l` block per line, leading indentation wrapped in `.ind` (indent guides),
- * tokens coloured for JSON (`true` or "json"), JavaScript ("js") or GraphQL ("graphql"). `mark` (1-based) flags one line, e.g. where a script failed.
+ * tokens coloured for JSON (`true` or "json"), JavaScript ("js"), GraphQL ("graphql") or XML / HTML ("xml"). `mark` (1-based) flags one line, e.g. where a script failed.
  * Line numbers come from CSS counters.
  */
-export function highlightLines(src: string, lang: boolean | "json" | "js" | "graphql", mark?: number): string {
+export function highlightLines(src: string, lang: boolean | "json" | "js" | "graphql" | "xml", mark?: number): string {
   const cls = (i: number) => (i + 1 === mark ? "l err-line" : "l");
-  if (lang === "js") {
+  if (lang === "js" || lang === "xml") {
     // indentation is plain text at the start of a line: peel it off the rendered line
-    return jsLines(src)
+    return runLines(lang === "js" ? jsRuns(src) : xmlRuns(src))
       .map((html, i) => {
         const m = /^ +/.exec(html);
         return line(m ? m[0] : "", m ? html.slice(m[0].length) : html, cls(i));

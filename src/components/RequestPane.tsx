@@ -462,6 +462,7 @@ function BodyEditor({ tab }: { tab: Tab }) {
         <CodeArea
           value={body.raw}
           json={body.mode === "json"}
+          xml={body.mode === "xml"}
           onChange={(raw) => set({ raw })}
           placeholder={body.mode === "json" ? '{ "hello": "world" }' : ""}
           wrap={wrap}

@@ -171,22 +171,25 @@ export function BodyViewer({
   const ok = filtered && !filtered.error;
   const table = useJsonTable(tabId, view === "table" ? (ok ? filtered.value : parsed?.value) : undefined, !!ok, search);
 
+  // XML / HTML bodies: coloured in Pretty, left as sent in Raw
+  const markup = !parsed && (/xml|html/i.test(contentType) || (!contentType && /^\s*</.test(body)));
+
   const rendered = useMemo(() => {
     if (view === "table") return { text: "", html: "", truncated: false };
     let text = body;
-    let isJson = false;
+    let lang: boolean | "xml" = false;
     if (filtered?.text !== undefined) {
       text = filtered.text;
-      isJson = true;
+      lang = true;
     } else if (view === "pretty" && parsed) {
       text = JSON.stringify(parsed.value, null, 2);
-      isJson = true;
-    }
+      lang = true;
+    } else if (view === "pretty" && markup) lang = "xml";
     const truncated = !showAll && text.length > RENDER_LIMIT;
     if (truncated) text = text.slice(0, RENDER_LIMIT);
-    const html = text.length <= LINES_LIMIT ? highlightLines(text, isJson) : null;
+    const html = text.length <= LINES_LIMIT ? highlightLines(text, lang) : null;
     return { text, html, truncated };
-  }, [body, parsed, showAll, view, filtered]);
+  }, [body, parsed, markup, showAll, view, filtered]);
 
   // The body is written here, not by React, so search marks can be laid into it.
   useLayoutEffect(() => {
