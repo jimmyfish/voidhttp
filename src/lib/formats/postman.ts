@@ -4,7 +4,7 @@
  * Folder and collection scripts have no place in voidHTTP yet: they are dropped on import and said so.
  */
 import type { Auth, Collection, Environment, Example, KV, RequestBody, RequestNode, TreeNode } from "../../types";
-import { kv, newRequest, paramsFromUrl, parseQuery, uid } from "../model";
+import { kv, newRequest, paramsFromUrl, parseQuery, pathVarNames, pathVarsFromUrl, uid } from "../model";
 import { dropFilePaths, requestsOf, str, type Any, type ImportPlan, type Note } from "./common";
 import { isGql } from "../graphql";
 
@@ -147,6 +147,9 @@ function convertItems(items: Any[], parentAuth: Auth, seen: Seen): TreeNode[] {
       seen.kept += Number(!!pre) + Number(!!post);
     }
     req.params = paramsFromUrl(url, []);
+    // :name values from the structured url; Postman has no "disabled" for them, so every row counts
+    const pathVars = pathVarsFromUrl(url, typeof r.url === "object" ? toKV(r.url?.variable).map((v) => ({ ...v, enabled: true })) : []);
+    if (pathVars) req.pathVars = pathVars;
     // carry over disabled query params from the structured url
     for (const qp of Array.isArray(r.url?.query) ? r.url.query : []) if (qp?.disabled) req.params.push(kv(str(qp.key), str(qp.value), false));
     const node: RequestNode = { type: "request", ...req };
@@ -266,6 +269,9 @@ function pmRequest(r: Omit<RequestNode, "type" | "examples">): Any {
     ...(pmAuth(r.auth) && { auth: pmAuth(r.auth) }),
     url: {
       raw,
+      ...(pathVarNames(raw).length && {
+        variable: pathVarNames(raw).map((key) => ({ key, value: r.pathVars?.find((p) => p.key === key)?.value ?? "" })),
+      }),
       ...(q !== -1 || r.params.length ? { query: [...parseQuery(raw).map((p) => ({ key: p.key, value: p.value })), ...pmKv(r.params.filter((p) => !p.enabled))] } : {}),
     },
   };

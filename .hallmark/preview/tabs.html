@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voidHTTP Tab menu preview</title>
+<meta name="description" content="Design preview of the request-tab right-click menu (pin, close others, close to the right/left) and sticky pinned tabs in voidHTTP, before it is applied to the app.">
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./preview.css">
+<link rel="stylesheet" href="./tabs.css">
+<script src="./themes.js"></script>
+</head>
+<body>
+<!-- icons: Lucide v0.460.0 (ISC), inlined from lucide-static -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-circle-check" viewBox="0 0 24 24"><svg class="lucide lucide-circle-check" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="10" /> <path d="m9 12 2 2 4-4" /></symbol>
+  <symbol id="i-circle-dashed" viewBox="0 0 24 24"><svg class="lucide lucide-circle-dashed" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M10.1 2.182a10 10 0 0 1 3.8 0" /> <path d="M13.9 21.818a10 10 0 0 1-3.8 0" /> <path d="M17.609 3.721a10 10 0 0 1 2.69 2.7" /> <path d="M2.182 13.9a10 10 0 0 1 0-3.8" /> <path d="M20.279 17.609a10 10 0 0 1-2.7 2.69" /> <path d="M21.818 10.1a10 10 0 0 1 0 3.8" /> <path d="M3.721 6.391a10 10 0 0 1 2.7-2.69" /> <path d="M6.391 20.279a10 10 0 0 1-2.69-2.7" /></symbol>
+  <symbol id="i-circle-dot" viewBox="0 0 24 24"><svg class="lucide lucide-circle-dot" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="10" /> <circle cx="12" cy="12" r="1" /></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><svg class="lucide lucide-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <line x1="4" x2="20" y1="12" y2="12" /> <line x1="4" x2="20" y1="6" y2="6" /> <line x1="4" x2="20" y1="18" y2="18" /></symbol>
+  <symbol id="i-sliders-horizontal" viewBox="0 0 24 24"><svg class="lucide lucide-sliders-horizontal" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <line x1="21" x2="14" y1="4" y2="4" /> <line x1="10" x2="3" y1="4" y2="4" /> <line x1="21" x2="12" y1="12" y2="12" /> <line x1="8" x2="3" y1="12" y2="12" /> <line x1="21" x2="16" y1="20" y2="20" /> <line x1="12" x2="3" y1="20" y2="20" /> <line x1="14" x2="14" y1="2" y2="6" /> <line x1="8" x2="8" y1="10" y2="14" /> <line x1="16" x2="16" y1="18" y2="22" /></symbol>
+  <symbol id="i-house" viewBox="0 0 24 24"><svg class="lucide lucide-house" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /> <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"><svg class="lucide lucide-landmark" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <line x1="3" x2="21" y1="22" y2="22" /> <line x1="6" x2="6" y1="18" y2="11" /> <line x1="10" x2="10" y1="18" y2="11" /> <line x1="14" x2="14" y1="18" y2="11" /> <line x1="18" x2="18" y1="18" y2="11" /> <polygon points="12 2 20 7 4 7" /></symbol>
+  <symbol id="i-building-2" viewBox="0 0 24 24"><svg class="lucide lucide-building-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /> <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /> <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /> <path d="M10 6h4" /> <path d="M10 10h4" /> <path d="M10 14h4" /> <path d="M10 18h4" /></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><svg class="lucide lucide-wallet" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" /> <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" /></symbol>
+  <symbol id="i-credit-card" viewBox="0 0 24 24"><svg class="lucide lucide-credit-card" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="20" height="14" x="2" y="5" rx="2" /> <line x1="2" x2="22" y1="10" y2="10" /></symbol>
+  <symbol id="i-shopping-cart" viewBox="0 0 24 24"><svg class="lucide lucide-shopping-cart" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="8" cy="21" r="1" /> <circle cx="19" cy="21" r="1" /> <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" /></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><svg class="lucide lucide-store" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7" /> <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /> <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4" /> <path d="M2 7h20" /> <path d="M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7" /></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><svg class="lucide lucide-truck" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" /> <path d="M15 18H9" /> <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" /> <circle cx="17" cy="18" r="2" /> <circle cx="7" cy="18" r="2" /></symbol>
+  <symbol id="i-package" viewBox="0 0 24 24"><svg class="lucide lucide-package" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z" /> <path d="M12 22V12" /> <path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7" /> <path d="m7.5 4.27 9 5.15" /></symbol>
+  <symbol id="i-user-round" viewBox="0 0 24 24"><svg class="lucide lucide-user-round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="8" r="5" /> <path d="M20 21a8 8 0 0 0-16 0" /></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><svg class="lucide lucide-users" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <circle cx="9" cy="7" r="4" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <path d="M16 3.13a4 4 0 0 1 0 7.75" /></symbol>
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><svg class="lucide lucide-briefcase" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /> <rect width="20" height="14" x="2" y="6" rx="2" /></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><svg class="lucide lucide-rocket" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" /> <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" /> <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" /> <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" /></symbol>
+  <symbol id="i-flask-conical" viewBox="0 0 24 24"><svg class="lucide lucide-flask-conical" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" /> <path d="M8.5 2h7" /> <path d="M7 16h10" /></symbol>
+  <symbol id="i-bug" viewBox="0 0 24 24"><svg class="lucide lucide-bug" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m8 2 1.88 1.88" /> <path d="M14.12 3.88 16 2" /> <path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1" /> <path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6" /> <path d="M12 20v-9" /> <path d="M6.53 9C4.6 8.8 3 7.1 3 5" /> <path d="M6 13H2" /> <path d="M3 21c0-2.1 1.7-3.9 3.8-4" /> <path d="M20.97 5c0 2.1-1.6 3.8-3.5 4" /> <path d="M22 13h-4" /> <path d="M17.2 17c2.1.1 3.8 1.9 3.8 4" /></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><svg class="lucide lucide-server" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="20" height="8" x="2" y="2" rx="2" ry="2" /> <rect width="20" height="8" x="2" y="14" rx="2" ry="2" /> <line x1="6" x2="6.01" y1="6" y2="6" /> <line x1="6" x2="6.01" y1="18" y2="18" /></symbol>
+  <symbol id="i-database" viewBox="0 0 24 24"><svg class="lucide lucide-database" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <ellipse cx="12" cy="5" rx="9" ry="3" /> <path d="M3 5V19A9 3 0 0 0 21 19V5" /> <path d="M3 12A9 3 0 0 0 21 12" /></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><svg class="lucide lucide-cloud" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" /></symbol>
+  <symbol id="i-shield-check" viewBox="0 0 24 24"><svg class="lucide lucide-shield-check" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="m9 12 2 2 4-4" /></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><svg class="lucide lucide-lock" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="18" height="11" x="3" y="11" rx="2" ry="2" /> <path d="M7 11V7a5 5 0 0 1 10 0v4" /></symbol>
+  <symbol id="i-key-round" viewBox="0 0 24 24"><svg class="lucide lucide-key-round" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" /> <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" /></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><svg class="lucide lucide-bell" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /> <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><svg class="lucide lucide-mail" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="20" height="16" x="2" y="4" rx="2" /> <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></symbol>
+  <symbol id="i-message-circle" viewBox="0 0 24 24"><svg class="lucide lucide-message-circle" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><svg class="lucide lucide-globe" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="10" /> <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /> <path d="M2 12h20" /></symbol>
+  <symbol id="i-map-pin" viewBox="0 0 24 24"><svg class="lucide lucide-map-pin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /> <circle cx="12" cy="10" r="3" /></symbol>
+  <symbol id="i-heart-pulse" viewBox="0 0 24 24"><svg class="lucide lucide-heart-pulse" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /> <path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" /></symbol>
+  <symbol id="i-graduation-cap" viewBox="0 0 24 24"><svg class="lucide lucide-graduation-cap" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" /> <path d="M22 10v6" /> <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" /></symbol>
+  <symbol id="i-gamepad-2" viewBox="0 0 24 24"><svg class="lucide lucide-gamepad-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <line x1="6" x2="10" y1="11" y2="11" /> <line x1="8" x2="8" y1="9" y2="13" /> <line x1="15" x2="15.01" y1="12" y2="12" /> <line x1="18" x2="18.01" y1="10" y2="10" /> <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" /></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><svg class="lucide lucide-music" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M9 18V5l12-2v13" /> <circle cx="6" cy="18" r="3" /> <circle cx="18" cy="16" r="3" /></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><svg class="lucide lucide-camera" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /> <circle cx="12" cy="13" r="3" /></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><svg class="lucide lucide-zap" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" /></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><svg class="lucide lucide-check" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 6 9 17l-5-5" /></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><svg class="lucide lucide-plus" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="M12 5v14" /></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><svg class="lucide lucide-x" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><svg class="lucide lucide-pencil" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24"><svg class="lucide lucide-import" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 3v12" /> <path d="m8 11 4 4 4-4" /> <path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4" /></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><svg class="lucide lucide-search" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="11" cy="11" r="8" /> <path d="m21 21-4.3-4.3" /></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><svg class="lucide lucide-folder" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" /></symbol>
+  <symbol id="i-folder-plus" viewBox="0 0 24 24"><svg class="lucide lucide-folder-plus" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 10v6" /> <path d="M9 13h6" /> <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" /></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><svg class="lucide lucide-chevron-down" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><svg class="lucide lucide-chevron-right" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /></symbol>
+  <symbol id="i-code-xml" viewBox="0 0 24 24"><svg class="lucide lucide-code-xml" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m18 16 4-4-4-4" /> <path d="m6 8-4 4 4 4" /> <path d="m14.5 4-5 16" /></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><svg class="lucide lucide-copy" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <rect width="14" height="14" x="8" y="8" rx="2" ry="2" /> <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><svg class="lucide lucide-layers" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" /> <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" /> <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" /></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><svg class="lucide lucide-history" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /></symbol>
+  <symbol id="i-braces" viewBox="0 0 24 24"><svg class="lucide lucide-braces" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1" /> <path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1" /></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><svg class="lucide lucide-settings" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /> <circle cx="12" cy="12" r="3" /></symbol>
+  <symbol id="i-wand-sparkles" viewBox="0 0 24 24"><svg class="lucide lucide-wand-sparkles" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" /> <path d="m14 7 3 3" /> <path d="M5 6v4" /> <path d="M19 14v4" /> <path d="M10 2v2" /> <path d="M7 8H3" /> <path d="M21 16h-4" /> <path d="M11 3H9" /></symbol>
+  <symbol id="i-paperclip" viewBox="0 0 24 24"><svg class="lucide lucide-paperclip" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" /></symbol>
+  <symbol id="i-ellipsis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-panel-left-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></symbol>
+  <symbol id="i-panel-left-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></symbol>
+  <symbol id="i-columns-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/></symbol>
+  <symbol id="i-rows-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 12h18"/></symbol>
+  <symbol id="i-file-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 18v-6"/></symbol>
+  <symbol id="i-trash-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol>
+  <symbol id="i-copy-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="15" x2="15" y1="12" y2="18"/><line x1="12" x2="18" y1="15" y2="15"/><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-type" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></g></symbol>
+  <symbol id="i-circle-help" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></g></symbol>
+  <symbol id="i-chevron-up" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></g></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+  <symbol id="i-bookmark-plus" viewBox="0 0 24 24"><svg class="lucide lucide-bookmark-plus" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /> <line x1="12" x2="12" y1="7" y2="13" /> <line x1="15" x2="9" y1="10" y2="10" /></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><svg class="lucide lucide-bookmark" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><svg class="lucide lucide-clock" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="10" /> <polyline points="12 6 12 12 16 14" /></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><svg class="lucide lucide-eye-off" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" /> <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" /> <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" /> <path d="m2 2 20 20" /></symbol>
+  <symbol id="i-refresh-cw" viewBox="0 0 24 24"><svg class="lucide lucide-refresh-cw" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /> <path d="M21 3v5h-5" /> <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /> <path d="M8 16H3v5" /></symbol>
+  <symbol id="i-shield-alert" viewBox="0 0 24 24"><svg class="lucide lucide-shield-alert" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="M12 8v4" /> <path d="M12 16h.01" /></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></symbol>
+  <symbol id="i-pin-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89"/><path d="m2 2 20 20"/><path d="M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11"/></symbol>
+  <symbol id="i-copy-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2"/><rect x="8" y="8" width="14" height="14" rx="2"/><path d="m12.5 12.5 5 5"/><path d="m12.5 17.5 5-5"/></symbol>
+  <symbol id="i-arrow-left-to-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19V5"/><path d="m13 6-6 6 6 6"/><path d="M7 12h14"/></symbol>
+  <symbol id="i-arrow-right-to-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 12H3"/><path d="m11 18 6-6-6-6"/><path d="M21 5v14"/></symbol>
+  <symbol id="i-undo-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol>
+</svg>
+
+<header class="pv-bar">
+  <strong>voidHTTP preview · Tab menu</strong>
+  <nav class="pv-screens" aria-label="Screens">
+    <a class="btn btn--quiet" href="./index.html" style="min-height:var(--control)">← Base</a>
+    <button type="button" data-show="menu">Right-click a tab</button>
+    <button type="button" data-show="pinned">Right-click a pinned tab</button>
+    <button type="button" data-show="scroll">Many tabs, scrolled</button>
+    <button type="button" data-show="closed">After “Close other tabs”</button>
+    <button type="button" data-show="reset">Reset</button>
+  </nav>
+  <div class="pv-theme" role="group" aria-label="Density">
+    <button type="button" data-density-set="" aria-pressed="true">Default</button>
+    <button type="button" data-density-set="compact" aria-pressed="false">Compact</button>
+  </div>
+  <div class="pv-theme" role="group" aria-label="Layout" style="margin-left:0">
+    <button type="button" data-layout-set="" aria-pressed="true">Stacked</button>
+    <button type="button" data-layout-set="split" aria-pressed="false">Side by side</button>
+  </div>
+  <div class="pv-theme" role="group" aria-label="Theme" style="margin-left:0">
+    <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<div class="pv-stage">
+<div class="app">
+  <!-- title strip: the native macOS traffic lights sit in the empty 76px on the left (not drawn here) -->
+  <div class="app-strip" data-tauri-drag-region>
+    <nav class="ptabs" aria-label="Projects">
+      <button type="button" class="ptab"><svg aria-hidden="true" class="ico"><use href="#i-house"/></svg>Home</button>
+      <span class="ptab-sep" aria-hidden="true"></span>
+      <div class="ptab ptab--project" aria-current="page">
+        <button type="button" class="ptab-main"><span class="proj-tile proj-tile--sm" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>Amarbank</button>
+        <button type="button" class="icon-btn ptab-close" aria-label="Close Amarbank"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="ptab ptab--project">
+        <button type="button" class="ptab-main"><span class="proj-tile proj-tile--sm" style="--fg: var(--proj-2-fg); --bg: var(--proj-2-bg)"><svg aria-hidden="true" class="ico"><use href="#i-user-round"/></svg></span>Personal</button>
+        <button type="button" class="icon-btn ptab-close" aria-label="Close Personal"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
+      </div>
+    </nav>
+    <button type="button" class="icon-btn strip-settings" title="Settings  ⌘," aria-label="Settings"><svg aria-hidden="true" class="ico"><use href="#i-settings"/></svg></button>
+  </div>
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-mark" aria-hidden="true">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke-width="2" style="stroke: var(--color-accent)"/><circle cx="8" cy="8" r="2.25" fill="none" stroke-width="1.5" style="stroke: var(--color-ok)"/></svg>
+    </div>
+    <button type="button" class="rail-item" aria-label="Collections" title="Collections" aria-current="page"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-layers"/></svg></button>
+    <button type="button" class="rail-item" aria-label="History" title="History"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-history"/></svg></button>
+    <button type="button" class="rail-item" aria-label="Variables" title="Variables"><svg aria-hidden="true" class="ico ico-lg"><use href="#i-braces"/></svg></button>
+  </nav>
+
+  <div class="panel">
+    <!-- ===== sidebar: collections ===== -->
+    <aside class="sidebar">
+      <div class="side-resize" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize, drag past the edge to hide"></div>
+
+      <div class="side-head"><h2>Collections</h2></div>
+      <div class="side-tools">
+        <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search collections"></div>
+        <button type="button" class="icon-btn icon-btn--outline" title="Import from Postman" aria-label="Import from Postman"><svg aria-hidden="true" class="ico"><use href="#i-import"/></svg></button>
+        <button type="button" class="icon-btn icon-btn--filled" title="New collection" aria-label="New collection"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+      </div>
+      <div class="tree">
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><span class="name">trx-service</span><span class="count">(6)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for trx-service" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main" aria-expanded="true"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg><svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg><span class="name">Customers</span><span class="count">(5)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">List customers</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for List customers" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px" aria-current="page"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="m m-POST">POST</span><span class="name">Create customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Create customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+
+        <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-GET">GET</span><span class="name">Get a customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Get a customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-PATCH">PATCH</span><span class="name">Update customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Update customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:40px"><button type="button" class="row-main"><span class="m m-DELETE">DEL</span><span class="name">Delete customer</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Delete customer" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row" style="--indent:16px"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg><span class="name">Invoices</span><span class="count">(3)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Invoices" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">Centralized Login</span><span class="count">(4)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for Centralized Login" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+        <div class="row collection"><button type="button" class="row-main" aria-expanded="false"><svg aria-hidden="true" class="ico caret"><use href="#i-chevron-right"/></svg><span class="name">notification-service</span><span class="count">(3)</span></button><button type="button" class="icon-btn row-more" aria-label="More actions for notification-service" aria-haspopup="menu" title="More actions"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button></div>
+      </div>
+    </aside>
+
+    <!-- ===== sidebar: history ===== -->
+
+    <!-- ===== work area ===== -->
+    <main class="work">
+      <div class="tabsbar">
+        <button type="button" class="icon-btn side-toggle" aria-label="Hide sidebar" title="Hide sidebar  ⌘\"><svg aria-hidden="true" class="ico"><use href="#i-panel-left-close"/></svg></button>
+
+        <div class="tabs" data-tabs></div>
+        <button type="button" class="icon-btn layout-toggle" aria-label="Side by side" title="Response beside the request"><svg aria-hidden="true" class="ico"><use href="#i-columns-2"/></svg></button>
+
+        <div class="joined env-group">
+        <button type="button" class="env-picker" data-env-btn aria-label="Environment: Production" aria-haspopup="menu" aria-expanded="false" style="--env-c: var(--tag-alizarin)">
+          <span class="env-dot" aria-hidden="true"></span>
+          <span class="env-name">Production</span>
+          <svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg>
+        </button>
+        <button type="button" class="btn joined-tail" aria-label="Environment menu" title="Manage environments"><svg aria-hidden="true" class="ico"><use href="#i-menu"/></svg></button>
+        <div class="menu env-menu" role="menu" aria-label="Environment" hidden><button type="button" role="menuitemradio" aria-checked="false" data-env="" data-color=""><span class="env-dot-slot"></span><span class="env-name env-none">No environment</span><svg aria-hidden="true" class="ico env-check"><use href="#i-check"/></svg></button><hr><button type="button" role="menuitemradio" aria-checked="false" data-env="dev" data-color="emerald"><span class="env-dot" style="--env-c: var(--tag-emerald)"></span><span class="env-name">Development</span><svg aria-hidden="true" class="ico env-check"><use href="#i-check"/></svg></button><button type="button" role="menuitemradio" aria-checked="false" data-env="stg" data-color="sunflower"><span class="env-dot" style="--env-c: var(--tag-sunflower)"></span><span class="env-name">Staging</span><svg aria-hidden="true" class="ico env-check"><use href="#i-check"/></svg></button><button type="button" role="menuitemradio" aria-checked="true" data-env="prod" data-color="alizarin"><span class="env-dot" style="--env-c: var(--tag-alizarin)"></span><span class="env-name">Production</span><svg aria-hidden="true" class="ico env-check"><use href="#i-check"/></svg></button><button type="button" role="menuitemradio" aria-checked="false" data-env="local" data-color=""><span class="env-dot-slot"></span><span class="env-name">Local mock</span><svg aria-hidden="true" class="ico env-check"><use href="#i-check"/></svg></button></div>
+        </div>
+      </div>
+
+      <!-- request line -->
+      <div class="request-line">
+        <div class="url-field">
+          <div class="method-wrap">
+            <button type="button" class="method-btn m-POST" aria-label="Method: POST" aria-haspopup="menu" aria-expanded="false" data-method-btn>POST</button>
+            <div class="menu method-menu" role="menu" aria-label="Method" hidden><button type="button" role="menuitemradio" class="m-GET" aria-checked="false" data-method="GET">GET</button><button type="button" role="menuitemradio" class="m-POST" aria-checked="true" data-method="POST">POST</button><button type="button" role="menuitemradio" class="m-PUT" aria-checked="false" data-method="PUT">PUT</button><button type="button" role="menuitemradio" class="m-PATCH" aria-checked="false" data-method="PATCH">PATCH</button><button type="button" role="menuitemradio" class="m-DELETE" aria-checked="false" data-method="DELETE">DELETE</button><button type="button" role="menuitemradio" class="m-HEAD" aria-checked="false" data-method="HEAD">HEAD</button><button type="button" role="menuitemradio" class="m-OPTIONS" aria-checked="false" data-method="OPTIONS">OPTIONS</button><hr><button type="button" role="menuitemradio" class="m-GRPC" aria-checked="false" data-method="GRPC">gRPC</button></div>
+          </div>
+
+          <input aria-label="URL" value="{{baseUrl}}/v1/customers">
+
+        </div>
+        <div class="joined send-group">
+          <button type="button" class="btn btn--primary">Send</button>
+          <button type="button" class="btn btn--primary joined-tail" aria-label="More send options" aria-haspopup="menu" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-chevron-down"/></svg></button>
+
+        </div>
+
+        <div class="joined">
+          <button type="button" class="btn">Save</button>
+          <span class="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg></span>
+
+        </div>
+      </div>
+      <div class="req-title">
+        <span class="name">Create customer</span>
+
+        <span class="path">trx-service / Customers</span>
+
+      </div>
+
+      <nav class="subtabs" aria-label="Request">
+        <button type="button" class="subtab" aria-pressed="false">Params </button>
+        <button type="button" class="subtab" aria-pressed="true">Body <span class="n">1</span></button>
+        <button type="button" class="subtab">Headers <span class="n">2</span></button>
+        <button type="button" class="subtab">Auth</button>
+        <button type="button" class="icon-btn push" title="Copy as cURL" aria-label="Copy as cURL"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg></button>
+      </nav>
+
+      <!-- body editor -->
+      <div class="section" style="flex:1">
+        <div class="modes" role="group" aria-label="Body type">
+          <button type="button" class="mode">none</button>
+          <button type="button" class="mode" aria-pressed="true">json</button>
+          <button type="button" class="mode">text</button>
+          <button type="button" class="mode">xml</button>
+          <button type="button" class="mode">x-www-form-urlencoded</button>
+          <button type="button" class="mode">form-data</button>
+        </div>
+        <div class="editor">
+        <div class="editor-bar"><button type="button" class="btn btn--quiet"><svg aria-hidden="true" class="ico"><use href="#i-wand-sparkles"/></svg>Beautify</button></div>
+        <pre class="code" aria-label="Request body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"metadata"</span><span class="j-p">: {</span> <span class="j-key">"source"</span><span class="j-p">:</span> <span class="j-str">"{{$guid}}"</span> <span class="j-p">}</span></span><span class="l"><span class="j-p">}</span></span></pre>
+        </div>
+      </div>
+
+      <!-- params editor -->
+
+      <!-- empty body section for history/error screens -->
+
+      <div class="divider" role="separator" aria-orientation="horizontal" aria-label="Resize panes"></div>
+
+      <!-- response -->
+      <section class="response" aria-label="Response">
+
+        <nav class="subtabs" aria-label="Response">
+          <button type="button" class="subtab" aria-pressed="true">Body</button>
+          <button type="button" class="subtab">Headers <span class="n">9</span></button>
+          <span class="push meta"><span class="ok">201 Created</span><span class="dim">142 ms</span><span class="dim">412&nbsp;B</span><span class="dim">HTTP/2</span></span>
+
+        </nav>
+        <div class="res-tools">
+          <div class="seg" role="group" aria-label="View"><button type="button" aria-pressed="true">Pretty</button><button type="button" aria-pressed="false">Raw</button><button type="button" aria-pressed="false">Table</button></div>
+          <span class="push"></span>
+          <button type="button" class="icon-btn" style="margin-left:auto" title="Save as example" aria-label="Save as example"><svg aria-hidden="true" class="ico"><use href="#i-bookmark-plus"/></svg></button>
+          <button type="button" class="icon-btn" title="Copy response" aria-label="Copy response"><svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg></button>
+        </div>
+        <div class="res-body">
+          <pre class="code" aria-label="Response body"><span class="l"><span class="j-p">{</span></span><span class="l"><span class="ind">  </span><span class="j-key">"id"</span><span class="j-p">:</span> <span class="j-str">"cus_8f2c41"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"object"</span><span class="j-p">:</span> <span class="j-str">"customer"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"email"</span><span class="j-p">:</span> <span class="j-str">"ada@example.com"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"name"</span><span class="j-p">:</span> <span class="j-str">"Ada Lovelace"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"currency"</span><span class="j-p">:</span> <span class="j-str">"EUR"</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"balance"</span><span class="j-p">:</span> <span class="j-num">0</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"delinquent"</span><span class="j-p">:</span> <span class="j-bool">false</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"deleted_at"</span><span class="j-p">:</span> <span class="j-null">null</span><span class="j-p">,</span></span><span class="l"><span class="ind">  </span><span class="j-key">"created"</span><span class="j-p">:</span> <span class="j-num">1794470400</span></span><span class="l"><span class="j-p">}</span></span></pre>
+
+          <div class="res-filter">
+            <span class="rf-icon"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg></span>
+
+            <input type="text" class="rf-input" aria-label="Filter response" placeholder="Search, or filter with $.path" spellcheck="false" data-filter>
+            <kbd>⌘F</kbd>
+
+            <button type="button" class="icon-btn" title="Filter syntax" aria-label="Filter syntax" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-circle-help"/></svg></button>
+
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+  <!-- ===== Home: projects and what you did with them; every figure comes from local history ===== -->
+
+</div>
+
+<!-- ===== dialogs ===== -->
+
+</div>
+
+<script>
+  // Theme: Auto/Light/Dark plus a colour scheme per appearance. The bar's Light/Dark stands in for the Mac's appearance.
+  {
+    const { SCHEMES, tokens, isDark, swatch } = window.VoidThemes;
+    const BUILTIN = { "void-light": ["#ffffff", "#01804a", "#c74200", "#2e67e5", "#d00000"], "void-dark": ["#161b25", "#01bf71", "#ff7a33", "#4f85fc", "#ff5c5c"] };
+    const q = new URLSearchParams(location.search);
+    const st = { mode: q.get("mode") || "auto", light: q.get("light") || "void-light", dark: q.get("dark") || "void-dark", os: "light" };
+    const opts = `<optgroup label="voidHTTP"><option value="void-light">voidHTTP Light</option><option value="void-dark">voidHTTP Dark</option></optgroup>` +
+      [...new Set(SCHEMES.map((x) => x.family))].map((f) => `<optgroup label="${f}">${SCHEMES.filter((x) => x.family === f).map((x) => `<option value="${x.id}">${x.name}</option>`).join("")}</optgroup>`).join("");
+    const sels = document.querySelectorAll("[data-scheme]");
+    sels.forEach((sel) => { sel.innerHTML = opts; sel.addEventListener("change", () => { st[sel.dataset.scheme === "one" ? st.mode : sel.dataset.scheme] = sel.value; apply(); }); });
+    const dotsFor = (id) => BUILTIN[id] || swatch(SCHEMES.find((x) => x.id === id));
+    let set = [];
+    function apply() {
+      const root = document.documentElement;
+      const look = st.mode === "auto" ? st.os : st.mode;
+      const id = st[look];
+      set.forEach((k) => root.style.removeProperty(k)); set = [];
+      const sc = SCHEMES.find((x) => x.id === id);
+      root.dataset.theme = sc ? (isDark(sc) ? "dark" : "light") : id === "void-dark" ? "dark" : "light";
+      if (sc) Object.entries(tokens(sc)).forEach(([k, v]) => { root.style.setProperty(k, v); set.push(k); });
+      // rows: both slots under Auto, one under Light or Dark
+      const auto = st.mode === "auto";
+      document.querySelectorAll("[data-scheme-row]").forEach((row) => {
+        const slot = row.dataset.schemeRow;
+        row.hidden = !auto && slot !== st.mode;
+        if (row.hidden) return;
+        const key = auto ? slot : st.mode;
+        row.querySelector("[data-scheme-label]").textContent = auto ? (slot === "light" ? "Light theme" : "Dark theme") : "Color scheme";
+        row.querySelector("[data-scheme-desc]").textContent = auto ? `Used while your Mac is ${slot}` : "Any scheme, light or dark";
+        const sel = row.querySelector("select"); sel.value = st[key]; sel.dataset.scheme = auto ? slot : "one";
+        const [bg, ...dots] = dotsFor(st[key]);
+        const d = row.querySelector(".scheme-dots"); d.style.background = bg; d.innerHTML = dots.map((c) => `<i style="background:${c}"></i>`).join("");
+      });
+      document.querySelectorAll("[data-set-theme]").forEach((x) => x.setAttribute("aria-pressed", String((x.dataset.setTheme || "auto") === st.mode)));
+      document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.themeSet === st.os)));
+    }
+    document.querySelectorAll("[data-set-theme]").forEach((b) => b.addEventListener("click", () => { st.mode = b.dataset.setTheme || "auto"; apply(); }));
+    document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => { st.os = b.dataset.themeSet; apply(); }));
+    window.pvApply = apply;
+    apply();
+  }
+  document.querySelectorAll("[data-font], [data-size]").forEach((sel) => sel.addEventListener("change", () => {
+    const prop = sel.dataset.font || sel.dataset.size;
+    if (sel.value) document.documentElement.style.setProperty(prop, sel.value); else document.documentElement.style.removeProperty(prop);
+    if (sel.dataset.size) document.documentElement.style.setProperty("--font-size-code", sel.value ? `calc(${sel.value} - 1px)` : "");
+  }));
+  // Address bar: {{var}} and :param tokens painted on a layer behind a transparent-text input
+  {
+    const SCOPE = { baseUrl: ["https://api.amarbank.dev", "Staging"], pageSize: ["20", "Collection · trx-service"] };
+    const TOKEN = /(\{\{\s*[^{}]+?\s*\}\})|((?<=\/):[A-Za-z_][\w-]*)|([?&=])/g;
+    const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    const scope = () => (SCOPE);
+    const paint = (v) => {
+      let out = "", last = 0, inQuery = false;
+      for (const m of v.matchAll(TOKEN)) {
+        out += esc(v.slice(last, m.index)); last = m.index + m[0].length;
+        if (m[1]) {
+          const name = m[1].slice(2, -2).trim();
+          const ok = name in scope() || name.startsWith("$");
+          out += `<span class="tok-var${ok ? "" : " is-missing"}" data-var="${esc(name)}"><i>{{</i>${esc(m[1].slice(2, -2))}<i>}}</i></span>`;
+        } else if (m[2] && !inQuery) out += `<span class="tok-path" data-path="${esc(m[2].slice(1))}">${esc(m[2])}</span>`;
+        else { if (m[3] === "?") inQuery = true; out += inQuery ? `<span class="tok-q">${esc(m[0])}</span>` : esc(m[0]); }
+      }
+      return out + esc(v.slice(last));
+    };
+    document.querySelectorAll('.url-field input[aria-label="URL"]').forEach((input) => {
+      const wrap = document.createElement("div"); wrap.className = "url-input";
+      if (input.hidden) wrap.dataset.mirrorHidden = "";
+      input.replaceWith(wrap);
+      const hl = document.createElement("div"); hl.className = "url-hl"; hl.setAttribute("aria-hidden", "true");
+      wrap.append(hl, input);
+      const tip = document.createElement("div"); tip.className = "url-tip"; tip.hidden = true; wrap.append(tip);
+      const sync = () => { hl.innerHTML = `<span class="url-hl-in">${paint(input.value)} </span>`; hl.firstChild.style.transform = `translateX(${-input.scrollLeft}px)`; wrap.hidden = input.hidden; };
+      ["input", "scroll", "keyup", "select", "focus"].forEach((ev) => input.addEventListener(ev, sync));
+      new MutationObserver(sync).observe(input, { attributes: true, attributeFilter: ["hidden"] });
+      sync();
+      const show = (span) => {
+        const s = scope();
+        if (span.dataset.var) {
+          const n = span.dataset.var, hit = s[n];
+          tip.innerHTML = hit
+            ? `<span class="tip-k">${esc(n)}</span><code>${esc(hit[0])}</code><span class="tip-src">${esc(hit[1])}</span>`
+            : n.startsWith("$") ? `<span class="tip-k">${esc(n)}</span><span class="tip-src">Dynamic · new value on every send</span>`
+            : `<span class="tip-k is-missing">${esc(n)}</span><span class="tip-src">Not defined in Staging or the collection</span><button type="button" class="tip-link">Add to Staging</button>`;
+        } else {
+          tip.innerHTML = `<span class="tip-k is-path">:${esc(span.dataset.path)}</span><span class="tip-src">Path variable · set it in Params</span>`;
+        }
+        const r = span.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+        tip.style.left = `${Math.max(0, r.left - w.left)}px`; tip.hidden = false;
+      };
+      let over = null;
+      wrap.addEventListener("mousemove", (e) => {
+        const span = [...hl.querySelectorAll(".tok-var, .tok-path")].find((x) => { const r = x.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top - 4 && e.clientY <= r.bottom + 4; });
+        if (span === over) return; over = span;
+        input.style.cursor = span ? "help" : "";
+        if (span) show(span); else if (!tip.matches(":hover")) tip.hidden = true;
+      });
+      wrap.addEventListener("mouseleave", () => { over = null; tip.hidden = true; });
+    });
+  }
+  // Layout: stacked or side by side; the bar buttons and the tabs-bar toggle both drive it
+  {
+    const app = document.querySelector(".pv-stage .app");
+    const tgl = document.querySelector(".layout-toggle");
+    const setLayout = (v) => {
+      if (v) app.dataset.variant = v; else delete app.dataset.variant;
+      document.querySelectorAll("[data-layout-set]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.layoutSet === (v || ""))));
+      tgl.setAttribute("aria-label", v ? "Stacked" : "Side by side");
+      tgl.title = v ? "Response below the request" : "Response beside the request";
+      tgl.querySelector("use").setAttribute("href", v ? "#i-rows-2" : "#i-columns-2");
+    };
+    document.querySelectorAll("[data-layout-set]").forEach((b) => b.addEventListener("click", () => setLayout(b.dataset.layoutSet)));
+    tgl.addEventListener("click", () => setLayout(app.dataset.variant ? "" : "split"));
+    if (new URLSearchParams(location.search).get("layout") === "split" || /split/.test(location.hash)) setLayout("split");
+  }
+  // Method menu (shipped): our own menu in place of the native select
+  {
+    const btn = document.querySelector("[data-method-btn]");
+    const menu = btn.nextElementSibling;
+    const show = (on) => { menu.hidden = !on; btn.setAttribute("aria-expanded", String(on)); if (on) menu.querySelector('[aria-checked="true"]')?.focus(); };
+    const set = (m) => {
+      btn.textContent = m === "GRPC" ? "gRPC" : m; btn.className = `method-btn m-${m}`; btn.setAttribute("aria-label", `Method: ${m}`);
+      menu.querySelectorAll("[data-method]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.method === m)));
+      show(false);
+    };
+    btn.addEventListener("click", () => show(menu.hidden));
+    menu.querySelectorAll("[data-method]").forEach((b) => b.addEventListener("click", () => set(b.dataset.method)));
+    menu.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { show(false); btn.focus(); }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        const all = [...menu.querySelectorAll("button")]; const i = all.indexOf(document.activeElement);
+        all[(i + (e.key === "ArrowDown" ? 1 : all.length - 1)) % all.length].focus(); e.preventDefault();
+      }
+    });
+    document.addEventListener("mousedown", (e) => { if (!menu.hidden && !e.target.closest(".method-wrap")) show(false); });
+    if (/method/.test(location.hash)) show(true);
+  }
+  // Environment menu (new): dot + name in both densities; our own menu with each environment's colour
+  {
+    const btn = document.querySelector("[data-env-btn]");
+    const menu = document.querySelector(".env-menu");
+    const show = (on) => { menu.hidden = !on; btn.setAttribute("aria-expanded", String(on)); if (on) menu.querySelector('[aria-checked="true"]')?.focus(); };
+    const set = (b) => {
+      const c = b.dataset.color, name = b.dataset.env ? b.querySelector(".env-name").textContent : "No environment";
+      if (c) btn.style.setProperty("--env-c", `var(--tag-${c})`); else btn.style.removeProperty("--env-c");
+      btn.querySelector(".env-dot").hidden = !c;
+      btn.querySelector(".env-name").textContent = name; btn.setAttribute("aria-label", `Environment: ${name}`);
+      menu.querySelectorAll("[data-env]").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+      show(false); btn.focus();
+    };
+    btn.addEventListener("click", () => show(menu.hidden));
+    menu.querySelectorAll("[data-env]").forEach((b) => b.addEventListener("click", () => set(b)));
+    menu.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { show(false); btn.focus(); }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        const all = [...menu.querySelectorAll("button")]; const i = all.indexOf(document.activeElement);
+        all[(i + (e.key === "ArrowDown" ? 1 : all.length - 1)) % all.length].focus(); e.preventDefault();
+      }
+    });
+    document.addEventListener("mousedown", (e) => { if (!menu.hidden && !e.target.closest(".env-group")) show(false); });
+    if (/env/.test(location.hash)) show(true);
+  }
+  // Compact mode (shipped): the bar's Default/Compact sets the same attribute on <html> as Settings does in the app
+  {
+    const root = document.documentElement;
+    const setDensity = (d) => {
+      if (d) root.dataset.density = d; else delete root.dataset.density;
+      document.querySelectorAll("[data-density-set]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.densitySet === (d || ""))));
+    };
+    document.querySelectorAll("[data-density-set]").forEach((b) => b.addEventListener("click", () => setDensity(b.dataset.densitySet)));
+    if (new URLSearchParams(location.search).get("density") === "compact" || /compact/.test(location.hash)) setDensity("compact");
+  }
+  if (new URLSearchParams(location.search).get("theme") === "dark") document.querySelector('[data-theme-set="dark"]').click();
+</script>
+
+<!-- ===== tab menu (new): right-click any request tab; same .menu.row-menu surface as the tree's "…" menu, opened at the pointer ===== -->
+<div class="menu row-menu tab-menu" role="menu" aria-label="Tab actions" data-tab-menu tabindex="-1" hidden></div>
+
+<!-- after a close that took more than one tab: the app's toast with Undo (same as Import) -->
+<div class="xf-toast" role="status" data-toast hidden>
+  <svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg>
+  <span data-toast-msg></span>
+  <button type="button" class="btn btn--quiet" data-undo><svg aria-hidden="true" class="ico"><use href="#i-undo-2"/></svg>Undo</button>
+  <button type="button" class="icon-btn" aria-label="Dismiss" data-dismiss><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button>
+</div>
+
+<script>
+  // Tab strip (new): live in the preview. Right-click a tab, pin/unpin, close others / to the right / to the left, Undo.
+  {
+    const LABEL = { DELETE: "DEL", OPTIONS: "OPT", GRPC: "gRPC" };
+    const T = (m, name, extra = {}) => ({ id: Math.random().toString(36).slice(2, 8), m, name, ...extra });
+    const SETS = {
+      few: () => [
+        T("POST", "Create customer"),
+        T("GET", "List customers", { active: true }),
+        T("DELETE", "Delete customer", { dirty: true }),
+        T("PATCH", "Update customer"),
+        T("GET", "Get transaction history by account number and date range", { url: "{{baseUrl}}/v1/accounts/:accountNo/transactions?from=&to=" }),
+        T("POST", "Get access token", { pinned: true }),
+        T("POST", "Refresh access token for Centralized Login", { pinned: true, url: "{{loginUrl}}/oauth2/token" }),
+      ],
+      many: () => [
+        T("POST", "Create customer"), T("GET", "List customers"), T("DELETE", "Delete customer", { dirty: true }), T("PATCH", "Update customer"),
+        T("GET", "Get transaction history by account number and date range"), T("POST", "Send OTP"), T("PUT", "Replace address", { active: true }), T("GET", "List accounts"),
+        T("POST", "Transfer funds", { dirty: true }), T("GET", "Health check"), T("GET", "Exchange rates"), T("POST", "Verify KYC"),
+        T("POST", "Get access token", { pinned: true }), T("GRPC", "notification.NotificationService/WatchCustomerEvents", { pinned: true }),
+      ],
+    };
+
+    const box = document.querySelector("[data-tabs]");
+    const menu = document.querySelector("[data-tab-menu]");
+    const toast = document.querySelector("[data-toast]");
+    let tabs = [], active = null, undo = null, menuFor = null;
+    const ico = (id) => `<svg aria-hidden="true" class="ico"><use href="#${id}"/></svg>`;
+    const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+    // visual order: the pinned group, then unpinned tabs, then "+"
+    const order = () => [...tabs.filter((t) => t.pinned), ...tabs.filter((t) => !t.pinned)];
+
+    const tabHtml = (t) => `
+      <div class="tab${menuFor === t.id ? " menu-open" : ""}" data-id="${t.id}"${t.id === active ? ' aria-current="page"' : ""}>
+        <button type="button" class="tab-main" title="${esc(t.name)}&#10;${esc(t.url || "{{baseUrl}}/v1/customers")}">
+          <span class="m m-${t.m}">${LABEL[t.m] || t.m}</span><span class="name">${esc(t.name)}</span>${t.dirty ? '<span class="dirty" role="img" aria-label="Unsaved changes"></span>' : ""}
+        </button>
+        ${t.pinned
+          ? `<button type="button" class="icon-btn unpin" data-unpin aria-label="Unpin ${esc(t.name)}" title="Pinned · click to unpin">${ico("i-pin")}</button>`
+          : `<button type="button" class="icon-btn close" data-close aria-label="Close ${esc(t.name)}">${ico("i-x")}</button>`}
+      </div>`;
+
+    function render() {
+      const pins = tabs.filter((t) => t.pinned);
+      box.innerHTML =
+        (pins.length ? `<div class="tab-pins" role="group" aria-label="Pinned tabs">${pins.map(tabHtml).join("")}</div>` : "") +
+        tabs.filter((t) => !t.pinned).map(tabHtml).join("") +
+        `<button type="button" class="icon-btn tab-add" aria-label="New tab" title="New tab (⌘T)" data-add>${ico("i-plus")}</button>`;
+      const g = box.querySelector(".tab-pins");
+      box.style.setProperty("--pins-w", g ? `${g.offsetWidth}px` : "0px");
+      stuck();
+    }
+    // the group shows its edge only while tabs are actually scrolling under it
+    function stuck() {
+      const g = box.querySelector(".tab-pins");
+      if (g) g.classList.toggle("is-stuck", box.scrollLeft > 0);
+    }
+    box.addEventListener("scroll", () => { stuck(); hideMenu(); });
+    // no scrollbar on the strip: a plain mouse wheel (vertical) scrolls it sideways; trackpads already scroll it
+    box.addEventListener("wheel", (e) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || box.scrollWidth <= box.clientWidth) return;
+      e.preventDefault(); box.scrollLeft += e.deltaY;
+    }, { passive: false });
+    window.addEventListener("resize", () => { stuck(); hideMenu(); });
+
+    const byId = (id) => tabs.find((t) => t.id === id);
+    const snapshot = () => ({ tabs: tabs.map((t) => ({ ...t })), active });
+
+    function closeIds(ids, keep) {
+      if (!ids.length) return;
+      const before = snapshot();
+      const vis = order().map((t) => t.id);
+      const idx = vis.indexOf(active);
+      tabs = tabs.filter((t) => !ids.includes(t.id));
+      if (!byId(active)) {
+        // a bulk close lands on the tab you right-clicked; a single close on its neighbour, like ⌘W
+        const left = order();
+        active = keep && byId(keep) ? keep : (left[Math.min(idx, left.length - 1)]?.id ?? null);
+      }
+      if (!tabs.length) { const t = T("GET", "Untitled request"); tabs = [t]; active = t.id; }
+      if (ids.length > 1) showToast(`Closed ${ids.length} tabs`, before); else hideToast();
+      render();
+    }
+    function setPinned(id, on) {
+      const t = byId(id); if (!t) return;
+      t.pinned = on;
+      // both land on the seam: pinning puts it at the right end of the pins, unpinning first after them
+      tabs = [...tabs.filter((x) => x.pinned && x !== t), t, ...tabs.filter((x) => !x.pinned && x !== t)];
+      render();
+    }
+
+    // ---------- the menu ----------
+    function items(id) {
+      const t = byId(id), vis = order(), i = vis.findIndex((x) => x.id === id);
+      const others = vis.filter((x) => x.id !== id && !x.pinned).map((x) => x.id);
+      const right = vis.slice(i + 1).filter((x) => !x.pinned).map((x) => x.id);
+      const left = vis.slice(0, i).filter((x) => !x.pinned).map((x) => x.id);
+      return [
+        t.pinned
+          ? { label: "Unpin tab", icon: "i-pin-off", run: () => setPinned(id, false) }
+          : { label: "Pin tab", icon: "i-pin", run: () => setPinned(id, true) },
+        "sep",
+        { label: "Close tab", icon: "i-x", kbd: t.pinned ? "" : "⌘W", run: () => closeIds([id]) },
+        { label: "Close other tabs", icon: "i-copy-x", off: !others.length, run: () => closeIds(others, id) },
+        { label: "Close tabs to the right", icon: "i-arrow-right-to-line", off: !right.length, run: () => closeIds(right, id) },
+        { label: "Close tabs to the left", icon: "i-arrow-left-to-line", off: !left.length, run: () => closeIds(left, id) },
+      ];
+    }
+    function showMenu(id, x, y) {
+      menuFor = id; render();
+      const list = items(id);
+      menu.innerHTML = list.map((it, n) => it === "sep" ? "<hr>" :
+        `<button type="button" role="menuitem" data-n="${n}"${it.off ? " disabled" : ""}>${ico(it.icon)}${it.label}${it.kbd ? `<kbd>${it.kbd}</kbd>` : ""}</button>`).join("");
+      menu.querySelectorAll("[data-n]").forEach((b) => b.addEventListener("click", () => { const it = list[+b.dataset.n]; hideMenu(); it.run(); }));
+      menu.hidden = false;
+      const m = menu.getBoundingClientRect();
+      // at the pointer, flipped up or left when it would run off the window (RowMenu does the same)
+      menu.style.top = `${y + m.height > innerHeight - 8 ? Math.max(8, y - m.height) : y}px`;
+      menu.style.left = `${x + m.width > innerWidth - 8 ? Math.max(8, x - m.width) : x}px`;
+      // opened by the mouse: focus the menu itself (no ring on an item); ↓/↑ then walk the items
+      menu.focus();
+    }
+    function hideMenu() {
+      if (menu.hidden) return;
+      menu.hidden = true; menuFor = null; render();
+    }
+    menu.addEventListener("keydown", (e) => {
+      const all = [...menu.querySelectorAll("button:not(:disabled)")];
+      const i = all.indexOf(document.activeElement);
+      if (e.key === "Escape") { e.preventDefault(); hideMenu(); }
+      else if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); all[i < 0 ? (e.key === "ArrowDown" ? 0 : all.length - 1) : (i + (e.key === "ArrowDown" ? 1 : all.length - 1)) % all.length]?.focus(); }
+      else if (e.key === "Tab") hideMenu();
+    });
+    document.addEventListener("mousedown", (e) => { if (!menu.hidden && !menu.contains(e.target)) hideMenu(); });
+
+    // ---------- strip events ----------
+    box.addEventListener("click", (e) => {
+      const tab = e.target.closest(".tab");
+      if (e.target.closest("[data-add]")) {
+        const t = T("GET", "Untitled request");
+        tabs.push(t);
+        active = t.id; render(); return;
+      }
+      if (!tab) return;
+      const id = tab.dataset.id;
+      if (e.target.closest("[data-close]")) return closeIds([id]);
+      if (e.target.closest("[data-unpin]")) return setPinned(id, false);
+      active = id; render();
+    });
+    // middle-click closes a normal tab; a pinned tab ignores it (and ⌘W), so it can't go by accident
+    box.addEventListener("auxclick", (e) => { const tab = e.target.closest(".tab"); if (e.button === 1 && tab && !byId(tab.dataset.id).pinned) closeIds([tab.dataset.id]); });
+    box.addEventListener("contextmenu", (e) => {
+      const tab = e.target.closest(".tab"); if (!tab) return;
+      e.preventDefault(); showMenu(tab.dataset.id, e.clientX, e.clientY);
+    });
+
+    // ---------- toast ----------
+    function showToast(msg, before) {
+      undo = before; toast.querySelector("[data-toast-msg]").textContent = msg; toast.hidden = false;
+    }
+    function hideToast() { toast.hidden = true; undo = null; }
+    toast.querySelector("[data-undo]").addEventListener("click", () => { if (undo) { tabs = undo.tabs; active = undo.active; } hideToast(); render(); });
+    toast.querySelector("[data-dismiss]").addEventListener("click", hideToast);
+
+    // ---------- preview: screens ----------
+    function load(set) { tabs = SETS[set](); active = tabs.find((t) => t.active)?.id ?? tabs[0].id; tabs.forEach((t) => delete t.active); hideToast(); hideMenu(); render(); }
+    const at = (name) => { const el = [...box.querySelectorAll(".tab")].find((x) => x.querySelector(".name").textContent === name); const r = el.getBoundingClientRect(); return [el.dataset.id, r.left + 28, r.bottom - 8]; };
+    const SCREENS = {
+      reset: () => load("few"),
+      menu: () => { load("few"); showMenu(...at("Delete customer")); },
+      pinned: () => { load("few"); showMenu(...at("Get access token")); },
+      scroll: () => { load("many"); box.scrollLeft = Math.round((box.scrollWidth - box.clientWidth) * 0.55); stuck(); },
+      closed: () => { load("few"); const id = at("List customers")[0]; items(id)[3].run(); },
+    };
+    function show(s) {
+      if (!SCREENS[s]) s = "menu";
+      document.querySelectorAll("[data-show]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.show === s)));
+      history.replaceState(null, "", `#${s}`);
+      requestAnimationFrame(() => SCREENS[s]());
+    }
+    document.querySelectorAll("[data-show]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); show(b.dataset.show); }));
+    // the bar's own mousedown would close a menu a screen button is about to open
+    document.querySelector(".pv-screens").addEventListener("mousedown", (e) => e.stopPropagation());
+    load("few");
+    show(location.hash.slice(1));
+  }
+</script>
+</body>
+</html>

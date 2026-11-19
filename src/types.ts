@@ -27,6 +27,8 @@ export interface RequestDef {
   /** The URL; for gRPC the server address, host:port; for WebSocket a ws:// or wss:// URL; for Kafka the bootstrap brokers; for MQTT the broker, mqtt:// mqtts:// ws:// or wss://; for Pub/Sub the Google Cloud project ID. */
   url: string;
   params: KV[];
+  /** HTTP: values for the URL path's `:name` segments, one row per name in URL order. Left out when the URL has none. */
+  pathVars?: KV[];
   /** HTTP headers; for gRPC the request metadata; for Kafka the produced record's headers; for MQTT 5 the published message's user properties; for Pub/Sub the published message's attributes. */
   headers: KV[];
   /** For gRPC, `raw` holds the request message as JSON; for WebSocket, the next message to send; for Socket.IO, the next emit's argument; for Kafka, the next produced record's value; for MQTT, the next published payload; for Pub/Sub, the next published message's data. */
@@ -639,6 +641,9 @@ export interface Tab {
   dirty: boolean;
   /** The tab shows a saved example: read-only, no Send. */
   example?: ExampleRef;
+  /** Pinned: sits in the group at the left of the strip, which never scrolls away.
+   * ⌘W, middle-click and the bulk closes (other / to the right / to the left) leave it open. */
+  pinned?: boolean;
   // runtime only (not persisted)
   inflightId?: string;
   response?: HttpResponse;

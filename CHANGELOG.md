@@ -2,6 +2,17 @@
 
 All notable changes to voidHTTP are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Path variables.** A `:name` segment in an HTTP or GraphQL URL path (`/realms/:realm/token`) gets a row under Path variables in the Params tab, where you fill in its value; `{{variables}}` work there. The value goes into the URL when the request is sent and in Copy as cURL. In the address bar, a path variable with no value is underlined in red like an unknown `{{variable}}`, and its tooltip has a Set in Params link; one with a value shows the value. Postman collections bring their path variable values in and take them out again, and OpenAPI path parameters that fill a whole segment import as path variables.
+- **Tab menu and pinned tabs.** Right-click a request tab for Pin tab, Close tab, Close other tabs, Close tabs to the right and Close tabs to the left. Pinned tabs sit at the left of the tab strip and stay there while the other tabs scroll; ⌘W, middle-click and the bulk closes leave them open, and clicking a pinned tab's pin unpins it. Closing several tabs at once shows a toast with Undo. Pins are kept with the session.
+
+### Changed
+
+- Request tabs are at most 200px wide. When the strip is crowded, every tab shrinks down to 120px and long names end in "…", with the full name and URL in the tooltip; the strip no longer shows a scrollbar, and a mouse wheel scrolls it sideways.
+
 ## [0.1.7] - 2026-11-19
 
 ### Added

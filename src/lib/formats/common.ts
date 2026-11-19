@@ -336,6 +336,7 @@ export function scrubRequest<T extends RequestDef>(r: T): T {
     auth,
     headers: blankSecretKv(r.headers),
     params,
+    ...(r.pathVars && { pathVars: blankSecretKv(r.pathVars) }),
     body: {
       ...r.body,
       raw:
@@ -561,7 +562,7 @@ export function secretVarNames(c: Collection, ...layers: KV[][]): Set<string> {
     // a user name with no real password is the credential itself (`curl -u sk_live_…:`, `token:x-oauth-basic`)
     if (r.auth.type === "basic" && userIsKey(r.auth.password)) take(r.auth.username);
     take(a.value);
-    for (const row of [...r.headers, ...r.params, ...r.body.form, ...r.body.multipart]) if (isSecretKey(row.key)) take(row.value);
+    for (const row of [...r.headers, ...r.params, ...(r.pathVars ?? []), ...r.body.form, ...r.body.multipart]) if (isSecretKey(row.key)) take(row.value);
     // the URL's own query, which the params table may not list in full
     for (const p of parseQuery(r.url)) if (isSecretKey(p.key)) take(p.value);
     const cred = credentialsOf(r.url);

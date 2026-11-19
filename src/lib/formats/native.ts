@@ -252,6 +252,7 @@ function sane(n: Any): TreeNode | null {
     method: text(n.method, base.method),
     url: text(n.url),
     params: rows(n.params),
+    pathVars: Array.isArray(n.pathVars) && n.pathVars.length ? rows(n.pathVars) : undefined,
     headers: rows(n.headers),
     body: {
       ...base.body,

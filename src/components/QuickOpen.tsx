@@ -189,7 +189,7 @@ export function QuickOpen({ actions, onClose }: { actions?: boolean; onClose: ()
         { group: "Request", icon: <Save {...ico} />, name: "Save as…", keys: KEYS.saveAs, run: act.saveAs, when: !!active && !active.example },
         { group: "Request", icon: <Link {...ico} />, name: "Go to URL", keys: KEYS.focusUrl, run: act.focusUrl, when: !!active },
         { group: "Tabs", icon: <Plus {...ico} />, name: "New tab", keys: KEYS.newTab, run: act.newTab },
-        { group: "Tabs", icon: <X {...ico} />, name: "Close tab", keys: KEYS.closeTab, run: act.closeTab, when: !!active },
+        { group: "Tabs", icon: <X {...ico} />, name: "Close tab", keys: KEYS.closeTab, run: act.closeTab, when: !!active && !active.pinned },
         { group: "Tabs", icon: <Undo2 {...ico} />, name: "Reopen closed tab", where: reopen, keys: KEYS.reopenTab, run: act.reopenTab, when: !!reopen },
         {
           group: "View",

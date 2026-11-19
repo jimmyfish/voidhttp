@@ -123,3 +123,47 @@ export function KVEditor<T extends Row>({ rows, onChange, nameLabel = "Name", va
     </table>
   );
 }
+
+/**
+ * Values for the URL path's `:name` segments. Rows come from the URL: names are read-only and
+ * there is no add or remove; renaming or removing one happens in the URL.
+ */
+export function PathVarsEditor({ rows, onChange }: { rows: KV[]; onChange: (rows: KV[]) => void }) {
+  return (
+    <table className="kv kv--path">
+      <thead>
+        <tr>
+          <th className="check">
+            <span className="visually-hidden">Enabled</span>
+          </th>
+          <th>Name</th>
+          <th>Value</th>
+          <th className="del">
+            <span className="visually-hidden">Remove</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={r.id} className={r.value ? "" : "is-missing"}>
+            <td className="check" />
+            <td>
+              <span className="kv-key">{r.key}</span>
+            </td>
+            <td>
+              <input
+                className="field"
+                spellCheck={false}
+                aria-label={`Value of :${r.key}`}
+                placeholder="Value"
+                value={r.value}
+                onChange={(e) => onChange(rows.map((x) => (x.id === r.id ? { ...x, value: e.target.value } : x)))}
+              />
+            </td>
+            <td className="del" />
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}

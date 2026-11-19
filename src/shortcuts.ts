@@ -177,9 +177,11 @@ export const act = {
   newTab() {
     useStore.getState().newTab();
   },
+  /** a pinned tab stays: only "Close tab" in its right-click menu closes it */
   closeTab() {
     const s = useStore.getState();
-    if (s.activeTabId) s.closeTab(s.activeTabId);
+    const t = s.tabs.find((x) => x.id === s.activeTabId);
+    if (t && !t.pinned) s.closeTab(t.id);
   },
   reopenTab() {
     useStore.getState().reopenTab();

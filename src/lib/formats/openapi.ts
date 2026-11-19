@@ -4,7 +4,7 @@
  * and response examples saved under their request. `$ref` is followed inside the file and into files beside it.
  */
 import type { Auth, Collection, Example, KV, MultipartField, RequestBody, RequestNode, TreeNode } from "../../types";
-import { kv, newRequest, toRequestDef, uid, urlWithParams } from "../model";
+import { kv, newRequest, pathVarNames, pathVarsFromUrl, toRequestDef, uid, urlWithParams } from "../model";
 import { parseDoc, requestsOf, type Any, type ImportPlan, type Note, type Source } from "./common";
 
 export interface OpenApiOptions {
@@ -261,7 +261,15 @@ function fromSwagger(doc: Any): Any {
 
 const METHODS = ["get", "put", "post", "delete", "options", "head", "patch", "trace"] as const;
 
-const pathToUrl = (path: string) => path.replace(/\{([^}]+)\}/g, "{{$1}}");
+/** `{id}` filling a whole segment becomes a `:id` path variable (Params tab); one inside a segment (`{id}.json`, `{a}-{b}`) a `{{variable}}`. */
+const pathToUrl = (path: string) =>
+  path
+    .split("/")
+    .map((seg) => {
+      const whole = /^\{([A-Za-z_][\w-]*)\}$/.exec(seg);
+      return whole ? `:${whole[1]}` : seg.replace(/\{([^}]+)\}/g, "{{$1}}");
+    })
+    .join("/");
 
 interface Build {
   ctx: Ctx;
@@ -440,10 +448,13 @@ export function buildOpenApi(spec: LoadedSpec, opts: OpenApiOptions): ImportPlan
       const query: KV[] = [];
       const headers: KV[] = [];
       const cookies: string[] = [];
+      const pathParams: KV[] = [];
+      const segVars = new Set(pathVarNames(pathToUrl(path)));
       for (const p of params.values()) {
         const value = paramValue(b.ctx, p, itemFile);
         if (p.in === "query") query.push(kv(String(p.name), value, !!p.required));
         else if (p.in === "header" && !/^(accept|content-type|authorization)$/i.test(p.name)) headers.push(kv(String(p.name), value, !!p.required));
+        else if (p.in === "path" && segVars.has(String(p.name))) pathParams.push(kv(String(p.name), value));
         else if (p.in === "path" && !b.vars.has(p.name)) b.vars.set(String(p.name), value);
         else if (p.in === "cookie") cookies.push(`${p.name}=${value}`);
       }
@@ -458,6 +469,7 @@ export function buildOpenApi(spec: LoadedSpec, opts: OpenApiOptions): ImportPlan
           method: m.toUpperCase(),
           url,
           params: query,
+          pathVars: pathVarsFromUrl(url, pathParams),
           headers,
           body,
           auth: buildAuth(b, doc, op),

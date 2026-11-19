@@ -1,0 +1,19 @@
+/* Hallmark · Path variables · preview of the styles that port into src/styles.css
+ * reuses app.css as is: .kv table, .field, .kv-note, .tok-path, .url-tip (+ .tip-link)
+ * new: a small heading over each table, a read-only name cell, and the empty-value state.
+ * No new colour tokens: an empty path variable uses --color-unresolved like an unresolved {{variable}}. */
+
+/* "Query params" / "Path variables" heads: only shown when the URL has a :name segment */
+.kv-h { margin: 0; color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; }
+.kv-h + .kv { margin-top: calc(-1 * var(--space-2xs)); }
+.kv + .kv-h { margin-top: var(--space-xs); }
+
+/* name comes from the URL: plain mono text at the same inset as a .field, not an input */
+.kv-key { display: block; padding: 0 var(--space-xs); font: var(--text-code) var(--font-mono); color: var(--m-patch); line-height: var(--control); }
+.kv--path tr.is-missing .kv-key { color: var(--color-unresolved); }
+
+/* address bar: a :name with no value reads like an unresolved {{variable}} */
+.tok-path.is-missing {
+  color: var(--color-unresolved); --tok-bg: color-mix(in srgb, var(--color-unresolved) 14%, transparent);
+  text-decoration: underline wavy var(--color-unresolved); text-underline-offset: 3px; text-decoration-thickness: 1px;
+}

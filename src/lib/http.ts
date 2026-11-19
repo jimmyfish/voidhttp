@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { HttpResponse, RequestDef, Settings } from "../types";
 import { resolve, type VarScope, resolveWithin } from "./vars";
-import { uid } from "./model";
+import { uid, withPathVars } from "./model";
 import { stripJsonComments } from "./jsonc";
 import { gqlAsHttp } from "./graphql";
 
@@ -39,7 +39,7 @@ export function prepare(request: RequestDef, scope: VarScope, budget?: number): 
   // `budget`: one allowance for the whole request when rendering a preview; left out (a send), each field gets the full one
   const shared = budget === undefined ? undefined : { left: budget };
   const r = (s: string) => (shared ? resolveWithin(s, scope, shared) : resolve(s, scope));
-  let url = r(req.url);
+  let url = r(withPathVars(req.url, req.pathVars));
   const headers: WireKV[] = req.headers
     .filter((h) => h.enabled && h.key)
     .map((h) => ({ key: r(h.key), value: r(h.value) }));

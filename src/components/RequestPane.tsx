@@ -1,17 +1,17 @@
 import { TitleName } from "./InlineRename";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Select } from "./Select";
 import { useStore } from "../store";
 import type { Auth, BodyMode, RequestDef, Tab } from "../types";
 import { capRequest } from "../lib/formats/common";
-import { findNode, paramsFromUrl, pathTo, urlWithParams } from "../lib/model";
+import { findNode, paramsFromUrl, pathTo, pathVarsFromUrl, urlWithParams } from "../lib/model";
 import { DYNAMIC, resolve, unresolved } from "../lib/vars";
 import { isSecretKey } from "../lib/mask";
 import { MethodMenu } from "./MethodMenu";
-import { UrlInput, type VarInfo } from "./UrlInput";
+import { UrlInput, type PathInfo, type VarInfo } from "./UrlInput";
 import { prepare } from "../lib/http";
 import { looksLikeCurl, parseCurl, toCurl } from "../lib/curl";
-import { KVEditor } from "./KVEditor";
+import { KVEditor, PathVarsEditor } from "./KVEditor";
 import { CodeArea } from "./CodeArea";
 import { formatJsonc, stripJsonComments } from "../lib/jsonc";
 import { ChevronDown, CircleCheck, CircleDashed, CircleDot, CodeXml, FileCode, SendHorizontal, SlidersHorizontal, WandSparkles, WrapText, ico, icoLg } from "./Icon";
@@ -101,6 +101,14 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
       onAdd: () => st.openModal({ kind: "environments", ...(target && { select: target.id, addVar: name }) }),
     };
   };
+
+  // rows for the URL's :name segments; derived, so a request saved before path variables existed gets them too
+  const pathRows = useMemo(() => pathVarsFromUrl(req.url, req.pathVars) ?? [], [req.url, req.pathVars]);
+  // the address bar's :name tooltip: the value from Params, or a link there when it has none
+  const pathLookup = (name: string): PathInfo => ({
+    value: pathRows.find((p) => p.key === name)?.value ?? "",
+    onSet: () => setSection("params"),
+  });
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -245,7 +253,7 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
     );
 
   const n = (count: number) => (count ? <span className="n">{count}</span> : null);
-  const enabledParams = req.params.filter((p) => p.enabled && p.key).length;
+  const enabledParams = req.params.filter((p) => p.enabled && p.key).length + pathRows.filter((p) => p.value).length;
   const enabledHeaders = req.headers.filter((h) => h.enabled && h.key).length;
 
   return (
@@ -268,13 +276,14 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
           </MethodMenu>
           <UrlInput
             lookup={lookup}
+            pathLookup={pathLookup}
             aria-label="URL"
             spellCheck={false}
             autoFocus={!ex}
             readOnly={!!ex}
             placeholder="https://api.example.com/users or {{baseUrl}}/users"
             value={req.url}
-            onChange={(e) => set({ url: e.target.value, params: paramsFromUrl(e.target.value, req.params) })}
+            onChange={(e) => set({ url: e.target.value, params: paramsFromUrl(e.target.value, req.params), pathVars: pathVarsFromUrl(e.target.value, req.pathVars) })}
             onPaste={(e) => {
               const text = e.clipboardData.getData("text");
               if (!ex && looksLikeGrpcurl(text)) {
@@ -282,14 +291,14 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
                 e.preventDefault();
                 const parsed = parseGrpcurl(text);
                 if (!parsed) return st.notify("Couldn’t find a server address in that grpcurl command");
-                set({ ...parsed.request, params: [] });
+                set({ ...parsed.request, params: [], pathVars: undefined });
                 return st.notify(["Imported from grpcurl", ...parsed.notes].join(" · "));
               }
               if (ex || !looksLikeCurl(text)) return;
               e.preventDefault();
               const parsed = parseCurl(text);
               if (!parsed) return st.notify("Couldn’t find a URL in that cURL command");
-              set(capRequest(parsed as RequestDef));
+              set({ ...capRequest(parsed as RequestDef), pathVars: pathVarsFromUrl(parsed.url) });
               if (parsed.body.mode !== "none") setSection("body");
               st.notify("Imported from cURL");
             }}
@@ -381,12 +390,27 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
 
       <div className="section">
         <fieldset className="ro" disabled={!!ex}>
-          {section === "params" && (
+          {section === "params" && !pathRows.length && (
             <KVEditor
               rows={req.params}
               addLabel="Add a param"
               onChange={(params) => set({ params, url: urlWithParams(req.url, params) })}
             />
+          )}
+          {section === "params" && pathRows.length > 0 && (
+            <>
+              <h4 className="kv-h">Query params</h4>
+              <KVEditor
+                rows={req.params}
+                addLabel="Add a param"
+                onChange={(params) => set({ params, url: urlWithParams(req.url, params) })}
+              />
+              <h4 className="kv-h">Path variables</h4>
+              <PathVarsEditor rows={pathRows} onChange={(pathVars) => set({ pathVars })} />
+              <p className="kv-note">
+                One row per <code>:name</code> in the URL path. Rename or remove it in the URL. Variables work in values.
+              </p>
+            </>
           )}
           {section === "headers" && <KVEditor rows={req.headers} nameLabel="Header" addLabel="Add a header" onChange={(headers) => set({ headers })} />}
           {section === "body" && <BodyEditor tab={tab} />}

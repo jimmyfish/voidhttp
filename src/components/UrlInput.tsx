@@ -6,6 +6,9 @@ export type VarInfo =
   | { kind: "dynamic" }
   | { kind: "missing"; addLabel: string; onAdd: () => void };
 
+/** What the address bar knows about one :path variable: its value from Params, and how to get there. */
+export type PathInfo = { value: string; onSet: () => void };
+
 type Tok = { t: "text" | "q"; s: string } | { t: "var"; s: string; name: string } | { t: "path"; s: string; name: string };
 
 // same name rule as VAR_RE in lib/vars.ts; a path variable is a ":name" segment before the query
@@ -36,6 +39,8 @@ export function tokenizeUrl(v: string): Tok[] {
 type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "value"> & {
   value: string;
   lookup: (name: string) => VarInfo;
+  /** Path variables with values (HTTP); without it a :name is shown as sent as typed. */
+  pathLookup?: (name: string) => PathInfo;
 };
 
 /**
@@ -45,7 +50,7 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "value"> & {
  * vertically: horizontal padding, borders or shadow spread would shift text off the caret or
  * paint over the neighbouring glyphs.
  */
-export function UrlInput({ value, lookup, ...input }: Props) {
+export function UrlInput({ value, lookup, pathLookup, ...input }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
   const field = useRef<HTMLInputElement>(null);
   const layer = useRef<HTMLSpanElement>(null);
@@ -88,7 +93,7 @@ export function UrlInput({ value, lookup, ...input }: Props) {
                 <i>{"}}"}</i>
               </span>
             ) : k.t === "path" ? (
-              <span key={i} data-i={i} className="tok-path">
+              <span key={i} data-i={i} className={pathLookup && !pathLookup(k.name).value ? "tok-path is-missing" : "tok-path"}>
                 {k.s}
               </span>
             ) : k.t === "q" ? (
@@ -113,16 +118,40 @@ export function UrlInput({ value, lookup, ...input }: Props) {
       {shown && (shown.t === "var" || shown.t === "path") && (
         <div className="url-tip" style={{ left: tip.left }}>
           {shown.t === "path" ? (
-            <>
-              <span className="tip-k is-path">{shown.s}</span>
-              <span className="tip-src">Path variable · sent as typed</span>
-            </>
+            <PathTip s={shown.s} info={pathLookup?.(shown.name)} />
           ) : (
             <VarTip name={shown.name} info={lookup(shown.name)} />
           )}
         </div>
       )}
     </div>
+  );
+}
+
+function PathTip({ s, info }: { s: string; info?: PathInfo }) {
+  if (!info)
+    return (
+      <>
+        <span className="tip-k is-path">{s}</span>
+        <span className="tip-src">Path variable · sent as typed</span>
+      </>
+    );
+  if (!info.value)
+    return (
+      <>
+        <span className="tip-k is-missing">{s}</span>
+        <span className="tip-src">No value · sent as typed</span>
+        <button type="button" className="tip-link" onClick={info.onSet}>
+          Set in Params
+        </button>
+      </>
+    );
+  return (
+    <>
+      <span className="tip-k is-path">{s}</span>
+      <code>{info.value}</code>
+      <span className="tip-src">Path variable · Params</span>
+    </>
   );
 }
 

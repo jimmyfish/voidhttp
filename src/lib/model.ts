@@ -27,8 +27,8 @@ export function cloneRequest(r: RequestDef): RequestDef {
 
 /** Strips tree-only fields so a node can be edited as a plain request. */
 export function toRequestDef(node: RequestDef): RequestDef {
-  const { id, name, method, url, params, headers, body, auth, grpc, ws, sio, kafka, mqtt, pubsub, gql, scripts } = node;
-  return cloneRequest({ id, name, method, url, params, headers, body, auth, ...(grpc && { grpc }), ...(ws && { ws }), ...(sio && { sio }), ...(kafka && { kafka }), ...(mqtt && { mqtt }), ...(pubsub && { pubsub }), ...(gql && { gql }), ...(scripts && { scripts }) });
+  const { id, name, method, url, params, pathVars, headers, body, auth, grpc, ws, sio, kafka, mqtt, pubsub, gql, scripts } = node;
+  return cloneRequest({ id, name, method, url, params, ...(pathVars && { pathVars }), headers, body, auth, ...(grpc && { grpc }), ...(ws && { ws }), ...(sio && { sio }), ...(kafka && { kafka }), ...(mqtt && { mqtt }), ...(pubsub && { pubsub }), ...(gql && { gql }), ...(scripts && { scripts }) });
 }
 
 // ---------- tree helpers (immutable) ----------
@@ -156,6 +156,48 @@ export function urlWithParams(url: string, params: KV[]): string {
     .map((p) => (p.value === "" ? p.key : `${p.key}=${p.value}`))
     .join("&");
   return base + (qs ? `?${qs}` : "") + hash;
+}
+
+// ---------- URL <-> path variables ----------
+
+/** A `:name` segment; same name rule as the address bar's tokenizer (UrlInput). */
+const PATH_VAR = /\/:([A-Za-z_][\w-]*)/g;
+
+/** The URL up to its query or fragment: path variables live only there. */
+function pathPart(url: string): string {
+  const end = url.search(/[?#]/);
+  return end === -1 ? url : url.slice(0, end);
+}
+
+/** The URL path's `:name` segments, in order, each name once. */
+export function pathVarNames(url: string): string[] {
+  return [...new Set(Array.from(pathPart(url).matchAll(PATH_VAR), (m) => m[1]))];
+}
+
+/**
+ * URL changed → one row per `:name`, undefined when there is none. Values follow their name;
+ * a renamed variable (its old name gone from the URL) keeps the value of the row in its place.
+ */
+export function pathVarsFromUrl(url: string, prev: KV[] = []): KV[] | undefined {
+  const names = pathVarNames(url);
+  if (!names.length) return undefined;
+  return names.map((name, i) => {
+    const same = prev.find((p) => p.key === name);
+    if (same) return same;
+    const old = prev[i];
+    return old && !names.includes(old.key) ? { ...old, key: name } : kv(name, "");
+  });
+}
+
+/** Fills each `:name` segment with its value; one without a value is sent as typed. Variables in values resolve later, with the rest of the URL. */
+export function withPathVars(url: string, vars: KV[] | undefined): string {
+  if (!vars?.length) return url;
+  const path = pathPart(url);
+  const filled = path.replace(PATH_VAR, (seg, name: string) => {
+    const v = vars.find((p) => p.key === name)?.value;
+    return v ? `/${v}` : seg;
+  });
+  return filled + url.slice(path.length);
 }
 
 export function formatBytes(n: number): string {

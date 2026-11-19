@@ -1,0 +1,52 @@
+/* Hallmark · preview: request-tab right-click menu + pinned tabs · ported to src/styles.css once approved */
+
+/* ---------- pinned tabs ----------
+ * Pinned tabs live in their own group at the start of the tab strip, before every other tab.
+ * The group is sticky to the strip's left edge, so it stays put while the rest scroll under it.
+ * .tabs drops its left padding when a group is there; the group carries it instead,
+ * so nothing peeks through a gap between the group and the strip's edge. */
+.tabs:has(.tab-pins) { padding-left: 0; scroll-padding-left: var(--pins-w, 0px); }
+.tab-pins {
+  position: sticky; left: 0; z-index: 1; display: flex; align-items: flex-end; gap: var(--space-2xs);
+  align-self: stretch; flex-shrink: 0; padding: 0 var(--space-md) 0 var(--space-sm);
+  /* paints over tabs scrolling underneath; keeps the strip's baseline rule */
+  background: var(--color-paper); box-shadow: inset 0 -1px 0 var(--color-rule);
+}
+/* the active pinned tab covers the baseline like any active tab */
+.tab-pins .tab[aria-current="page"] { z-index: 1; }
+/* stuck over scrolled tabs: a hairline and a soft shadow on its right edge */
+.tab-pins.is-stuck::after {
+  content: ""; position: absolute; right: 0; top: 8px; bottom: 9px; width: 1px; background: var(--color-rule);
+}
+.tab-pins.is-stuck { box-shadow: inset 0 -1px 0 var(--color-rule), 10px 0 12px -10px var(--color-shadow); }
+
+/* the strip scrolls (trackpad, shift+wheel, ⌘1–⌘9 bringing a tab in) but never shows a scrollbar */
+.tabs { scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+
+/* tab width, Chrome-style: a tab is at most 200px; when the strip is crowded every tab shrinks
+ * (names end in "…") down to 120px, and only then does the strip scroll. The tooltip carries the full name.
+ * 120px keeps the method, a few letters and the always-visible close button.
+ * Pinned tabs never shrink (their group never scrolls away); they stop at 160px so the group can't eat the strip. */
+.tab { flex: 0 1 auto; min-width: 120px; max-width: 200px; }
+.tab-main { flex: 1 1 auto; }
+.tab .close, .tab .unpin { flex-shrink: 0; }
+/* the method never squeezes: a shrinking tab gives up name letters, never the label (or the compact-mode dot) */
+.tab-main .m { flex-shrink: 0; }
+.tab-pins .tab { flex-shrink: 0; min-width: 0; max-width: 160px; }
+
+/* a pinned tab keeps its method + name; the pin replaces the close button (click to unpin) */
+.tab .unpin { display: inline-grid; min-width: 20px; min-height: 20px; border-radius: 6px; color: var(--color-muted); }
+.tab .unpin:hover { color: var(--color-ink); background: var(--color-paper-2); }
+.tab .unpin .ico { width: 14px; height: 14px; }
+
+/* a tab whose menu is open reads as pressed, like .row.menu-open in the tree */
+.tab.menu-open:not([aria-current="page"]) { color: var(--color-ink); isolation: isolate; }
+.tab.menu-open:not([aria-current="page"])::after { content: ""; position: absolute; inset: 3px 0 4px; z-index: -1; border-radius: 8px; background: var(--color-paper-3); }
+
+/* ---------- tab menu: the .menu.row-menu surface at the pointer ---------- */
+.tab-menu { position: fixed; right: auto; width: max-content; min-width: 232px; }
+.tab-menu:focus { outline: none; }
+.menu button:disabled { color: var(--color-muted); opacity: .5; cursor: default; }
+.menu button:disabled:hover { background: none; }
+.menu button kbd { margin-left: auto; padding: 0 5px; }

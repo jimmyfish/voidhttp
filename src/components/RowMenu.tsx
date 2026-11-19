@@ -1,6 +1,17 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-export type MenuItem = { label: string; icon: React.ReactNode; run: () => void; danger?: boolean } | "sep";
+export type MenuItem =
+  | {
+      label: string;
+      icon: React.ReactNode;
+      run: () => void;
+      danger?: boolean;
+      /** shown greyed out, e.g. "Close tabs to the right" on the last tab */
+      disabled?: boolean;
+      /** a shortcut hint at the row's right end */
+      kbd?: string;
+    }
+  | "sep";
 
 /** A row menu is closed (false), open from its "…" button (true), or open at the pointer after a right-click. */
 export type MenuState = boolean | { x: number; y: number };
@@ -48,7 +59,10 @@ export function RowMenu({
   }, [anchor, point?.x, point?.y]);
 
   useEffect(() => {
-    ref.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    // from the "…" button (keyboard or click) the first item takes focus; at the pointer the menu itself does,
+    // so a right-click shows no focus ring on an item. ↓/↑ walk the items either way.
+    if (typeof at === "object") ref.current?.focus();
+    else ref.current?.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus();
     const onClose = () => closeRef.current();
     const close = onClose;
     const onDown = (e: MouseEvent) => {
@@ -56,7 +70,7 @@ export function RowMenu({
       if (!ref.current?.contains(t) && !anchor.current?.contains(t)) onClose();
     };
     const onKey = (e: KeyboardEvent) => {
-      const buttons = Array.from(ref.current?.querySelectorAll<HTMLButtonElement>("button") ?? []);
+      const buttons = Array.from(ref.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)") ?? []);
       const i = buttons.indexOf(document.activeElement as HTMLButtonElement);
       if (e.key === "Escape") {
         e.preventDefault();
@@ -66,7 +80,8 @@ export function RowMenu({
       } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
         const n = buttons.length;
-        buttons[(i + (e.key === "ArrowDown" ? 1 : n - 1)) % n]?.focus();
+        const down = e.key === "ArrowDown";
+        buttons[i < 0 ? (down ? 0 : n - 1) : (i + (down ? 1 : n - 1)) % n]?.focus();
       } else if (e.key === "Tab") onClose();
     };
     window.addEventListener("mousedown", onDown);
@@ -87,6 +102,7 @@ export function RowMenu({
       className="menu row-menu"
       role="menu"
       aria-label={label}
+      tabIndex={-1}
       style={{ position: "fixed", top: pos?.top ?? 0, left: pos?.left ?? 0, right: "auto", visibility: pos ? "visible" : "hidden" }}
       onMouseDown={(e) => e.stopPropagation()}
     >
@@ -99,6 +115,7 @@ export function RowMenu({
             type="button"
             role="menuitem"
             className={it.danger ? "danger" : undefined}
+            disabled={it.disabled}
             onClick={() => {
               onClose();
               it.run();
@@ -106,6 +123,7 @@ export function RowMenu({
           >
             {it.icon}
             {it.label}
+            {it.kbd && <kbd>{it.kbd}</kbd>}
           </button>
         ),
       )}

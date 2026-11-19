@@ -1,6 +1,8 @@
 /** Icons: Lucide (lucide-react), one stroke weight everywhere. The app mark is voidHTTP's own. */
 export {
   ArrowDown,
+  ArrowLeftToLine,
+  ArrowRightToLine,
   ArrowDownWideNarrow,
   ArrowUp,
   ArrowUpNarrowWide,
@@ -25,6 +27,7 @@ export {
   Columns2,
   Copy,
   CopyPlus,
+  CopyX,
   CornerDownLeft,
   Cloud,
   Download,
@@ -60,6 +63,8 @@ export {
   PanelLeftOpen,
   Pause,
   Play,
+  Pin,
+  PinOff,
   Plug,
   Paperclip,
   Pencil,

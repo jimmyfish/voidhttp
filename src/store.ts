@@ -127,6 +127,11 @@ interface State extends ProjectData {
   // requests and tabs (current project)
   newTab(req?: RequestDef, savedRef?: SavedRef): void;
   closeTab(id: string): void;
+  /** Closes several tabs at once (tab menu: other / to the right / to the left); the toast offers Undo.
+   * `focus` is the tab the menu was opened on: it becomes the active tab. */
+  closeTabs(ids: string[], focus?: string): void;
+  /** Pinned tabs come first in `tabs` (the strip draws them at the left); pinning or unpinning moves the tab to that seam. */
+  pinTab(id: string, pinned: boolean): void;
   /** ⇧⌘T: brings back the most recently closed tab of the open project */
   reopenTab(): void;
   /** name of the tab ⇧⌘T would bring back, if any */
@@ -309,13 +314,18 @@ const CLOSED_LIMIT = 20;
 /** A blank scratch tab: nothing typed, never saved, nothing received. */
 const pristine = (t: Tab) => !t.savedRef && !t.example && !t.dirty && !t.request.url && !t.response;
 
+/** Pinned tabs first, each side in its own order: the order the strip, ⌘1–⌘9 and ⇧⌘] all follow. */
+const pinnedFirst = (tabs: Tab[]) => [...tabs.filter((t) => t.pinned), ...tabs.filter((t) => !t.pinned)];
+
 /** Session tabs come back without responses; example tabs get theirs from the collection, or close when it is gone. */
 function restoreTabs(tabs: Tab[], collections: Collection[]): Tab[] {
-  return tabs.flatMap((t) => {
-    if (!t.example) return [t];
-    const ex = findExample(collections, t.example);
-    return ex ? [{ ...t, response: ex.response, grpc: ex.grpc }] : [];
-  });
+  return pinnedFirst(
+    tabs.flatMap((t) => {
+      if (!t.example) return [t];
+      const ex = findExample(collections, t.example);
+      return ex ? [{ ...t, response: ex.response, grpc: ex.grpc }] : [];
+    }),
+  );
 }
 
 export const useStore = create<State>((set, get) => {
@@ -551,6 +561,51 @@ export const useStore = create<State>((set, get) => {
       if (get().tabs.length === 0) get().newTab();
     },
 
+    closeTabs(ids, focus) {
+      const s = get();
+      const closing = ids.filter((id) => s.tabs.some((t) => t.id === id));
+      if (closing.length < 2) {
+        closing.forEach((id) => get().closeTab(id));
+        if (focus && get().tabs.some((t) => t.id === focus)) set({ activeTabId: focus });
+        return;
+      }
+      const projectId = s.currentProjectId;
+      const key = projectId ?? "";
+      const before = { tabs: s.tabs, activeTabId: s.activeTabId, closed: [...(closedTabs.get(key) ?? [])] };
+      // one by one through closeTab: each stops its call or connection and goes on the ⇧⌘T list
+      for (const id of closing) get().closeTab(id);
+      if (focus && get().tabs.some((t) => t.id === focus)) set({ activeTabId: focus });
+      get().notify(`Closed ${closing.length} tabs`, {
+        label: "Undo",
+        run: () => {
+          const st = get();
+          if (st.currentProjectId !== projectId) return set({ toast: null, toastAction: null });
+          const gone = new Set(closing);
+          const now = new Map(st.tabs.map((t) => [t.id, t]));
+          // closed tabs come back as they were saved, without a response or a live connection
+          const back = restoreTabs(
+            before.tabs.flatMap((t) =>
+              now.has(t.id) ? [now.get(t.id)!] : gone.has(t.id) ? [{ id: t.id, request: t.request, savedRef: t.savedRef, dirty: t.dirty, example: t.example, pinned: t.pinned }] : [],
+            ),
+            st.collections,
+          );
+          const added = st.tabs.filter((t) => !before.tabs.some((b) => b.id === t.id));
+          closedTabs.set(key, before.closed);
+          set({ tabs: pinnedFirst([...back, ...added]), activeTabId: before.activeTabId, toast: null, toastAction: null });
+        },
+      });
+    },
+
+    pinTab(id, pinned) {
+      set((s) => {
+        const tab = s.tabs.find((t) => t.id === id);
+        if (!tab) return {};
+        const rest = s.tabs.filter((t) => t.id !== id);
+        // both land on the seam: pinning puts it at the right end of the pins, unpinning first after them
+        return { tabs: [...rest.filter((t) => t.pinned), { ...tab, pinned: pinned || undefined }, ...rest.filter((t) => !t.pinned)] };
+      });
+    },
+
     reopenTab() {
       const key = get().currentProjectId ?? "";
       const list = closedTabs.get(key) ?? [];
@@ -572,7 +627,8 @@ export const useStore = create<State>((set, get) => {
         const active = s.tabs.find((x) => x.id === s.activeTabId);
         // like opening a saved request: a blank scratch tab gives its place
         set((st) => ({
-          tabs: active && pristine(active) ? st.tabs.map((x) => (x.id === active.id ? tab : x)) : [...st.tabs, tab],
+          // taking a pinned blank tab's place keeps the pin, so pinned tabs stay first
+          tabs: active && pristine(active) ? st.tabs.map((x) => (x.id === active.id ? { ...tab, pinned: active.pinned } : x)) : [...st.tabs, tab],
           activeTabId: tab.id,
         }));
         return;
@@ -1841,7 +1897,7 @@ persist(
       v.projects.map((p) => {
         const d = dataOf(v as Refs, p.id);
         // tab responses are not persisted: history keeps its own copy, and examples come from their collection
-        return [p.id, { activeTabId: d.activeTabId, tabs: d.tabs.map(({ id, request, savedRef, dirty, example }) => ({ id, request, savedRef, dirty, example })) }];
+        return [p.id, { activeTabId: d.activeTabId, tabs: d.tabs.map(({ id, request, savedRef, dirty, example, pinned }) => ({ id, request, savedRef, dirty, example, pinned })) }];
       }),
     ),
   }),
