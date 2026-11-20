@@ -277,6 +277,8 @@ Right here, in plain JSON:
 
 Upgrading from an older version? On first launch, any older data found in the app data dir gets copied into `~/.config/voidhttp/` once, and the originals stay put as a backup. A workspace saved before projects existed becomes one project on first load.
 
+Running `bun tauri dev`? Debug builds keep their own data in `~/.config/voidHTTP_dev/` and `dev/` inside the app data dir, so your real workspace stays untouched.
+
 ## <img src="docs/assets/icons/code-xml.svg" width="24" height="24" align="top" alt="" /> Hack on it
 
 You'll need [Rust](https://rustup.rs), [Bun](https://bun.sh), and the [Tauri v2 system dependencies](https://v2.tauri.app/start/prerequisites/). On macOS, the Xcode Command Line Tools are enough.
@@ -343,7 +345,7 @@ This isn't because we can't build it, and it isn't about server bills. **We just
 **Still need to work with other humans?** You already have the tools:
 
 - **Your API contract belongs in your repo**, as an OpenAPI file, reviewed in pull requests like the rest of your code. voidHTTP imports it whenever you like.
-- **Your collections are plain JSON.** Export a `.voidhttp.json` or a Postman v2.1 file, commit it, and send it however you want. Git is the collaboration feature.
+- **Your collections are plain JSON.** Export a `.voidhttp.json`, a Postman v2.1 file or an OpenAPI 3.0 spec (YAML or JSON), commit it, and send it however you want. Git is the collaboration feature.
 
 Issues asking for team or cloud features get closed with a friendly link to this section. Nothing personal. We just need some alone time.
 

@@ -4,13 +4,14 @@ import { useStore } from "../store";
 import type { Environment } from "../types";
 import { TriangleAlert, X, ico } from "./Icon";
 import { blankHarEnv, blankValues, fileStem, requestsOf } from "../lib/formats/common";
+import { exportOpenApi } from "../lib/formats/openapiExport";
 import { exportNative } from "../lib/formats/native";
 import { exportPostman, exportPostmanEnv } from "../lib/formats/postman";
 import { exportHar } from "../lib/formats/har";
 import { baseName, pickSavePath, writeTextFile } from "../lib/files";
 import { buildScope } from "../lib/vars";
 
-type Format = "void" | "postman" | "har";
+type Format = "void" | "postman" | "har" | "openapi";
 type Envs = "none" | "active" | "all";
 
 const FORMATS: { id: Format; title: string; desc: string; ext: string; suffix: string; label: string }[] = [
@@ -38,6 +39,14 @@ const FORMATS: { id: Format; title: string; desc: string; ext: string; suffix: s
     suffix: ".har",
     label: "HTTP Archive",
   },
+  {
+    id: "openapi",
+    title: "OpenAPI 3.0",
+    desc: "An API spec for Swagger UI, Redoc, Apidog and code generators. Built in the app, nothing to install.",
+    ext: "yaml",
+    suffix: ".openapi.yaml",
+    label: "OpenAPI spec",
+  },
 ];
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
@@ -50,6 +59,7 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
   const [envs, setEnvs] = useState<Envs>(active ? "active" : "none");
   const [keep, setKeep] = useState(false);
   const [examples, setExamples] = useState(true);
+  const [as, setAs] = useState<"yaml" | "json">("yaml");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -65,7 +75,10 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
   const leftParts = [grpc && plural(grpc, "gRPC call"), ws && plural(ws, "WebSocket"), sio && plural(sio, "Socket.IO request"), kafka && plural(kafka, "Kafka request"), mqtt && plural(mqtt, "MQTT request"), pubsub && plural(pubsub, "Pub/Sub request")].filter(Boolean) as string[];
   const leftLabel = leftParts.length > 1 ? `${leftParts.slice(0, -1).join(", ")} and ${leftParts[leftParts.length - 1]}` : leftParts.join("");
   const exampleCount = reqs.reduce((n, r) => n + (r.examples?.length ?? 0), 0);
-  const fmt = FORMATS.find((f) => f.id === format)!;
+  const scripted = reqs.some((r) => r.scripts?.pre?.trim() || r.scripts?.post?.trim());
+  const found = FORMATS.find((f) => f.id === format)!;
+  // OpenAPI is written as YAML or JSON
+  const fmt = format === "openapi" ? { ...found, ext: as, suffix: `.openapi.${as}` } : found;
   const fileName = fileStem(collection.name) + fmt.suffix;
   const chosenEnvs: Environment[] = envs === "all" ? s.environments : envs === "active" && active ? [active] : [];
 
@@ -80,6 +93,7 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
       const base = { ...collection, children: strip(collection.children) };
       const safe = keep ? { collection: base, environments: chosenEnvs } : blankValues(base, chosenEnvs, s.environments.map((e) => e.variables)) /* every environment: any of them may link a secret-named variable to a collection value */;
       const written: string[] = [baseName(path)];
+      let extra = "";
       if (format === "void") {
         await writeTextFile(path, exportNative([safe.collection], safe.environments));
       } else if (format === "postman") {
@@ -91,13 +105,19 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
           await writeTextFile(p, exportPostmanEnv(e));
           written.push(baseName(p));
         }
+      } else if (format === "openapi") {
+        // Blank: credentials emptied, addresses kept, since each environment's address becomes a server
+        const envs = keep ? chosenEnvs : chosenEnvs.map((e) => ({ ...e, variables: blankHarEnv(base, e.variables) }));
+        const out = exportOpenApi(safe.collection, envs, { as });
+        await writeTextFile(path, out.text);
+        if (out.merged) extra = ` · ${plural(out.merged, "request")} shared a method and path with another and became extra examples`;
       } else {
         // variables are filled in: the active environment over the collection's own; Blank empties only secret-looking ones
         // and the ones a request uses as a credential, since an address cannot be filled in from an empty value
         const scope = buildScope(safe.collection.variables, keep ? active?.variables : blankHarEnv(base, active?.variables ?? []));
         await writeTextFile(path, exportHar(safe.collection, scope, await getVersion().catch(() => "")).text);
       }
-      s.notify(`Exported “${collection.name}” to ${written.join(", ")}`);
+      s.notify(`Exported “${collection.name}” to ${written.join(", ")}${extra}`);
       onClose();
     } catch (e) {
       setError(String((e as Error).message ?? e));
@@ -122,7 +142,7 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
                 <input type="radio" name="xf-fmt" value={f.id} checked={format === f.id} onChange={() => setFormat(f.id)} />
                 <b>{f.title}</b>
                 <span className="desc">{f.desc}</span>
-                <code>.{f.ext}</code>
+                <code>.{f.id === "openapi" ? as : f.ext}</code>
               </label>
             ))}
           </div>
@@ -130,9 +150,16 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
             <div className="xf-warn">
               <TriangleAlert {...ico} />
               <span>
-                {leftLabel} can't be written to {format === "har" ? "HAR" : "Postman v2.1"} and {left === 1 ? "is" : "are"} left out.
+                {leftLabel} {format === "openapi" ? "can't be described in OpenAPI" : `can't be written to ${format === "har" ? "HAR" : "Postman v2.1"}`} and {left === 1 ? "is" : "are"} left out.
+                {format === "openapi" && scripted && " Scripts are not part of a spec."}
                 {format === "har" && active && ` Variables are filled in from ${active.name}.`}
               </span>
+            </div>
+          )}
+          {format === "openapi" && !left && scripted && (
+            <div className="xf-warn">
+              <TriangleAlert {...ico} />
+              <span>Scripts are not part of a spec and are left out.</span>
             </div>
           )}
           {format === "har" && !left && (
@@ -142,11 +169,37 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
             </div>
           )}
           <div className="set-list xf-opts xf-opts-full">
+            {format === "openapi" && (
+              <div className="set-item">
+                <div className="set-text">
+                  <span className="set-label">Written as</span>
+                  <span className="desc">Both open in every OpenAPI tool</span>
+                </div>
+                <div className="seg" role="group" aria-label="Written as">
+                  <button type="button" aria-pressed={as === "yaml"} onClick={() => setAs("yaml")}>
+                    YAML
+                  </button>
+                  <button type="button" aria-pressed={as === "json"} onClick={() => setAs("json")}>
+                    JSON
+                  </button>
+                </div>
+              </div>
+            )}
             {format !== "har" && (
               <div className="set-item">
                 <div className="set-text">
-                  <span className="set-label">Environments</span>
-                  <span className="desc">{format === "postman" ? "Written as files beside the collection" : "Collection variables always go along"}</span>
+                  <span className="set-label">{format === "openapi" ? "Servers" : "Environments"}</span>
+                  <span className="desc">
+                    {format === "openapi" ? (
+                      <>
+                        Each one's <code>baseUrl</code> becomes a server
+                      </>
+                    ) : format === "postman" ? (
+                      "Written as files beside the collection"
+                    ) : (
+                      "Collection variables always go along"
+                    )}
+                  </span>
                 </div>
                 <div className="seg" role="group" aria-label="Environments">
                   <button type="button" aria-pressed={envs === "none"} onClick={() => setEnvs("none")}>
@@ -168,7 +221,7 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
             <div className="set-item">
               <div className="set-text">
                 <span className="set-label">Variable values</span>
-                <span className="desc">{keep ? "Values go along as they are" : "Names are kept, values are emptied"}</span>
+                <span className="desc">{keep ? "Values go along as they are" : format === "openapi" ? "Credentials are emptied, addresses are kept" : "Names are kept, values are emptied"}</span>
               </div>
               <div className="seg" role="group" aria-label="Variable values">
                 <button type="button" aria-pressed={!keep} onClick={() => setKeep(false)}>
@@ -185,12 +238,21 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
                   Saved examples
                 </label>
                 <span className="desc">
-                  {exampleCount ? `${plural(exampleCount, "example")}, already masked when saved` : "None saved in this collection"}
+                  {!exampleCount
+                    ? "None saved in this collection"
+                    : format === "openapi"
+                      ? `${plural(exampleCount, "example")}, written as responses by status code`
+                      : `${plural(exampleCount, "example")}, already masked when saved`}
                 </span>
               </div>
               <input id="xf-exx" type="checkbox" className="switch" checked={examples} disabled={!exampleCount} onChange={(e) => setExamples(e.target.checked)} />
             </div>
           </div>
+          {format === "openapi" && (
+            <p className="xf-hint">
+              Folders become tags. <code>{"{{customerId}}"}</code> and <code>:id</code> in a path become <code>{"{customerId}"}</code> parameters. Bodies get a schema read from their JSON. Auth becomes a security scheme.
+            </p>
+          )}
           {keep && (
             <div className="xf-warn">
               <TriangleAlert {...ico} />

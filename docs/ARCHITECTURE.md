@@ -71,9 +71,11 @@ All app state lives in one zustand store (`src/store.ts`). Writes to disk are de
 
 The first folder is portable: copy it to another Mac to move everything. Stored responses that no history entry points to any more are removed with `prune_responses`.
 
+Debug builds (`bun tauri dev`) use separate folders so development never touches real data: `~/.config/voidHTTP_dev/` for the vault and `dev/` inside the app data dir for `session.json`.
+
 ## Import and export
 
-Each format lives in `src/lib/formats/` (`postman.ts`, `openapi.ts`, `har.ts`, `native.ts`, and pasted commands). Every importer produces voidHTTP collections and environments plus a list of notes. The shared checks in `common.ts` run on every import before the review step:
+Each format lives in `src/lib/formats/` (`postman.ts`, `openapi.ts`, `har.ts`, `native.ts`, and pasted commands). OpenAPI export is its own module, `openapiExport.ts`: it writes OpenAPI 3.0.3 as YAML (the `yaml` package) or JSON in the webview, with each chosen environment's address as a server; on Blank, environments are cleaned like HAR's (credentials emptied, addresses kept), since a server needs its URL. Every importer produces voidHTTP collections and environments plus a list of notes. The shared checks in `common.ts` run on every import before the review step:
 
 - file paths in multipart fields are dropped
 - tables, requests and folders are capped

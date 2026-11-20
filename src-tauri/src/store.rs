@@ -6,6 +6,9 @@
 //!   stored responses. Copy this one folder to move everything to another device.
 //! - the app data dir (`~/Library/Application Support/dev.voidhttp.app` on macOS): per-device
 //!   session state (open tabs, layout) and write-only backups.
+//!
+//! Debug builds (`bun tauri dev`) keep their own copy of both, so development never touches real
+//! data: the vault is `~/.config/voidHTTP_dev` and the local folder is `dev/` inside the app data dir.
 
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
@@ -21,14 +24,22 @@ const LOCAL_DOCS: &[&str] = &["session"];
 const WRITE_ONLY: &[&str] = &["backup-v1"];
 /// Written to the app data dir once the old data was copied into the vault (or found nothing to copy).
 const MIGRATED_MARKER: &str = ".vault-migrated";
+/// The vault's folder name inside the config dir.
+const VAULT_NAME: &str = if cfg!(debug_assertions) { "voidHTTP_dev" } else { "voidhttp" };
 
 fn local_dir(app: &AppHandle) -> Result<PathBuf, String> {
-    let dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("cannot resolve app data dir: {e}"))?;
+    let mut dir = app_data_dir(app)?;
+    if cfg!(debug_assertions) {
+        dir = dir.join("dev");
+    }
     std::fs::create_dir_all(&dir).map_err(|e| format!("cannot create {dir:?}: {e}"))?;
     Ok(dir)
+}
+
+fn app_data_dir(app: &AppHandle) -> Result<PathBuf, String> {
+    app.path()
+        .app_data_dir()
+        .map_err(|e| format!("cannot resolve app data dir: {e}"))
 }
 
 pub(crate) fn vault_dir(app: &AppHandle) -> Result<PathBuf, String> {
@@ -40,7 +51,7 @@ pub(crate) fn vault_dir(app: &AppHandle) -> Result<PathBuf, String> {
             .map_err(|e| format!("cannot resolve home dir: {e}"))?
             .join(".config"),
     };
-    let dir = config.join("voidhttp");
+    let dir = config.join(VAULT_NAME);
     if !dir.exists() {
         std::fs::create_dir_all(&dir).map_err(|e| format!("cannot create {dir:?}: {e}"))?;
         // Requests and variables can hold tokens: keep the folder private to the user.

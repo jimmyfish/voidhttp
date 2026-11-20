@@ -1285,6 +1285,7 @@ textarea.xf-paste { display: block; width: 100%; min-height: 220px; padding: var
 .xf-table .st-0, .xf-table .st-5 { color: var(--color-error); }
 .xf-none { color: var(--color-muted); text-align: center; white-space: normal; }
 .xf-opts-full + .xf-report, .xf-har-opts + .xf-opts-full { margin-top: var(--space-sm); }
+.xf-opts-full + .xf-hint { margin: var(--space-sm) 0 0; }
 .xf-toast > span { overflow: hidden; text-overflow: ellipsis; max-width: 60vw; }
 
 /* in-app updates (approved 2026-11-13, preview .hallmark/preview/updates.html): a chip in the title strip

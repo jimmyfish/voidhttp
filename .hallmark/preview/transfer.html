@@ -108,6 +108,7 @@
     <button type="button" data-show="imported">Imported</button>
     <button type="button" data-show="menu">Row menu</button>
     <button type="button" data-show="export">Export</button>
+    <button type="button" data-show="export" data-fmt="openapi">Export · OpenAPI</button>
   </nav>
   <div class="pv-theme" role="group" aria-label="Theme">
     <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
@@ -468,14 +469,18 @@
         <label class="xf-fmt"><input type="radio" name="xf-fmt" value="void" checked><b>voidHTTP</b><span class="desc">Everything, nothing lost: gRPC calls, examples, environment colours. For backups and other voidHTTP users.</span><code>.json</code></label>
         <label class="xf-fmt"><input type="radio" name="xf-fmt" value="postman"><b>Postman Collection v2.1</b><span class="desc">Opens in Postman, Insomnia, Bruno, Apidog and Hoppscotch.</span><code>.json</code></label>
         <label class="xf-fmt"><input type="radio" name="xf-fmt" value="har"><b>HAR</b><span class="desc">Each request with its latest saved example as the response. For devtools and proxies.</span><code>.har</code></label>
+        <label class="xf-fmt"><input type="radio" name="xf-fmt" value="openapi"><b>OpenAPI 3.0</b><span class="desc">An API spec for Swagger UI, Redoc, Apidog and code generators. Built in the app, nothing to install.</span><code data-oa-ext>.yaml</code></label>
       </div>
       <div class="xf-warn" data-warn="postman" hidden><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg><span>1 gRPC call (<b>Get balance</b>) can't be written to Postman v2.1 and is left out.</span></div>
       <div class="xf-warn" data-warn="har" hidden><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg><span>1 gRPC call is left out, and environments are not part of HAR: variables are filled in from Production.</span></div>
+      <div class="xf-warn" data-warn="openapi" hidden><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg><span>1 gRPC call (<b>Get balance</b>) can't be described in OpenAPI and is left out. Scripts are not part of a spec.</span></div>
       <div class="set-list xf-opts xf-opts-full">
-        <div class="set-item" data-not="har"><div class="set-text"><span class="set-label">Environments</span><span class="desc">Collection variables always go along</span></div><div class="seg" role="group" aria-label="Environments"><button type="button" aria-pressed="false">None</button><button type="button" aria-pressed="true">Production</button><button type="button" aria-pressed="false">All 4</button></div></div>
+        <div class="set-item" data-only="openapi" hidden><div class="set-text"><span class="set-label">Written as</span><span class="desc">Both open in every OpenAPI tool</span></div><div class="seg" role="group" aria-label="Written as" data-oa-as><button type="button" aria-pressed="true" data-as="yaml">YAML</button><button type="button" aria-pressed="false" data-as="json">JSON</button></div></div>
+        <div class="set-item" data-not="har"><div class="set-text"><span class="set-label" data-env-label>Environments</span><span class="desc" data-env-desc>Collection variables always go along</span></div><div class="seg" role="group" aria-label="Environments"><button type="button" aria-pressed="false">None</button><button type="button" aria-pressed="true">Production</button><button type="button" aria-pressed="false">All 4</button></div></div>
         <div class="set-item"><div class="set-text"><span class="set-label">Variable values</span><span class="desc" data-values-desc>Names are kept, values are emptied</span></div><div class="seg" role="group" aria-label="Variable values" data-values><button type="button" aria-pressed="true" data-v="blank">Blank</button><button type="button" aria-pressed="false" data-v="keep">Keep</button></div></div>
-        <div class="set-item"><div class="set-text"><span class="set-label">Saved examples</span><span class="desc">3 examples, already masked when saved</span></div><input type="checkbox" class="switch" checked aria-label="Include saved examples"></div>
+        <div class="set-item"><div class="set-text"><span class="set-label">Saved examples</span><span class="desc" data-ex-desc>3 examples, already masked when saved</span></div><input type="checkbox" class="switch" checked aria-label="Include saved examples"></div>
       </div>
+      <p class="xf-hint" data-only="openapi" hidden>Folders become tags. <code>{{customerId}}</code> and <code>:id</code> in a path become <code>{customerId}</code> parameters. Bodies get a schema read from their JSON. Auth becomes a security scheme.</p>
       <div class="xf-warn" data-keep-warn hidden><svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg><span>Values can hold tokens and passwords. Share this file only with people who may see them.</span></div>
     </div>
     <div class="xf-foot"><span class="note"><code data-fname>trx-service.voidhttp.json</code></span><button type="button" class="btn">Cancel</button><button type="button" class="btn btn--primary">Export…</button></div>
@@ -685,7 +690,11 @@
     };
     document.addEventListener("click", (e) => {
       const t = e.target.closest("[data-go], [data-show]");
-      if (t) { e.preventDefault(); go(t.dataset.go || t.dataset.show); return; }
+      if (t) {
+        e.preventDefault();
+        if (t.dataset.fmt) { exp.querySelector(`input[value="${t.dataset.fmt}"]`).checked = true; syncExport(); }
+        go(t.dataset.go || t.dataset.show); return;
+      }
       const seg = e.target.closest(".dialog .seg button, .xf-host");
       if (seg && seg.classList.contains("xf-host")) seg.setAttribute("aria-pressed", String(seg.getAttribute("aria-pressed") !== "true"));
       else if (seg) seg.parentElement.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b === seg)));
@@ -700,9 +709,16 @@
     const FILE = { void: "trx-service.voidhttp.json", postman: "trx-service.postman_collection.json", har: "trx-service.har" };
     function syncExport() {
       const f = exp.querySelector('input[name="xf-fmt"]:checked').value;
+      const as = exp.querySelector('[data-oa-as] [aria-pressed="true"]').dataset.as;
       exp.querySelectorAll("[data-warn]").forEach((w) => { w.hidden = w.dataset.warn !== f; });
       exp.querySelectorAll("[data-not]").forEach((w) => { w.hidden = w.dataset.not === f; });
-      exp.querySelector("[data-fname]").textContent = FILE[f];
+      exp.querySelectorAll("[data-only]").forEach((w) => { w.hidden = w.dataset.only !== f; });
+      exp.querySelector("[data-oa-ext]").textContent = "." + as;
+      exp.querySelector("[data-fname]").textContent = f === "openapi" ? "trx-service.openapi." + as : FILE[f];
+      const oa = f === "openapi";
+      exp.querySelector("[data-env-label]").textContent = oa ? "Servers" : "Environments";
+      exp.querySelector("[data-env-desc]").innerHTML = oa ? "Each one's <code>baseUrl</code> becomes a server" : "Collection variables always go along";
+      exp.querySelector("[data-ex-desc]").textContent = oa ? "3 examples, written as responses by status code" : "3 examples, already masked when saved";
       const keep = exp.querySelector('[data-values] [aria-pressed="true"]').dataset.v === "keep";
       exp.querySelector("[data-keep-warn]").hidden = !keep;
       exp.querySelector("[data-values-desc]").textContent = keep ? "Values go along as they are" : "Names are kept, values are emptied";
@@ -710,7 +726,8 @@
     syncExport();
     document.querySelectorAll("[data-partial]").forEach((c) => { c.indeterminate = true; });
     const h = location.hash.slice(1);
-    go(names.has(h) ? h : "import-file");
+    if (h === "export-openapi") { exp.querySelector('input[value="openapi"]').checked = true; syncExport(); go("export"); }
+    else go(names.has(h) ? h : "import-file");
   }
 </script>
 </body>
