@@ -5,7 +5,7 @@ import { useStore } from "../store";
 import type { Auth, BodyMode, RequestDef, Tab } from "../types";
 import { capRequest } from "../lib/formats/common";
 import { findNode, paramsFromUrl, pathTo, pathVarsFromUrl, urlWithParams } from "../lib/model";
-import { DYNAMIC, resolve, unresolved } from "../lib/vars";
+import { DYNAMIC, fakeReady, resolve, unresolved } from "../lib/vars";
 import { isSecretKey } from "../lib/mask";
 import { MethodMenu } from "./MethodMenu";
 import { UrlInput, type PathInfo, type VarInfo } from "./UrlInput";
@@ -142,7 +142,9 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
   const copyCurl = async () => {
     setMenuOpen(false);
     try {
-      await navigator.clipboard.writeText(toCurl(prepare(req, scopeFor(tab.id))));
+      const scope = scopeFor(tab.id);
+      await fakeReady(req, scope);
+      await navigator.clipboard.writeText(toCurl(prepare(req, scope)));
       st.notify("cURL copied to clipboard");
     } catch (e) {
       st.notify(`Copy failed: ${e}`);

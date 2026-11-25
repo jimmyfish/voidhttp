@@ -1,5 +1,6 @@
 import type { KV } from "../types";
 import { uid } from "./model";
+import { FAKE_NAMES } from "./fakeNames";
 
 // one run of non-brace characters, trimmed by the callers: `\s*([^{}]+?)\s*` backtracked in cubic time on `{{` + spaces
 const VAR_RE = /\{\{([^{}]*)\}\}/g;
@@ -15,7 +16,32 @@ export function buildScope(...layers: (KV[] | undefined)[]): VarScope {
   return scope;
 }
 
-export const DYNAMIC = ["$guid", "$randomUUID", "$timestamp", "$isoTimestamp", "$randomInt"];
+export const DYNAMIC: readonly string[] = ["$guid", "$randomUUID", "$timestamp", "$isoTimestamp", "$randomInt", ...FAKE_NAMES];
+const FAKE = new Set<string>(FAKE_NAMES);
+
+// faker (English) is its own chunk, fetched the first time a {{$random…}} name turns up
+let fakeMod: typeof import("./fake") | undefined;
+let fakeLoad: Promise<void> | undefined;
+function loadFake(): Promise<void> {
+  return (fakeLoad ??= import("./fake").then(
+    (m) => void (fakeMod = m),
+    (e) => {
+      fakeLoad = undefined; // a failed fetch is tried again next time
+      throw e;
+    },
+  ));
+}
+
+/**
+ * Before a send: loads faker when the request or a variable it can reach mentions {{$random…}}, so the
+ * synchronous `resolve` that follows fills it in. A no-op once loaded, and for requests that never use one.
+ */
+export async function fakeReady(request: unknown, scope: VarScope): Promise<void> {
+  if (fakeMod) return;
+  const uses = (s: string) => s.includes("$random");
+  if (!uses(JSON.stringify(request) ?? "") && ![...scope.values()].some(uses)) return;
+  await loadFake().catch(() => undefined); // offline chunk failure: the names stay as written
+}
 
 function dynamic(name: string): string | undefined {
   switch (name) {
@@ -29,6 +55,10 @@ function dynamic(name: string): string | undefined {
     case "$randomInt":
       return String(Math.floor(Math.random() * 1001));
     default:
+      if (!FAKE.has(name)) return undefined;
+      if (fakeMod) return fakeMod.fake(name);
+      // not loaded yet: left as written this time (a render); a send waits for it through fakeReady
+      void loadFake().catch(() => undefined);
       return undefined;
   }
 }
@@ -68,6 +98,10 @@ export function resolveWithin(input: string, scope: VarScope, budget: Budget, de
 
 export function unresolved(input: string, scope: VarScope): string[] {
   const missing = new Set<string>();
-  for (const m of resolve(input, scope, 0, RENDER_GROWTH).matchAll(VAR_RE)) if (m[1].trim()) missing.add(m[1].trim());
+  for (const m of resolve(input, scope, 0, RENDER_GROWTH).matchAll(VAR_RE)) {
+    const name = m[1].trim();
+    // a {{$random…}} still waiting on faker is not missing
+    if (name && !FAKE.has(name)) missing.add(name);
+  }
   return [...missing];
 }

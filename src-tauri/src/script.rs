@@ -13,6 +13,8 @@ use rquickjs::context::EvalOptions;
 use rquickjs::{Context, Ctx, Function, Runtime, Value};
 
 const PRELUDE: &str = include_str!("script/prelude.js");
+/// faker (English) for {{$random…}}, built by scripts/build-fake.mjs; evaluated only when a script first asks for one
+const FAKE: &str = include_str!("script/fake.js");
 const MEMORY_LIMIT: usize = 64 << 20;
 const STACK_LIMIT: usize = 1 << 20;
 const TIMEOUT: Duration = Duration::from_secs(10);
@@ -66,6 +68,10 @@ pub fn run(code: &str, input: &str, timeout: Duration) -> Result<serde_json::Val
 
     ctx.with(|ctx| -> Result<(), String> {
         ctx.globals().set("__input", input).map_err(|e| e.to_string())?;
+        // the prelude calls this once, on the first {{$random…}}: most scripts never pay for faker
+        let load_fake = Function::new(ctx.clone(), |ctx: Ctx<'_>| ctx.eval_with_options::<(), _>(FAKE, opts("faker")))
+            .map_err(|e| e.to_string())?;
+        ctx.globals().set("__loadFake", load_fake).map_err(|e| e.to_string())?;
         if ctx.eval_with_options::<(), _>(PRELUDE, opts("prelude")).is_err() {
             let e = format!("{:?}", ctx.catch());
             return Err(if e.contains("out of memory") {
@@ -294,5 +300,24 @@ pm.request.url.query.add({ key: "q", value: "a&b #c" });
         let out = go(r#"pm.test("sandbox", () => { pm.expect(typeof fetch).to.equal("undefined"); pm.expect(typeof __TAURI__).to.equal("undefined"); }); require("fs");"#, post());
         assert_eq!(out["tests"][0]["passed"], true, "{out}");
         assert!(out["error"]["message"].as_str().unwrap().contains("require('fs')"));
+    }
+
+    #[test]
+    fn faker_names_resolve_and_load_only_on_use() {
+        let out = go(
+            r#"
+pm.test("not loaded yet", () => pm.expect(typeof __voidFake).to.equal("undefined"));
+const name = pm.variables.replaceIn("{{$randomFirstName}} {{$randomLastName}}");
+pm.test("names", () => pm.expect(name).to.match(/^\S+ \S+$/).and.not.include("{{"));
+pm.test("email", () => pm.expect(pm.variables.replaceIn("{{$randomEmail}}")).to.include("@"));
+pm.test("date", () => pm.expect(pm.variables.replaceIn("{{$randomDatePast}}")).to.not.include("{{"));
+pm.test("unknown stays", () => pm.expect(pm.variables.replaceIn("{{$randomNope}}")).to.equal("{{$randomNope}}"));
+pm.test("built-in int", () => pm.expect(Number(pm.variables.replaceIn("{{$randomInt}}"))).to.be.within(0, 1000));
+"#,
+            post(),
+        );
+        let failed: Vec<_> = out["tests"].as_array().unwrap().iter().filter(|t| t["passed"] == false).collect();
+        assert!(failed.is_empty(), "{out}");
+        assert!(out["error"].is_null(), "{out}");
     }
 }

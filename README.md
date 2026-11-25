@@ -73,7 +73,7 @@ You get 15 requests in 5 folders, with JSON, form and multipart bodies, bearer a
 - **Projects** each get their own collections, environments and history. Open ones sit as tabs in the title strip; Home shows them as cards with recent activity (computed from local history, obviously).
 - **Request tabs** with the response stacked below or split beside. Drag the divider until it feels right.
 - **Collections** with nested folders, drag-to-reorder, collection variables and inline rename.
-- **Environments** with `{{variables}}`, a colour tag each so you never fire at prod by accident, and a picker right in the tabs bar. Nested variables work, and so do `{{$guid}}`, `{{$timestamp}}`, `{{$isoTimestamp}}` and `{{$randomInt}}`.
+- **Environments** with `{{variables}}`, a colour tag each so you never fire at prod by accident, and a picker right in the tabs bar. Nested variables work, and so do `{{$guid}}`, `{{$timestamp}}`, `{{$isoTimestamp}}`, `{{$randomInt}}` and Postman's faker set (`{{$randomFirstName}}`, `{{$randomEmail}}`, `{{$randomCity}}` and 110 more, English only).
 - **Edit variables your way**: as a table, as JSON, or as `.env` lines.
 
 ### <img src="docs/assets/icons/globe.svg" width="20" height="20" align="top" alt="" /> HTTP, done properly

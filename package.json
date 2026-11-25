@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "bun run fake && tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
+    "fake": "bun scripts/build-fake.mjs",
     "tauri": "tauri"
   },
   "dependencies": {
+    "@faker-js/faker": "10.6.0",
     "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-dialog": "^2.0.0",
     "@tauri-apps/plugin-opener": "^2",
@@ -26,6 +28,7 @@
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.2",
+    "esbuild": "0.21.5",
     "typescript": "^5.6.3",
     "vite": "^5.4.10"
   }

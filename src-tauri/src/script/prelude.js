@@ -120,6 +120,11 @@
     if (n === "$timestamp") return String(Math.floor(Date.now() / 1000));
     if (n === "$isoTimestamp") return new Date().toISOString();
     if (n === "$randomInt") return String(Math.floor(Math.random() * 1001));
+    if (n.startsWith("$random")) {
+      // faker, Postman's other {{$random…}} names: loaded on first use, then kept for this run
+      if (typeof globalThis.__voidFake !== "function") __loadFake();
+      return globalThis.__voidFake(n);
+    }
     return undefined;
   };
   function replaceIn(s, depth) {

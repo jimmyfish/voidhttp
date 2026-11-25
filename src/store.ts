@@ -36,7 +36,7 @@ import {
   uid,
   type DropWhere,
 } from "./lib/model";
-import { buildScope, type VarScope } from "./lib/vars";
+import { buildScope, fakeReady, type VarScope } from "./lib/vars";
 import { cancel, prepare, send } from "./lib/http";
 import { applyVarOps, hasScript, runScript, withScriptRequest, type VarOp } from "./lib/script";
 import { capEnvironments, capRows, type Source } from "./lib/formats/common";
@@ -329,6 +329,11 @@ function restoreTabs(tabs: Tab[], collections: Collection[]): Tab[] {
 }
 
 export const useStore = create<State>((set, get) => {
+  /** Before a send reads a tab: faker loads first when the tab's request or its variables use {{$random…}}. */
+  const fakeFor = async (tabId: string) => {
+    const tab = get().tabs.find((t) => t.id === tabId);
+    if (tab) await fakeReady(tab.request, get().scopeFor(tabId));
+  };
   /** Apply a change to one project's data, whether it is open (top of state) or stashed. */
   const applyToProject = (pid: string | null, fn: (d: ProjectData) => Partial<ProjectData>) => {
     const s = get();
@@ -719,6 +724,7 @@ export const useStore = create<State>((set, get) => {
         const d = projectOf(pid);
         const scope = buildScope(d?.collections.find((c) => c.id === colId)?.variables, d?.environments.find((e) => e.id === envId)?.variables);
         for (const [k, v] of Object.entries(locals)) scope.set(k, v);
+        await fakeReady(toSend, scope);
         const prepared = prepare(toSend, scope);
         const response = await send(prepared, get().settings, inflightId);
         const entryId = uid();
@@ -778,6 +784,7 @@ export const useStore = create<State>((set, get) => {
     },
 
     async callGrpc(tabId) {
+      await fakeFor(tabId);
       const tab = get().tabs.find((t) => t.id === tabId);
       if (!tab || tab.example) return;
       if (tab.inflightId) {
@@ -896,6 +903,7 @@ export const useStore = create<State>((set, get) => {
     },
 
     async sendGrpcMessage(tabId) {
+      await fakeFor(tabId);
       const tab = get().tabs.find((t) => t.id === tabId);
       if (!tab?.inflightId || !tab.grpc?.sendOpen) return;
       try {
@@ -920,6 +928,7 @@ export const useStore = create<State>((set, get) => {
     },
 
     async openSocket(tabId) {
+      await fakeFor(tabId);
       const tab = get().tabs.find((t) => t.id === tabId);
       if (!tab || tab.example || tab.inflightId) return;
       if (isKafka(tab.request)) return get().openKafka(tabId);
@@ -1041,6 +1050,7 @@ export const useStore = create<State>((set, get) => {
     },
 
     async openKafka(tabId) {
+      await fakeFor(tabId);
       const tab = get().tabs.find((t) => t.id === tabId);
       if (!tab || tab.example || tab.inflightId) return;
       const pid = get().currentProjectId;
@@ -1161,6 +1171,7 @@ export const useStore = create<State>((set, get) => {
     },
 
     async openPubsub(tabId) {
+      await fakeFor(tabId);
       const tab = get().tabs.find((t) => t.id === tabId);
       if (!tab || tab.example || tab.inflightId) return;
       const pid = get().currentProjectId;
@@ -1281,6 +1292,7 @@ export const useStore = create<State>((set, get) => {
     },
 
     async openMqtt(tabId) {
+      await fakeFor(tabId);
       const tab = get().tabs.find((t) => t.id === tabId);
       if (!tab || tab.example || tab.inflightId) return;
       const pid = get().currentProjectId;
@@ -1440,6 +1452,7 @@ export const useStore = create<State>((set, get) => {
     },
 
     async sendSocketMessage(tabId) {
+      await fakeFor(tabId);
       const tab = get().tabs.find((t) => t.id === tabId);
       if (tab && isPubsub(tab.request)) {
         if (!tab.inflightId || !tab.ws?.pubsub?.info || tab.ws.close) return;
