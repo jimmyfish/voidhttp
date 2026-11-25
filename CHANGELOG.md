@@ -13,6 +13,8 @@ All notable changes to voidHTTP are listed here. The format follows [Keep a Chan
 
 ### Changed
 
+- **Redesigned dialogs.** New collection, New folder, Save request, New and Edit project, Variables, Settings and every delete confirmation share one new frame: a header with a tinted icon, the title, one line saying what the dialog is about, and a close button; the main button names the action. New collection and New folder say where the item goes, show it in a small tree as you type, and refuse a name already used there (a collection in the project, a folder beside it). Delete confirmations use a solid red button. Settings has no Done button; close it with the close button or Escape.
+- **Dialogs open and close smoothly.** Every dialog (the ones above, Import, Export, Save as example and About) fades in over a lightly blurred backdrop and rises into place; on close it fades and sinks instead of vanishing, however it was closed. Quick open and Actions (⌘P, ⇧⌘P) open and close the same way; switching between them keeps the box in place. With Reduce motion on, both are instant.
 - The layout switch moved from the tab bar into the response bar, at its far right. It is a two-button switch (response below, response on the right) with the current layout highlighted, so it no longer reads as splitting the window. It shows for every protocol and state, including while sending and after an error. ⌘K and the keyboard shortcut still toggle it.
 - Request tabs are at most 200px wide. When the strip is crowded, every tab shrinks down to 120px and long names end in "…", with the full name and URL in the tooltip; the strip no longer shows a scrollbar, and a mouse wheel scrolls it sideways.
 

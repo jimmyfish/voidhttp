@@ -1,5 +1,5 @@
 import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { useStore } from "./store";
+import { promptNewCollection, useStore } from "./store";
 
 /**
  * Keyboard shortcuts: the keys (shown in Settings › Shortcuts and in ⇧⌘P), the actions they run,
@@ -249,8 +249,7 @@ export const act = {
     else if (!s.modal) s.openModal({ kind: "quickopen", actions });
   },
   newCollection() {
-    const s = useStore.getState();
-    s.openModal({ kind: "prompt", title: "New collection", initial: "My collection", onSubmit: (n) => s.createCollection(n) });
+    promptNewCollection();
   },
   toggleLayout() {
     const s = useStore.getState();

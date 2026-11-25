@@ -1,0 +1,2203 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voidHTTP modals</title>
+<meta name="description" content="Every modal voidHTTP opens through its one modal slot, drawn with the app's own stylesheet, with where each one is opened from.">
+<link rel="stylesheet" href="../../src/styles.css">
+<link rel="stylesheet" href="./preview.css">
+<link rel="stylesheet" href="./modals.css">
+</head>
+<body>
+<!-- icons: lucide-react v1.75.0 (ISC), inlined from node_modules -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></symbol>
+  <symbol id="i-bookmark-plus" viewBox="0 0 24 24"><path d="M12 7v6"/><path d="M15 10H9"/><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"/></symbol>
+  <symbol id="i-braces" viewBox="0 0 24 24"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></symbol>
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></symbol>
+  <symbol id="i-bug" viewBox="0 0 24 24"><path d="M12 20v-9"/><path d="M14 7a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4z"/><path d="M14.12 3.88 16 2"/><path d="M21 21a4 4 0 0 0-3.81-4"/><path d="M21 5a4 4 0 0 1-3.55 3.97"/><path d="M22 13h-4"/><path d="M3 21a4 4 0 0 1 3.81-4"/><path d="M3 5a4 4 0 0 0 3.55 3.97"/><path d="M6 13H2"/><path d="m8 2 1.88 1.88"/><path d="M9 7.13V6a3 3 0 1 1 6 0v1.13"/></symbol>
+  <symbol id="i-building-2" viewBox="0 0 24 24"><path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-circle-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></symbol>
+  <symbol id="i-circle-arrow-down" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="m8 12 4 4 4-4"/></symbol>
+  <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></symbol>
+  <symbol id="i-circle-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="10"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></symbol>
+  <symbol id="i-code-xml" viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-credit-card" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><path d="M6 14h2"/></symbol>
+  <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></symbol>
+  <symbol id="i-ellipsis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-external-link" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+  <symbol id="i-file-badge" viewBox="0 0 24 24"><path d="M13 22h5a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v3.3"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="m7.69 16.479 1.29 4.88a.5.5 0 0 1-.698.591l-1.843-.849a1 1 0 0 0-.879.001l-1.846.85a.5.5 0 0 1-.692-.593l1.29-4.88"/><circle cx="6" cy="14" r="3"/></symbol>
+  <symbol id="i-file-json" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 12a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1 1 1 0 0 1 1 1v1a1 1 0 0 0 1 1"/><path d="M14 18a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1 1 1 0 0 1-1-1v-1a1 1 0 0 0-1-1"/></symbol>
+  <symbol id="i-file-up" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></symbol>
+  <symbol id="i-flask-conical" viewBox="0 0 24 24"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-folder-plus" viewBox="0 0 24 24"><path d="M12 10v6"/><path d="M9 13h6"/><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-gamepad-2" viewBox="0 0 24 24"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></symbol>
+  <symbol id="i-graduation-cap" viewBox="0 0 24 24"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></symbol>
+  <symbol id="i-heart-pulse" viewBox="0 0 24 24"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/><path d="M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+  <symbol id="i-key-round" viewBox="0 0 24 24"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></symbol>
+  <symbol id="i-keyboard" viewBox="0 0 24 24"><path d="M10 8h.01"/><path d="M12 12h.01"/><path d="M14 8h.01"/><path d="M16 12h.01"/><path d="M18 8h.01"/><path d="M6 8h.01"/><path d="M7 16h10"/><path d="M8 12h.01"/><rect width="20" height="16" x="2" y="4" rx="2"/></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></symbol>
+  <symbol id="i-library-big" viewBox="0 0 24 24"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></symbol>
+  <symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-message-circle" viewBox="0 0 24 24"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><path d="M21 16V3a1 1 0 0 0-1.28-.96l-10 2.917a1 1 0 0 0-.72.96V19"/><circle cx="18" cy="16" r="3"/><circle cx="6" cy="19" r="3"/></symbol>
+  <symbol id="i-network" viewBox="0 0 24 24"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></symbol>
+  <symbol id="i-package" viewBox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><polyline points="3.29 7 12 12 20.71 7"/><path d="m7.5 4.27 9 5.15"/></symbol>
+  <symbol id="i-panel-left-close" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></symbol>
+  <symbol id="i-panel-right" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-refresh-cw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></symbol>
+  <symbol id="i-rotate-ccw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"/><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M7 21h10"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-shopping-cart" viewBox="0 0 24 24"><path d="m2.05 2.05 1.099-.028a1 1 0 0 1 1.008.815l2.69 14.347A1 1 0 0 0 7.83 18H18"/><path d="M4.563 5h16.435a1 1 0 0 1 .981 1.204l-1.026 6.226A2 2 0 0 1 18.962 14H6.25"/><circle cx="18" cy="20" r="2"/><circle cx="8" cy="20" r="2"/></symbol>
+  <symbol id="i-square" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><path d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/><path d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244"/><path d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"/></symbol>
+  <symbol id="i-trash-2" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></symbol>
+  <symbol id="i-type" viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/><path d="M9 20h6"/></symbol>
+  <symbol id="i-user-round" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"/></symbol>
+  <symbol id="i-zoom-in" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></symbol>
+  <symbol id="i-zoom-out" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></symbol>
+</svg>
+
+<header class="pv-bar">
+  <strong>voidHTTP preview · modals</strong>
+  <span class="pv-muted">11 kinds in <code>Modal</code> (src/store.ts:68), one renderer (src/components/Modals.tsx:31)</span>
+  <div class="pv-theme mv-mode" role="group" aria-label="Shell design">
+    <span class="pv-muted">Shell</span>
+    <button type="button" data-shell-set="today" aria-pressed="true">Today</button>
+    <button type="button" data-shell-set="proposed" aria-pressed="false">Proposed</button>
+  </div>
+  <div class="pv-theme" role="group" aria-label="Theme" style="margin-left:0">
+    <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<div class="mv">
+  <nav class="mv-rail" aria-label="Modals">
+    <section class="mv-group">
+      <h2>Modal kinds (11)</h2>
+      <ul class="mv-list" id="mv-kinds"></ul>
+    </section>
+    <section class="mv-group">
+      <h2>Confirm and prompt calls (8)</h2>
+      <ul class="mv-list" id="mv-calls"></ul>
+    </section>
+    <section class="mv-group">
+      <h2>Outside the modal slot</h2>
+      <p>Popovers and OS dialogs. Not drawn here.</p>
+      <ul class="mv-list" id="mv-outside"></ul>
+    </section>
+  </nav>
+  <main class="mv-main">
+    <div class="mv-canvas" id="mv-canvas" aria-live="polite"></div>
+    <section class="mv-facts" id="mv-facts" aria-label="About this modal"></section>
+  </main>
+</div>
+
+<!-- source: src/components/Modals.tsx:91 PromptModal (Sidebar.tsx:129) -->
+<template data-modal="prompt" data-state="new-collection" data-title="New collection">
+  <div class="backdrop">
+    <div class="dialog" role="dialog" aria-modal="true" aria-label="New collection">
+      <h3>New collection</h3>
+      <form>
+        <input class="field" aria-label="New collection" value="My collection">
+        <footer>
+          <button type="button" class="btn">Cancel</button>
+          <button type="submit" class="btn btn--primary">OK</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:91 PromptModal (Sidebar.tsx:419) -->
+<template data-modal="prompt" data-state="new-folder" data-title="New folder">
+  <div class="backdrop">
+    <div class="dialog" role="dialog" aria-modal="true" aria-label="New folder">
+      <h3>New folder</h3>
+      <form>
+        <input class="field" aria-label="New folder" value="New folder">
+        <footer>
+          <button type="button" class="btn">Cancel</button>
+          <button type="submit" class="btn btn--primary">OK</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:45 confirm (Home.tsx:63) -->
+<template data-modal="confirm" data-state="delete-project" data-title="Delete project">
+  <div class="backdrop">
+    <div class="dialog" role="dialog" aria-modal="true" aria-label="Delete “Payments”?">
+      <h3>Delete “Payments”?</h3>
+      <p>Its collections, environments, history and open tabs are deleted. This cannot be undone.</p>
+      <footer>
+        <button type="button" class="btn">Cancel</button>
+        <button type="button" class="btn btn--danger">Delete</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:45 confirm (Sidebar.tsx:130) -->
+<template data-modal="confirm" data-state="clear-history" data-title="Clear history">
+  <div class="backdrop">
+    <div class="dialog" role="dialog" aria-modal="true" aria-label="Clear history?">
+      <h3>Clear history?</h3>
+      <p>Every request in history is removed. Saved collections are not touched.</p>
+      <footer>
+        <button type="button" class="btn">Cancel</button>
+        <button type="button" class="btn btn--danger">Clear</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:45 confirm (Sidebar.tsx:411) -->
+<template data-modal="confirm" data-state="delete-request" data-title="Delete request">
+  <div class="backdrop">
+    <div class="dialog" role="dialog" aria-modal="true" aria-label="Delete “Cancel order”?">
+      <h3>Delete “Cancel order”?</h3>
+      <p>This cannot be undone.</p>
+      <footer>
+        <button type="button" class="btn">Cancel</button>
+        <button type="button" class="btn btn--danger">Delete</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:115 SaveModal -->
+<template data-modal="save" data-state="default" data-title="Save request">
+  <div class="backdrop">
+    <div class="dialog" role="dialog" aria-modal="true" aria-label="Save request">
+      <h3>Save request</h3>
+      <label>
+        Name
+        <input class="field" value="Create order">
+      </label>
+      <label>
+        Save to
+        <span class="select-wrap">
+          <select class="field">
+            <option value="col-orders|">orders-api</option>
+            <option value="col-orders|fld-orders" selected>  orders</option>
+            <option value="col-orders|fld-refunds">  refunds</option>
+            <option value="col-auth|">auth-service</option>
+            <option value="">New collection…</option>
+          </select>
+          <svg aria-hidden="true" class="ico select-chev"><use href="#i-chevron-down"/></svg>
+        </span>
+      </label>
+      <footer>
+        <button type="button" class="btn">Cancel</button>
+        <button type="button" class="btn btn--primary">Save</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:1237 ProjectModal -->
+<template data-modal="project" data-state="new" data-title="New project">
+  <div class="backdrop">
+    <div class="dialog" role="dialog" aria-modal="true" aria-label="New project">
+      <h3>New project</h3>
+      <div class="proj-preview">
+        <span class="proj-tile" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></span>
+        <div>
+          <strong>Untitled project</strong>
+          <span class="muted">Collections, environments and history of its own</span>
+        </div>
+      </div>
+      <label>
+        Name
+        <input class="field" placeholder="e.g. Amarbank" value="">
+      </label>
+      <div class="pick">
+        <span class="pick-label" id="lbl-icon">Icon</span>
+        <div class="icon-grid" role="radiogroup" aria-labelledby="lbl-icon" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)">
+          <button type="button" role="radio" aria-checked="true" aria-label="landmark" title="landmark"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="building 2" title="building 2"><svg aria-hidden="true" class="ico"><use href="#i-building-2"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="wallet" title="wallet"><svg aria-hidden="true" class="ico"><use href="#i-wallet"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="credit card" title="credit card"><svg aria-hidden="true" class="ico"><use href="#i-credit-card"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="shopping cart" title="shopping cart"><svg aria-hidden="true" class="ico"><use href="#i-shopping-cart"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="store" title="store"><svg aria-hidden="true" class="ico"><use href="#i-store"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="truck" title="truck"><svg aria-hidden="true" class="ico"><use href="#i-truck"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="package" title="package"><svg aria-hidden="true" class="ico"><use href="#i-package"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="user round" title="user round"><svg aria-hidden="true" class="ico"><use href="#i-user-round"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="users" title="users"><svg aria-hidden="true" class="ico"><use href="#i-users"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="briefcase" title="briefcase"><svg aria-hidden="true" class="ico"><use href="#i-briefcase"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="rocket" title="rocket"><svg aria-hidden="true" class="ico"><use href="#i-rocket"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="flask conical" title="flask conical"><svg aria-hidden="true" class="ico"><use href="#i-flask-conical"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="bug" title="bug"><svg aria-hidden="true" class="ico"><use href="#i-bug"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="code xml" title="code xml"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="server" title="server"><svg aria-hidden="true" class="ico"><use href="#i-server"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="database" title="database"><svg aria-hidden="true" class="ico"><use href="#i-database"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="cloud" title="cloud"><svg aria-hidden="true" class="ico"><use href="#i-cloud"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="shield check" title="shield check"><svg aria-hidden="true" class="ico"><use href="#i-shield-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="lock" title="lock"><svg aria-hidden="true" class="ico"><use href="#i-lock"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="key round" title="key round"><svg aria-hidden="true" class="ico"><use href="#i-key-round"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="bell" title="bell"><svg aria-hidden="true" class="ico"><use href="#i-bell"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="mail" title="mail"><svg aria-hidden="true" class="ico"><use href="#i-mail"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="message circle" title="message circle"><svg aria-hidden="true" class="ico"><use href="#i-message-circle"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="globe" title="globe"><svg aria-hidden="true" class="ico"><use href="#i-globe"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="map pin" title="map pin"><svg aria-hidden="true" class="ico"><use href="#i-map-pin"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="heart pulse" title="heart pulse"><svg aria-hidden="true" class="ico"><use href="#i-heart-pulse"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="graduation cap" title="graduation cap"><svg aria-hidden="true" class="ico"><use href="#i-graduation-cap"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="gamepad 2" title="gamepad 2"><svg aria-hidden="true" class="ico"><use href="#i-gamepad-2"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="music" title="music"><svg aria-hidden="true" class="ico"><use href="#i-music"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="camera" title="camera"><svg aria-hidden="true" class="ico"><use href="#i-camera"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="zap" title="zap"><svg aria-hidden="true" class="ico"><use href="#i-zap"/></svg></button>
+        </div>
+      </div>
+      <div class="pick">
+        <span class="pick-label" id="lbl-colour">Colour</span>
+        <div class="swatches" role="radiogroup" aria-labelledby="lbl-colour">
+          <button type="button" role="radio" aria-checked="true" aria-label="Blue" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="Green" style="--fg: var(--proj-2-fg); --bg: var(--proj-2-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="Orange" style="--fg: var(--proj-3-fg); --bg: var(--proj-3-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="Purple" style="--fg: var(--proj-4-fg); --bg: var(--proj-4-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="Teal" style="--fg: var(--proj-5-fg); --bg: var(--proj-5-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="Pink" style="--fg: var(--proj-6-fg); --bg: var(--proj-6-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+        </div>
+      </div>
+      <footer>
+        <button type="button" class="btn">Cancel</button>
+        <button type="button" class="btn btn--primary" disabled>Create project</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:1237 ProjectModal -->
+<template data-modal="project" data-state="edit" data-title="Edit project">
+  <div class="backdrop">
+    <div class="dialog" role="dialog" aria-modal="true" aria-label="Edit project">
+      <h3>Edit project</h3>
+      <div class="proj-preview">
+        <span class="proj-tile" style="--fg: var(--proj-3-fg); --bg: var(--proj-3-bg)"><svg aria-hidden="true" class="ico"><use href="#i-shopping-cart"/></svg></span>
+        <div>
+          <strong>Shopfront</strong>
+          <span class="muted">Collections, environments and history of its own</span>
+        </div>
+      </div>
+      <label>
+        Name
+        <input class="field" placeholder="e.g. Amarbank" value="Shopfront">
+      </label>
+      <div class="pick">
+        <span class="pick-label" id="lbl-icon">Icon</span>
+        <div class="icon-grid" role="radiogroup" aria-labelledby="lbl-icon" style="--fg: var(--proj-3-fg); --bg: var(--proj-3-bg)">
+          <button type="button" role="radio" aria-checked="false" aria-label="landmark" title="landmark"><svg aria-hidden="true" class="ico"><use href="#i-landmark"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="building 2" title="building 2"><svg aria-hidden="true" class="ico"><use href="#i-building-2"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="wallet" title="wallet"><svg aria-hidden="true" class="ico"><use href="#i-wallet"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="credit card" title="credit card"><svg aria-hidden="true" class="ico"><use href="#i-credit-card"/></svg></button>
+          <button type="button" role="radio" aria-checked="true" aria-label="shopping cart" title="shopping cart"><svg aria-hidden="true" class="ico"><use href="#i-shopping-cart"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="store" title="store"><svg aria-hidden="true" class="ico"><use href="#i-store"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="truck" title="truck"><svg aria-hidden="true" class="ico"><use href="#i-truck"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="package" title="package"><svg aria-hidden="true" class="ico"><use href="#i-package"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="user round" title="user round"><svg aria-hidden="true" class="ico"><use href="#i-user-round"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="users" title="users"><svg aria-hidden="true" class="ico"><use href="#i-users"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="briefcase" title="briefcase"><svg aria-hidden="true" class="ico"><use href="#i-briefcase"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="rocket" title="rocket"><svg aria-hidden="true" class="ico"><use href="#i-rocket"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="flask conical" title="flask conical"><svg aria-hidden="true" class="ico"><use href="#i-flask-conical"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="bug" title="bug"><svg aria-hidden="true" class="ico"><use href="#i-bug"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="code xml" title="code xml"><svg aria-hidden="true" class="ico"><use href="#i-code-xml"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="server" title="server"><svg aria-hidden="true" class="ico"><use href="#i-server"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="database" title="database"><svg aria-hidden="true" class="ico"><use href="#i-database"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="cloud" title="cloud"><svg aria-hidden="true" class="ico"><use href="#i-cloud"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="shield check" title="shield check"><svg aria-hidden="true" class="ico"><use href="#i-shield-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="lock" title="lock"><svg aria-hidden="true" class="ico"><use href="#i-lock"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="key round" title="key round"><svg aria-hidden="true" class="ico"><use href="#i-key-round"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="bell" title="bell"><svg aria-hidden="true" class="ico"><use href="#i-bell"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="mail" title="mail"><svg aria-hidden="true" class="ico"><use href="#i-mail"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="message circle" title="message circle"><svg aria-hidden="true" class="ico"><use href="#i-message-circle"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="globe" title="globe"><svg aria-hidden="true" class="ico"><use href="#i-globe"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="map pin" title="map pin"><svg aria-hidden="true" class="ico"><use href="#i-map-pin"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="heart pulse" title="heart pulse"><svg aria-hidden="true" class="ico"><use href="#i-heart-pulse"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="graduation cap" title="graduation cap"><svg aria-hidden="true" class="ico"><use href="#i-graduation-cap"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="gamepad 2" title="gamepad 2"><svg aria-hidden="true" class="ico"><use href="#i-gamepad-2"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="music" title="music"><svg aria-hidden="true" class="ico"><use href="#i-music"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="camera" title="camera"><svg aria-hidden="true" class="ico"><use href="#i-camera"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="zap" title="zap"><svg aria-hidden="true" class="ico"><use href="#i-zap"/></svg></button>
+        </div>
+      </div>
+      <div class="pick">
+        <span class="pick-label" id="lbl-colour">Colour</span>
+        <div class="swatches" role="radiogroup" aria-labelledby="lbl-colour">
+          <button type="button" role="radio" aria-checked="false" aria-label="Blue" style="--fg: var(--proj-1-fg); --bg: var(--proj-1-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="Green" style="--fg: var(--proj-2-fg); --bg: var(--proj-2-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="true" aria-label="Orange" style="--fg: var(--proj-3-fg); --bg: var(--proj-3-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="Purple" style="--fg: var(--proj-4-fg); --bg: var(--proj-4-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="Teal" style="--fg: var(--proj-5-fg); --bg: var(--proj-5-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="Pink" style="--fg: var(--proj-6-fg); --bg: var(--proj-6-bg)"><svg aria-hidden="true" class="ico"><use href="#i-check"/></svg></button>
+        </div>
+      </div>
+      <footer>
+        <button type="button" class="btn">Cancel</button>
+        <button type="button" class="btn btn--primary">Save</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:175 VariablesModal (EnvItem :411, EnvColor :351, KVEditor.tsx:23) -->
+<template data-modal="environments" data-state="env" data-title="Variables: environment">
+  <div class="backdrop">
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Variables">
+      <h3>Variables</h3>
+      <div class="vars">
+        <ul>
+          <li class="group">
+            Environments
+            <button type="button" class="icon-btn" title="Add environment" aria-label="Add environment"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+          </li>
+          <li class="env-item">
+            <button type="button" aria-current="false" title="Local">Local</button>
+            <button type="button" class="icon-btn row-more" title="More actions" aria-label="More actions for Local" aria-haspopup="menu" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button>
+          </li>
+          <li class="env-item">
+            <button type="button" aria-current="true" title="Staging"><span class="env-dot" aria-hidden="true" style="--env-c: var(--tag-river); --env-ink: var(--tag-river-ink)"></span>Staging</button>
+            <button type="button" class="icon-btn row-more" title="More actions" aria-label="More actions for Staging" aria-haspopup="menu" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button>
+          </li>
+          <li class="env-item">
+            <button type="button" aria-current="false" title="Production"><span class="env-dot" aria-hidden="true" style="--env-c: var(--tag-alizarin); --env-ink: var(--tag-alizarin-ink)"></span>Production</button>
+            <button type="button" class="icon-btn row-more" title="More actions" aria-label="More actions for Production" aria-haspopup="menu" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button>
+          </li>
+          <li class="group">Collection variables</li>
+          <li><button type="button" aria-current="false">orders-api</button></li>
+          <li><button type="button" aria-current="false">auth-service</button></li>
+        </ul>
+        <div class="vars-body">
+          <div class="env-head">
+            <input class="field" aria-label="Environment name" value="Staging">
+            <div class="env-color">
+              <button type="button" class="env-color-btn" title="Colour" aria-label="Environment colour: Peter River" aria-haspopup="true" aria-expanded="false" style="--env-c: var(--tag-river); --env-ink: var(--tag-river-ink)"><span class="env-dot" aria-hidden="true"></span></button>
+            </div>
+          </div>
+          <div class="vars-tools">
+            <div class="seg" role="group" aria-label="Format">
+              <button type="button" aria-pressed="true">Table</button>
+              <button type="button" aria-pressed="false">JSON</button>
+              <button type="button" aria-pressed="false">.env</button>
+            </div>
+          </div>
+          <table class="kv">
+            <thead>
+              <tr>
+                <th class="check"><span class="visually-hidden">Enabled</span></th>
+                <th>Variable</th>
+                <th>Value</th>
+                <th class="del"><span class="visually-hidden">Remove</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="">
+                <td class="check"><input type="checkbox" aria-label="Enabled" checked></td>
+                <td><input class="field" spellcheck="false" aria-label="Variable" placeholder="Variable" value="baseUrl"></td>
+                <td><input class="field" spellcheck="false" aria-label="Value" placeholder="Value" value="https://api.staging.example.test"></td>
+                <td class="del"><button type="button" class="icon-btn" title="Remove" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td>
+              </tr>
+              <tr class="">
+                <td class="check"><input type="checkbox" aria-label="Enabled" checked></td>
+                <td><input class="field" spellcheck="false" aria-label="Variable" placeholder="Variable" value="token"></td>
+                <td><input class="field" spellcheck="false" aria-label="Value" placeholder="Value" value="{{$guid}}"></td>
+                <td class="del"><button type="button" class="icon-btn" title="Remove" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td>
+              </tr>
+              <tr class="">
+                <td class="check"><input type="checkbox" aria-label="Enabled" checked></td>
+                <td><input class="field" spellcheck="false" aria-label="Variable" placeholder="Variable" value="userId"></td>
+                <td><input class="field" spellcheck="false" aria-label="Value" placeholder="Value" value="1042"></td>
+                <td class="del"><button type="button" class="icon-btn" title="Remove" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td>
+              </tr>
+              <tr class="add">
+                <td class="check"></td>
+                <td><input class="field" spellcheck="false" aria-label="Variable" placeholder="Add a variable" value=""></td>
+                <td><input class="field" spellcheck="false" aria-label="Value" placeholder="Value" value=""></td>
+                <td class="del"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <footer>
+        <button type="button" class="btn">Cancel</button>
+        <button type="button" class="btn btn--primary">Save</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:175 VariablesModal (KVEditor.tsx:23) -->
+<template data-modal="environments" data-state="collection" data-title="Variables: collection">
+  <div class="backdrop">
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Variables">
+      <h3>Variables</h3>
+      <div class="vars">
+        <ul>
+          <li class="group">
+            Environments
+            <button type="button" class="icon-btn" title="Add environment" aria-label="Add environment"><svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg></button>
+          </li>
+          <li class="env-item">
+            <button type="button" aria-current="false" title="Local">Local</button>
+            <button type="button" class="icon-btn row-more" title="More actions" aria-label="More actions for Local" aria-haspopup="menu" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button>
+          </li>
+          <li class="env-item">
+            <button type="button" aria-current="false" title="Staging"><span class="env-dot" aria-hidden="true" style="--env-c: var(--tag-river); --env-ink: var(--tag-river-ink)"></span>Staging</button>
+            <button type="button" class="icon-btn row-more" title="More actions" aria-label="More actions for Staging" aria-haspopup="menu" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button>
+          </li>
+          <li class="env-item">
+            <button type="button" aria-current="false" title="Production"><span class="env-dot" aria-hidden="true" style="--env-c: var(--tag-alizarin); --env-ink: var(--tag-alizarin-ink)"></span>Production</button>
+            <button type="button" class="icon-btn row-more" title="More actions" aria-label="More actions for Production" aria-haspopup="menu" aria-expanded="false"><svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg></button>
+          </li>
+          <li class="group">Collection variables</li>
+          <li><button type="button" aria-current="true">orders-api</button></li>
+          <li><button type="button" aria-current="false">auth-service</button></li>
+        </ul>
+        <div class="vars-body">
+          <p class="muted">Used by requests saved in <b>orders-api</b>. Environment values override these.</p>
+          <div class="vars-tools">
+            <div class="seg" role="group" aria-label="Format">
+              <button type="button" aria-pressed="true">Table</button>
+              <button type="button" aria-pressed="false">JSON</button>
+              <button type="button" aria-pressed="false">.env</button>
+            </div>
+          </div>
+          <table class="kv">
+            <thead>
+              <tr>
+                <th class="check"><span class="visually-hidden">Enabled</span></th>
+                <th>Variable</th>
+                <th>Value</th>
+                <th class="del"><span class="visually-hidden">Remove</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="">
+                <td class="check"><input type="checkbox" aria-label="Enabled" checked></td>
+                <td><input class="field" spellcheck="false" aria-label="Variable" placeholder="Variable" value="baseUrl"></td>
+                <td><input class="field" spellcheck="false" aria-label="Value" placeholder="Value" value="https://api.staging.example.test"></td>
+                <td class="del"><button type="button" class="icon-btn" title="Remove" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td>
+              </tr>
+              <tr class="">
+                <td class="check"><input type="checkbox" aria-label="Enabled" checked></td>
+                <td><input class="field" spellcheck="false" aria-label="Variable" placeholder="Variable" value="userId"></td>
+                <td><input class="field" spellcheck="false" aria-label="Value" placeholder="Value" value="1042"></td>
+                <td class="del"><button type="button" class="icon-btn" title="Remove" aria-label="Remove row"><svg aria-hidden="true" class="ico"><use href="#i-x"/></svg></button></td>
+              </tr>
+              <tr class="add">
+                <td class="check"></td>
+                <td><input class="field" spellcheck="false" aria-label="Variable" placeholder="Add a variable" value=""></td>
+                <td><input class="field" spellcheck="false" aria-label="Value" placeholder="Value" value=""></td>
+                <td class="del"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <footer>
+        <button type="button" class="btn">Cancel</button>
+        <button type="button" class="btn btn--primary">Save</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:461 SettingsModal (section "appearance") -->
+<template data-modal="settings" data-state="appearance" data-title="Settings: Appearance">
+  <div class="backdrop">
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Settings">
+      <h3>Settings</h3>
+      <div class="vars settings">
+        <ul>
+          <li>
+            <button type="button" aria-current="true">
+              <svg aria-hidden="true" class="ico"><use href="#i-type"/></svg>Appearance
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Requests
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-network"/></svg>Network
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-file-badge"/></svg>Certificates
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-keyboard"/></svg>Shortcuts
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-circle-arrow-down"/></svg>Updates
+            </button>
+          </li>
+        </ul>
+        <div class="set-pane">
+          <h4>Appearance</h4>
+          <div class="set-list">
+            <div class="set-item">
+              <div class="set-text">
+                <span class="set-label" id="set-theme">Theme</span>
+                <span class="desc">Auto follows your Mac's appearance</span>
+              </div>
+              <div class="set-ctl">
+                <div class="seg seg--lg" role="group" aria-labelledby="set-theme">
+                  <button type="button" aria-pressed="true">Auto</button>
+                  <button type="button" aria-pressed="false">Light</button>
+                  <button type="button" aria-pressed="false">Dark</button>
+                </div>
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-scheme-light">Light theme</label>
+                <span class="desc">Used while your Mac is light</span>
+              </div>
+              <div class="set-ctl">
+                <span class="scheme-dots" aria-hidden="true" style="background: #ffffff"><i style="background: #01804a"></i><i style="background: #c74200"></i><i style="background: #2e67e5"></i><i style="background: #d00000"></i></span>
+                <span class="select-wrap">
+                  <select id="set-scheme-light" class="field set-scheme">
+                    <optgroup label="voidHTTP">
+                      <option value="void-light" selected>voidHTTP Light</option>
+                      <option value="void-dark">voidHTTP Dark</option>
+                    </optgroup>
+                    <optgroup label="Ayu">
+                      <option value="ayu">Ayu</option>
+                      <option value="ayu-light">Ayu Light</option>
+                      <option value="ayu-mirage">Ayu Mirage</option>
+                    </optgroup>
+                    <optgroup label="Atom">
+                      <option value="atom-one-light">Atom One Light</option>
+                      <option value="atom-one-dark">Atom One Dark</option>
+                    </optgroup>
+                    <optgroup label="Everforest">
+                      <option value="everforest-light-hard">Everforest Light Hard</option>
+                      <option value="everforest-dark-hard">Everforest Dark Hard</option>
+                    </optgroup>
+                    <optgroup label="Gruvbox">
+                      <option value="gruvbox-light">Gruvbox Light</option>
+                      <option value="gruvbox-material">Gruvbox Material</option>
+                      <option value="gruvbox-dark">Gruvbox Dark</option>
+                    </optgroup>
+                  </select>
+                  <svg aria-hidden="true" class="ico select-chev"><use href="#i-chevron-down"/></svg>
+                </span>
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-scheme-dark">Dark theme</label>
+                <span class="desc">Used while your Mac is dark</span>
+              </div>
+              <div class="set-ctl">
+                <span class="scheme-dots" aria-hidden="true" style="background: #161b25"><i style="background: #01bf71"></i><i style="background: #ff7a33"></i><i style="background: #4f85fc"></i><i style="background: #ff5c5c"></i></span>
+                <span class="select-wrap">
+                  <select id="set-scheme-dark" class="field set-scheme">
+                    <optgroup label="voidHTTP">
+                      <option value="void-light">voidHTTP Light</option>
+                      <option value="void-dark" selected>voidHTTP Dark</option>
+                    </optgroup>
+                    <optgroup label="Ayu">
+                      <option value="ayu">Ayu</option>
+                      <option value="ayu-light">Ayu Light</option>
+                      <option value="ayu-mirage">Ayu Mirage</option>
+                    </optgroup>
+                    <optgroup label="Atom">
+                      <option value="atom-one-light">Atom One Light</option>
+                      <option value="atom-one-dark">Atom One Dark</option>
+                    </optgroup>
+                    <optgroup label="Everforest">
+                      <option value="everforest-light-hard">Everforest Light Hard</option>
+                      <option value="everforest-dark-hard">Everforest Dark Hard</option>
+                    </optgroup>
+                    <optgroup label="Gruvbox">
+                      <option value="gruvbox-light">Gruvbox Light</option>
+                      <option value="gruvbox-material">Gruvbox Material</option>
+                      <option value="gruvbox-dark">Gruvbox Dark</option>
+                    </optgroup>
+                  </select>
+                  <svg aria-hidden="true" class="ico select-chev"><use href="#i-chevron-down"/></svg>
+                </span>
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-compact">Compact mode</label>
+                <span class="desc">UI elements take up less screen space</span>
+              </div>
+              <div class="set-ctl">
+                <input id="set-compact" class="switch" type="checkbox" role="switch">
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-ui-font">Interface font</label>
+                <span class="desc">Menus, tabs and dialogs</span>
+              </div>
+              <div class="set-ctl">
+                <input id="set-ui-font" class="field set-font" list="set-ui-font-list" placeholder="System default" spellcheck="false" value="">
+                <datalist id="set-ui-font-list">
+                  <option value="Inter"></option>
+                  <option value="SF Pro Text"></option>
+                  <option value="Helvetica Neue"></option>
+                  <option value="Avenir Next"></option>
+                  <option value="IBM Plex Sans"></option>
+                  <option value="Roboto"></option>
+                  <option value="Georgia"></option>
+                </datalist>
+                <span class="select-wrap">
+                  <select class="field set-size" aria-label="Interface font size">
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14" selected>14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                  </select>
+                  <svg aria-hidden="true" class="ico select-chev"><use href="#i-chevron-down"/></svg>
+                </span>
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-code-font">Code font</label>
+                <span class="desc">URLs, bodies and responses</span>
+              </div>
+              <div class="set-ctl">
+                <input id="set-code-font" class="field set-font" list="set-code-font-list" placeholder="System monospace" spellcheck="false" value="">
+                <datalist id="set-code-font-list">
+                  <option value="JetBrains Mono"></option>
+                  <option value="SF Mono"></option>
+                  <option value="Menlo"></option>
+                  <option value="Monaco"></option>
+                  <option value="Fira Code"></option>
+                  <option value="IBM Plex Mono"></option>
+                  <option value="Cascadia Code"></option>
+                  <option value="Courier New"></option>
+                </datalist>
+                <span class="select-wrap">
+                  <select class="field set-size" aria-label="Code font size">
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13" selected>13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                  </select>
+                  <svg aria-hidden="true" class="ico select-chev"><use href="#i-chevron-down"/></svg>
+                </span>
+              </div>
+            </div>
+            <div class="set-sample" aria-label="Sample">
+              <span class="set-sample-ui">Create customer <span class="muted">trx-service / Customers</span></span>
+              <code><span class="m m-POST">POST</span> {{baseUrl}}/v1/customers</code>
+            </div>
+          </div>
+          <button type="button" class="link set-reset">Reset to defaults</button>
+        </div>
+      </div>
+      <footer>
+        <button type="button" class="btn btn--primary">Done</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:461 SettingsModal (section "requests") -->
+<template data-modal="settings" data-state="requests" data-title="Settings: Requests">
+  <div class="backdrop">
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Settings">
+      <h3>Settings</h3>
+      <div class="vars settings">
+        <ul>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-type"/></svg>Appearance
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="true">
+              <svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Requests
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-network"/></svg>Network
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-file-badge"/></svg>Certificates
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-keyboard"/></svg>Shortcuts
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-circle-arrow-down"/></svg>Updates
+            </button>
+          </li>
+        </ul>
+        <div class="set-pane">
+          <h4>Requests</h4>
+          <div class="set-list">
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-timeout">Timeout</label>
+                <span class="desc">How long to wait for a response before giving up</span>
+              </div>
+              <div class="set-ctl">
+                <span class="unit-field">
+                  <input id="set-timeout" class="field" type="number" min="1" value="30000">
+                  <span class="unit">ms</span>
+                </span>
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-redirects">Follow redirects</label>
+                <span class="desc">Follow 3xx responses to their Location</span>
+              </div>
+              <div class="set-ctl">
+                <input id="set-redirects" class="switch" type="checkbox" role="switch" checked>
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-insecure">Skip TLS verification</label>
+                <span class="desc">Accept self-signed or invalid certificates. Use only for local servers.</span>
+              </div>
+              <div class="set-ctl">
+                <input id="set-insecure" class="switch switch--warn" type="checkbox" role="switch">
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-scripts">Run scripts</label>
+                <span class="desc">Run pre-request and post-response scripts on each send, including those from imported collections</span>
+              </div>
+              <div class="set-ctl">
+                <input id="set-scripts" class="switch" type="checkbox" role="switch" checked>
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-keep">Keep responses in history</label>
+                <span class="desc">Status, headers and body of each send, stored on this Mac as received</span>
+              </div>
+              <div class="set-ctl">
+                <input id="set-keep" class="switch" type="checkbox" role="switch" checked>
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-keep-max">Largest body kept</label>
+                <span class="desc">Bigger responses keep only status and headers</span>
+              </div>
+              <div class="set-ctl">
+                <span class="unit-field">
+                  <input id="set-keep-max" class="field" type="number" min="1" value="1">
+                  <span class="unit">MB</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer>
+        <button type="button" class="btn btn--primary">Done</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:461 SettingsModal (section "network") -->
+<template data-modal="settings" data-state="network" data-title="Settings: Network">
+  <div class="backdrop">
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Settings">
+      <h3>Settings</h3>
+      <div class="vars settings">
+        <ul>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-type"/></svg>Appearance
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Requests
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="true">
+              <svg aria-hidden="true" class="ico"><use href="#i-network"/></svg>Network
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-file-badge"/></svg>Certificates
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-keyboard"/></svg>Shortcuts
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-circle-arrow-down"/></svg>Updates
+            </button>
+          </li>
+        </ul>
+        <div class="set-pane">
+          <h4>Network</h4>
+          <div class="set-group">DNS</div>
+          <div class="set-list">
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-dns">Secure DNS</label>
+                <span class="desc">Look up hostnames over HTTPS, like Chrome's secure DNS. Gets past DNS blocking by your ISP.</span>
+              </div>
+              <div class="set-ctl">
+                <input id="set-dns" class="switch" type="checkbox" role="switch">
+              </div>
+            </div>
+          </div>
+          <div class="set-group">Proxy</div>
+          <div class="set-list">
+            <div class="set-item">
+              <div class="set-text">
+                <span class="set-label" id="set-proxy">Proxy</span>
+                <span class="desc">Send HTTP, WebSocket and gRPC traffic through a proxy</span>
+              </div>
+              <div class="set-ctl">
+                <div class="seg seg--lg" role="group" aria-labelledby="set-proxy">
+                  <button type="button" aria-pressed="true">None</button>
+                  <button type="button" aria-pressed="false">SOCKS5</button>
+                  <button type="button" aria-pressed="false">HTTP</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="set-group">Test</div>
+          <div class="set-list">
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-net-host">Check a host</label>
+                <span class="desc">Look up, connect and finish a TLS handshake with the settings above</span>
+              </div>
+              <div class="set-ctl">
+                <form class="net-test">
+                  <input id="set-net-host" class="field" placeholder="api.example.com" spellcheck="false" value="">
+                  <button type="submit" class="btn" disabled>Test</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer>
+        <button type="button" class="btn btn--primary">Done</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:461 SettingsModal (section "certificates") -->
+<template data-modal="settings" data-state="certificates" data-title="Settings: Certificates">
+  <div class="backdrop">
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Settings">
+      <h3>Settings</h3>
+      <div class="vars settings">
+        <ul>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-type"/></svg>Appearance
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Requests
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-network"/></svg>Network
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="true">
+              <svg aria-hidden="true" class="ico"><use href="#i-file-badge"/></svg>Certificates
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-keyboard"/></svg>Shortcuts
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-circle-arrow-down"/></svg>Updates
+            </button>
+          </li>
+        </ul>
+        <div class="set-pane">
+          <h4>Certificates</h4>
+          <div class="set-group">CA certificates</div>
+          <div class="set-list">
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-ca">Trust custom CA certificates</label>
+                <span class="desc">For dev servers with a self-signed or company certificate. Trusted on top of the public CAs.</span>
+              </div>
+              <div class="set-ctl">
+                <input id="set-ca" class="switch" type="checkbox" role="switch" checked>
+              </div>
+            </div>
+            <div class="set-item set-item--sub cert-row">
+              <div class="file-row" title="~/certs/company-root.pem">
+                <svg aria-hidden="true" class="ico"><use href="#i-file-badge"/></svg>
+                <code>company-root.pem</code>
+                <span class="dim">Shopfront Dev Root CA · until 3 Jan 2031</span>
+              </div>
+              <button type="button" class="icon-btn row-del" aria-label="Remove company-root.pem">
+                <svg aria-hidden="true" class="ico"><use href="#i-x"/></svg>
+              </button>
+            </div>
+            <div class="set-item set-item--sub cert-add">
+              <button type="button" class="btn">
+                <svg aria-hidden="true" class="ico"><use href="#i-file-up"/></svg>Add .pem file
+              </button>
+              <span class="hint">The server's or its CA's certificate (<code>BEGIN CERTIFICATE</code>), never a private key</span>
+            </div>
+          </div>
+          <div class="set-group">Client certificates</div>
+          <div class="set-list">
+            <div class="set-item cert-row">
+              <div class="cert-file">
+                <div class="file-row" title="api.staging.example.test">
+                  <svg aria-hidden="true" class="ico"><use href="#i-key-round"/></svg>
+                  <code>api.staging.example.test</code>
+                  <span class="dim">CRT + KEY · shopfront-client · until 14 Feb 2028</span>
+                </div>
+              </div>
+              <button type="button" class="icon-btn row-more" aria-label="More actions for api.staging.example.test" aria-haspopup="menu" title="More actions">
+                <svg aria-hidden="true" class="ico"><use href="#i-ellipsis"/></svg>
+              </button>
+            </div>
+            <div class="set-item cert-add">
+              <button type="button" class="btn">
+                <svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg>Add certificate
+              </button>
+              <span class="hint">Sent when a server asks for one (mutual TLS), matched by host and port</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer>
+        <button type="button" class="btn btn--primary">Done</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:461 SettingsModal (section "shortcuts") -->
+<template data-modal="settings" data-state="shortcuts" data-title="Settings: Shortcuts">
+  <div class="backdrop">
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Settings">
+      <h3>Settings</h3>
+      <div class="vars settings">
+        <ul>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-type"/></svg>Appearance
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Requests
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-network"/></svg>Network
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-file-badge"/></svg>Certificates
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="true">
+              <svg aria-hidden="true" class="ico"><use href="#i-keyboard"/></svg>Shortcuts
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-circle-arrow-down"/></svg>Updates
+            </button>
+          </li>
+        </ul>
+        <div class="set-pane sc-pane">
+          <div class="set-head">
+            <h4>Shortcuts</h4>
+            <div class="search">
+              <svg aria-hidden="true" class="ico"><use href="#i-search"/></svg>
+              <input class="field" placeholder="Search shortcuts" aria-label="Search shortcuts" value="">
+            </div>
+          </div>
+          <div class="set-group">Quick open</div>
+          <div class="set-list">
+            <div class="set-item compact">
+              <span class="set-label">Quick open a request</span>
+              <kbd>⌘P</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Run an action</span>
+              <kbd>⇧⌘P</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Keyboard shortcuts</span>
+              <kbd>⌘/</kbd>
+            </div>
+          </div>
+          <div class="set-group">Request</div>
+          <div class="set-list">
+            <div class="set-item compact">
+              <span class="set-label">Send</span>
+              <kbd>⌘↵</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Cancel request</span>
+              <kbd>⌘.</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Save</span>
+              <kbd>⌘S</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Save as</span>
+              <kbd>⇧⌘S</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Go to URL</span>
+              <kbd>⌘L</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Filter response</span>
+              <kbd>⌘F</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Toggle comment in the editor</span>
+              <kbd>⌘/</kbd>
+            </div>
+          </div>
+          <div class="set-group">Tabs</div>
+          <div class="set-list">
+            <div class="set-item compact">
+              <span class="set-label">New tab</span>
+              <kbd>⌘T</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Close tab</span>
+              <kbd>⌘W</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Reopen closed tab</span>
+              <kbd>⇧⌘T</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Next tab</span>
+              <span class="sc-keys"><kbd>⇧⌘]</kbd>or<kbd>⌃Tab</kbd></span>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Previous tab</span>
+              <span class="sc-keys"><kbd>⇧⌘[</kbd>or<kbd>⌃⇧Tab</kbd></span>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Go to tab 1 to 8</span>
+              <span class="sc-keys"><kbd>⌘1</kbd>to<kbd>⌘8</kbd></span>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Go to last tab</span>
+              <kbd>⌘9</kbd>
+            </div>
+          </div>
+          <div class="set-group">Sidebar</div>
+          <div class="set-list">
+            <div class="set-item compact">
+              <span class="set-label">Search sidebar</span>
+              <kbd>⇧⌘F</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Move up or down</span>
+              <span class="sc-keys"><kbd>↑</kbd><kbd>↓</kbd></span>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Open</span>
+              <kbd>↵</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Expand or collapse</span>
+              <span class="sc-keys"><kbd>→</kbd><kbd>←</kbd></span>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Expand or collapse all</span>
+              <span class="sc-keys"><kbd>⌥→</kbd><kbd>⌥←</kbd></span>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Rename</span>
+              <kbd>F2</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Duplicate</span>
+              <kbd>⌘D</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Delete</span>
+              <kbd>⌘⌫</kbd>
+            </div>
+          </div>
+          <div class="set-group">Interface</div>
+          <div class="set-list">
+            <div class="set-item compact">
+              <span class="set-label">Show or hide sidebar</span>
+              <kbd>⌘\</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Variables</span>
+              <kbd>⌘E</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Switch environment</span>
+              <kbd>⌥E</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Zoom in, out, reset</span>
+              <span class="sc-keys"><kbd>⌘+</kbd><kbd>⌘−</kbd><kbd>⌘0</kbd></span>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Import</span>
+              <kbd>⌘O</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Settings</span>
+              <kbd>⌘,</kbd>
+            </div>
+            <div class="set-item compact">
+              <span class="set-label">Close window</span>
+              <kbd>⇧⌘W</kbd>
+            </div>
+          </div>
+          <p class="sc-note">On Windows and Linux, ⌘ is Ctrl and ⌥ is Alt.</p>
+        </div>
+      </div>
+      <footer>
+        <button type="button" class="btn btn--primary">Done</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/Modals.tsx:461 SettingsModal (section "updates") -->
+<template data-modal="settings" data-state="updates" data-title="Settings: Updates">
+  <div class="backdrop">
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-label="Settings">
+      <h3>Settings</h3>
+      <div class="vars settings">
+        <ul>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-type"/></svg>Appearance
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>Requests
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-network"/></svg>Network
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-file-badge"/></svg>Certificates
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="false">
+              <svg aria-hidden="true" class="ico"><use href="#i-keyboard"/></svg>Shortcuts
+            </button>
+          </li>
+          <li>
+            <button type="button" aria-current="true">
+              <svg aria-hidden="true" class="ico"><use href="#i-circle-arrow-down"/></svg>Updates
+            </button>
+          </li>
+        </ul>
+        <div class="set-pane">
+          <h4>Updates</h4>
+          <div class="set-list">
+            <div class="set-item">
+              <div class="set-text">
+                <span class="set-label">voidHTTP 0.1.8</span>
+                <span class="desc"><span class="set-status ok"><svg aria-hidden="true" class="ico"><use href="#i-circle-check"/></svg>Up to date · checked 2 min ago</span></span>
+              </div>
+              <div class="set-ctl">
+                <button type="button" class="btn">Check for updates</button>
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <label for="set-auto-update">Check automatically</label>
+                <span class="desc">Look for a new version when voidHTTP opens</span>
+              </div>
+              <div class="set-ctl">
+                <input id="set-auto-update" class="switch" type="checkbox" role="switch" checked>
+              </div>
+            </div>
+            <div class="set-item">
+              <div class="set-text">
+                <span class="set-label">Release notes</span>
+                <span class="desc">What changed in each version</span>
+              </div>
+              <div class="set-ctl">
+                <button type="button" class="upd-link">
+                  Open on GitHub<svg aria-hidden="true" class="ico"><use href="#i-external-link"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer>
+        <button type="button" class="btn btn--primary">Done</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/ExampleModal.tsx:34 ExampleModal -->
+<template data-modal="example" data-state="default" data-title="Save as example">
+  <div class="backdrop">
+    <div class="dialog dialog--example" role="dialog" aria-modal="true" aria-label="Save as example">
+      <h3>Save as example</h3>
+      <div class="ex-grid">
+        <label>
+          Name<input class="field" value="201 Created">
+        </label>
+        <label>
+          Save under<span class="select-wrap">
+            <select class="field">
+              <option value="col_orders|req_create" selected>orders-api / orders / Create order</option>
+              <option value="col_orders|req_get">orders-api / orders / Get order</option>
+              <option value="col_orders|req_cancel">orders-api / orders / Cancel order</option>
+              <option value="col_auth|req_token">auth-service / Get token</option>
+            </select>
+            <svg aria-hidden="true" class="ico select-chev"><use href="#i-chevron-down"/></svg>
+          </span>
+        </label>
+      </div>
+      <div class="mask-head">
+        <div class="set-text">
+          <span class="set-label">Mask before saving</span>
+          <span class="desc">Found by name. History keeps the original values.</span>
+        </div>
+        <div class="seg" role="group" aria-label="Mask style">
+          <button type="button" aria-pressed="true">Partial</button>
+          <button type="button" aria-pressed="false">Full</button>
+        </div>
+      </div>
+      <div class="mask-list">
+        <label class="mask-row">
+          <input type="checkbox" checked>
+          <span class="mask-where">Request header</span>
+          <code class="mask-path" title="Authorization">Authorization</code>
+          <code class="mask-val">Bearer ••••••••</code>
+        </label>
+        <form class="mask-add">
+          <input class="field" placeholder="Mask another field: $.data[*].phone or X-Api-Key" aria-label="Field to mask" spellcheck="false" value="">
+        </form>
+      </div>
+      <footer>
+        <span class="mask-count">1 of 1 masked</span>
+        <button type="button" class="btn">Cancel</button>
+        <button type="button" class="btn btn--primary">Save example</button>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/QuickOpen.tsx:158 QuickOpen (⌘P, nothing typed: open tabs, then recently sent) -->
+<template data-modal="quickopen" data-state="open" data-title="Quick open">
+  <div class="qo-backdrop">
+    <div class="qo" role="dialog" aria-modal="true" aria-label="Quick open">
+      <div class="qo-in">
+        <svg aria-hidden="true" class="ico"><use href="#i-search"/></svg>
+        <input value="" placeholder="Search requests by name, URL or folder" aria-label="Search requests" role="combobox" aria-expanded="true" aria-controls="qo-list" aria-activedescendant="qo-0" spellcheck="false">
+        <span class="qo-scope" title="Searching this project">
+          <span class="proj-tile proj-tile--sm" style="--fg: var(--proj-3-fg); --bg: var(--proj-3-bg)">
+            <svg aria-hidden="true" class="ico"><use href="#i-shopping-cart"/></svg>
+          </span>
+          Shopfront
+        </span>
+      </div>
+      <div class="qo-list" id="qo-list" role="listbox" aria-label="Results">
+        <div class="qo-grp">Open tabs</div>
+        <button id="qo-0" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="true">
+          <span class="m m-POST">POST</span>
+          <span class="qo-txt">
+            <span class="name">Create order</span>
+            <span class="where">orders-api / orders</span>
+          </span>
+          <kbd>⌘1</kbd>
+        </button>
+        <div class="qo-grp">Recently sent</div>
+        <button id="qo-1" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <span class="m m-GET">GET</span>
+          <span class="qo-txt">
+            <span class="name">Get order</span>
+            <span class="where">orders-api / orders</span>
+          </span>
+          <span class="tag">4 min ago</span>
+        </button>
+        <button id="qo-2" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <span class="m m-POST">POST</span>
+          <span class="qo-txt">
+            <span class="name">Get token</span>
+            <span class="where">auth-service</span>
+          </span>
+          <span class="tag">2 h ago</span>
+        </button>
+        <button id="qo-3" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <span class="m m-DELETE">DEL</span>
+          <span class="qo-txt">
+            <span class="name">Cancel order</span>
+            <span class="where">orders-api / orders</span>
+          </span>
+          <span class="tag">yesterday</span>
+        </button>
+      </div>
+      <div class="qo-foot">
+        <span>
+          <kbd>↑</kbd>
+          <kbd>↓</kbd> move
+        </span>
+        <span>
+          <kbd>↵</kbd> open
+        </span>
+        <span>
+          <kbd>esc</kbd> close
+        </span>
+        <span class="push">
+          Type <kbd>&gt;</kbd> for actions
+        </span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/QuickOpen.tsx:158 QuickOpen actions mode (⇧⌘P; one open tab, not sending, nothing closed yet; first 12 of the list) -->
+<template data-modal="quickopen" data-state="actions" data-title="Actions">
+  <div class="qo-backdrop">
+    <div class="qo qo--actions" role="dialog" aria-modal="true" aria-label="Actions">
+      <div class="qo-in">
+        <svg aria-hidden="true" class="ico"><use href="#i-chevron-right"/></svg>
+        <input value="&gt;" placeholder="Search requests by name, URL or folder" aria-label="Search actions" role="combobox" aria-expanded="true" aria-controls="qo-list" aria-activedescendant="qo-0" spellcheck="false">
+      </div>
+      <div class="qo-list" id="qo-list" role="listbox" aria-label="Actions">
+        <div class="qo-grp">Request</div>
+        <button id="qo-0" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="true">
+          <svg aria-hidden="true" class="ico"><use href="#i-send"/></svg>
+          <span class="qo-txt">
+            <span class="name">Send request</span>
+          </span>
+          <kbd>⌘↵</kbd>
+        </button>
+        <button id="qo-1" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-save"/></svg>
+          <span class="qo-txt">
+            <span class="name">Save</span>
+          </span>
+          <kbd>⌘S</kbd>
+        </button>
+        <button id="qo-2" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-save"/></svg>
+          <span class="qo-txt">
+            <span class="name">Save as…</span>
+          </span>
+          <kbd>⇧⌘S</kbd>
+        </button>
+        <button id="qo-3" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-link"/></svg>
+          <span class="qo-txt">
+            <span class="name">Go to URL</span>
+          </span>
+          <kbd>⌘L</kbd>
+        </button>
+        <div class="qo-grp">Tabs</div>
+        <button id="qo-4" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-plus"/></svg>
+          <span class="qo-txt">
+            <span class="name">New tab</span>
+          </span>
+          <kbd>⌘T</kbd>
+        </button>
+        <button id="qo-5" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-x"/></svg>
+          <span class="qo-txt">
+            <span class="name">Close tab</span>
+          </span>
+          <kbd>⌘W</kbd>
+        </button>
+        <div class="qo-grp">View</div>
+        <button id="qo-6" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-panel-left-close"/></svg>
+          <span class="qo-txt">
+            <span class="name">Hide sidebar</span>
+          </span>
+          <kbd>⌘\</kbd>
+        </button>
+        <button id="qo-7" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-search"/></svg>
+          <span class="qo-txt">
+            <span class="name">Search sidebar</span>
+          </span>
+          <kbd>⇧⌘F</kbd>
+        </button>
+        <button id="qo-8" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-panel-right"/></svg>
+          <span class="qo-txt">
+            <span class="name">Response beside the request</span>
+          </span>
+        </button>
+        <button id="qo-9" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-zoom-in"/></svg>
+          <span class="qo-txt">
+            <span class="name">Zoom in</span>
+          </span>
+          <kbd>⌘+</kbd>
+        </button>
+        <button id="qo-10" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-zoom-out"/></svg>
+          <span class="qo-txt">
+            <span class="name">Zoom out</span>
+          </span>
+          <kbd>⌘−</kbd>
+        </button>
+        <button id="qo-11" type="button" tabindex="-1" class="qo-row" role="option" aria-selected="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-rotate-ccw"/></svg>
+          <span class="qo-txt">
+            <span class="name">Reset zoom</span>
+            <span class="where">100%</span>
+          </span>
+          <kbd>⌘0</kbd>
+        </button>
+      </div>
+      <div class="qo-foot">
+        <span>
+          <kbd>↑</kbd>
+          <kbd>↓</kbd> move
+        </span>
+        <span>
+          <kbd>↵</kbd> run
+        </span>
+        <span>
+          <kbd>esc</kbd> close
+        </span>
+        <span class="push">
+          Delete <kbd>&gt;</kbd> to search requests
+        </span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/AboutModal.tsx:18 AboutModal (release build, UpdateCard state "current") -->
+<template data-modal="about" data-state="default" data-title="About voidHTTP">
+  <div class="backdrop">
+    <div class="about" role="dialog" aria-modal="true" aria-labelledby="about-name">
+      <button type="button" class="icon-btn about-close" aria-label="Close">
+        <svg aria-hidden="true" class="ico"><use href="#i-x"/></svg>
+      </button>
+      <header class="about-hero">
+        <div class="about-orbit ping" aria-hidden="true">
+          <i></i>
+          <i></i>
+          <i></i>
+          <img src="../../app-icon.svg" alt="">
+        </div>
+        <h2 class="about-name" id="about-name">
+          void<span>HTTP</span>
+        </h2>
+        <p class="about-tag">Antisocial by design. Speaks API, avoids people.</p>
+        <button type="button" class="about-ver" title="Copy version">
+          v0.1.8
+          <svg aria-hidden="true" class="ico"><use href="#i-copy"/></svg>
+        </button>
+      </header>
+      <div class="about-body">
+        <div class="about-res about-upd" aria-label="Updates" aria-live="polite">
+          <div class="about-res-line">
+            <span class="m">GET</span>
+            <span class="url">/releases/latest</span>
+            <span class="status redir">304 Not Modified</span>
+          </div>
+          <div class="about-upd-body">
+            <div class="about-upd-row">
+              <p class="about-upd-text">
+                You're on the latest version.
+                <span class="sub">Checked 4 min ago</span>
+              </p>
+              <button type="button" class="btn">
+                <svg aria-hidden="true" class="ico"><use href="#i-refresh-cw"/></svg>
+                Check again
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="about-res" aria-label="License">
+          <div class="about-res-line">
+            <span class="m">GET</span>
+            <span class="url">/license</span>
+            <span class="status">200 OK</span>
+          </div>
+          <dl>
+            <dt>License</dt>
+            <dd>Apache-2.0 + Commons Clause</dd>
+            <dt>Allow</dt>
+            <dd>use, modify, fork, redistribute</dd>
+            <dt>Deny</dt>
+            <dd class="deny">selling it, paid hosting or support</dd>
+            <dt>Keep</dt>
+            <dd>NOTICE and a link back here</dd>
+          </dl>
+        </div>
+        <nav class="about-links" aria-label="Links">
+          <button type="button" class="btn btn--quiet">
+            <svg aria-hidden="true" class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+            GitHub
+          </button>
+          <button type="button" class="btn btn--quiet">
+            <svg aria-hidden="true" class="ico"><use href="#i-scale"/></svg>
+            Full license
+          </button>
+          <button type="button" class="btn btn--quiet">
+            <svg aria-hidden="true" class="ico"><use href="#i-circle-dot"/></svg>
+            Report an issue
+          </button>
+        </nav>
+        <p class="about-foot">© 2026 Fish &amp; Lovely OSS Community</p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/ImportModal.tsx:124 ImportModal (step Source, File tab, nothing picked yet) -->
+<template data-modal="import" data-state="source" data-title="Import: source">
+  <div class="backdrop">
+    <div class="dialog xf" role="dialog" aria-modal="true" aria-labelledby="xf-title">
+      <div class="xf-head">
+        <h3 id="xf-title">Import</h3>
+        <ol class="xf-steps">
+          <li aria-current="step">Source</li>
+          <li>Review</li>
+        </ol>
+        <button type="button" class="icon-btn" aria-label="Close">
+          <svg aria-hidden="true" class="ico"><use href="#i-x"/></svg>
+        </button>
+      </div>
+      <div class="xf-body">
+        <div class="seg seg--lg xf-src" role="group" aria-label="Source">
+          <button type="button" aria-pressed="true">File</button>
+          <button type="button" aria-pressed="false">URL</button>
+          <button type="button" aria-pressed="false">Paste</button>
+        </div>
+        <button type="button" class="xf-drop" aria-busy="false">
+          <svg aria-hidden="true" class="ico"><use href="#i-file-up"/></svg>
+          <strong>Drop a file here</strong>
+          <span>
+            or <span class="link">choose a file</span> · you can also drop it anywhere in the window
+          </span>
+        </button>
+        <span class="xf-label">Reads</span>
+        <ul class="xf-formats">
+          <li>
+            <b>Postman</b>
+            <span>Collection v2.0 / v2.1 and environment exports</span>
+            <code>.json</code>
+          </li>
+          <li>
+            <b>OpenAPI 3 · Swagger 2</b>
+            <span>Stoplight, SwaggerHub, Redocly, springdoc, FastAPI</span>
+            <code>.json .yaml</code>
+          </li>
+          <li>
+            <b>HAR</b>
+            <span>Network capture from Chrome, Safari or Firefox devtools</span>
+            <code>.har</code>
+          </li>
+          <li>
+            <b>voidHTTP</b>
+            <span>Export from another voidHTTP: gRPC calls, examples, environments</span>
+            <code>.json</code>
+          </li>
+        </ul>
+      </div>
+      <div class="xf-foot">
+        <span class="note">The format is detected from the file.</span>
+        <button type="button" class="btn">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/ImportModal.tsx:365 TreeReview (OpenAPI orders-api.yaml, 4 requests, folders from tags, one warn note) -->
+<template data-modal="import" data-state="review" data-title="Import: review">
+  <div class="backdrop">
+    <div class="dialog xf wide" role="dialog" aria-modal="true" aria-labelledby="xf-title">
+      <div class="xf-head">
+        <h3 id="xf-title">Import</h3>
+        <ol class="xf-steps">
+          <li>Source</li>
+          <li aria-current="step">Review</li>
+        </ol>
+        <button type="button" class="icon-btn" aria-label="Close">
+          <svg aria-hidden="true" class="ico"><use href="#i-x"/></svg>
+        </button>
+      </div>
+      <div class="xf-body">
+        <div class="xf-file">
+          <svg aria-hidden="true" class="ico"><use href="#i-file-json"/></svg>
+          <div>
+            <strong>orders-api.yaml</strong>
+            <span>
+              <b>OpenAPI 3.0.3</b> · orders-api v1.2.0
+            </span>
+          </div>
+          <button type="button" class="link">
+            Choose another
+          </button>
+        </div>
+        <div class="xf-cols">
+          <div class="xf-pick">
+            <div class="xf-pick-head">
+              Requests
+              <span class="dim">4 of 4</span>
+              <button type="button" class="link">Select none</button>
+            </div>
+            <div class="xf-tree">
+              <div>
+                <div class="row" style="--indent: 0px">
+                  <input type="checkbox" class="xf-check" checked aria-label="Include orders">
+                  <button type="button" class="row-main" aria-expanded="true">
+                    <svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg>
+                    <svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg>
+                    <span class="name">orders</span>
+                    <span class="count">(3)</span>
+                  </button>
+                </div>
+                <label class="row" style="--indent: 48px">
+                  <input type="checkbox" class="xf-check" checked>
+                  <span class="m m-POST">POST</span>
+                  <span class="name">Create order</span>
+                </label>
+                <label class="row" style="--indent: 48px">
+                  <input type="checkbox" class="xf-check" checked>
+                  <span class="m m-GET">GET</span>
+                  <span class="name">Get order</span>
+                  <span class="from">1 example</span>
+                </label>
+                <label class="row" style="--indent: 48px">
+                  <input type="checkbox" class="xf-check" checked>
+                  <span class="m m-DELETE">DEL</span>
+                  <span class="name">Cancel order</span>
+                </label>
+                <div class="row" style="--indent: 0px">
+                  <input type="checkbox" class="xf-check" checked aria-label="Include refunds">
+                  <button type="button" class="row-main" aria-expanded="true">
+                    <svg aria-hidden="true" class="ico caret"><use href="#i-chevron-down"/></svg>
+                    <svg aria-hidden="true" class="ico folder"><use href="#i-folder"/></svg>
+                    <span class="name">refunds</span>
+                    <span class="count">(1)</span>
+                  </button>
+                </div>
+                <label class="row" style="--indent: 48px">
+                  <input type="checkbox" class="xf-check" checked>
+                  <span class="m m-POST">POST</span>
+                  <span class="name">Create refund</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="set-list xf-opts">
+              <div class="set-item stack">
+                <label class="set-label" for="xf-into">
+                  Import into
+                </label>
+                <span class="select-wrap">
+                  <select id="xf-into" class="field">
+                    <option value="p-shopfront" selected>Shopfront (this project)</option>
+                    <option value="p-payments">Payments</option>
+                    <option value="p-internal">Internal tools</option>
+                    <option value="">New project…</option>
+                  </select>
+                  <svg aria-hidden="true" class="ico select-chev"><use href="#i-chevron-down"/></svg>
+                </span>
+              </div>
+              <div class="set-item stack">
+                <label class="set-label" for="xf-name">
+                  Collection name
+                </label>
+                <input id="xf-name" class="field" value="orders-api">
+              </div>
+              <div class="set-item">
+                <div class="set-text">
+                  <span class="set-label">Folders from</span>
+                </div>
+                <div class="seg" role="group" aria-label="Folders from">
+                  <button type="button" aria-pressed="true">
+                    Tags
+                  </button>
+                  <button type="button" aria-pressed="false">
+                    Paths
+                  </button>
+                </div>
+              </div>
+              <div class="set-item">
+                <div class="set-text">
+                  <span class="set-label">Base URL</span>
+                  <span class="desc">
+                    <code>{{baseUrl}}</code> = <code>https://api.staging.example.test</code>
+                  </span>
+                </div>
+              </div>
+              <div class="set-item">
+                <div class="set-text">
+                  <label class="set-label" for="xf-ex">
+                    Response examples
+                  </label>
+                  <span class="desc">1 found, saved under their request</span>
+                </div>
+                <input id="xf-ex" type="checkbox" class="switch" checked>
+              </div>
+            </div>
+            <div class="xf-report">
+              <h4>Changed on the way in</h4>
+              <ul>
+                <li>
+                  <svg aria-hidden="true" class="ico"><use href="#i-triangle-alert"/></svg>
+                  <span>
+                    Security scheme <code>ordersAuth</code> (OAuth2 / OpenID) becomes Bearer <code>{{token}}</code>. voidHTTP has no OAuth2 flow yet.
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="xf-foot">
+        <span class="note">Nothing is saved until you import.</span>
+        <button type="button" class="btn">
+          Back
+        </button>
+        <button type="button" class="btn btn--primary">
+          Import 4 requests
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- source: src/components/ExportModal.tsx:54 ExportModal (orders-api, format voidHTTP, active environment Staging, values Blank) -->
+<template data-modal="export" data-state="default" data-title="Export collection">
+  <div class="backdrop">
+    <div class="dialog xf" role="dialog" aria-modal="true" aria-labelledby="xf-exp">
+      <div class="xf-head">
+        <h3 id="xf-exp">Export orders-api</h3>
+        <button type="button" class="icon-btn" aria-label="Close">
+          <svg aria-hidden="true" class="ico"><use href="#i-x"/></svg>
+        </button>
+      </div>
+      <div class="xf-body">
+        <div class="xf-fmts" role="radiogroup" aria-label="Format">
+          <label class="xf-fmt">
+            <input type="radio" name="xf-fmt" value="void" checked>
+            <b>voidHTTP</b>
+            <span class="desc">Everything, nothing lost: gRPC calls, examples, environment colours. For backups and other voidHTTP users.</span>
+            <code>.json</code>
+          </label>
+          <label class="xf-fmt">
+            <input type="radio" name="xf-fmt" value="postman">
+            <b>Postman Collection v2.1</b>
+            <span class="desc">Opens in Postman, Insomnia, Bruno, Apidog and Hoppscotch.</span>
+            <code>.json</code>
+          </label>
+          <label class="xf-fmt">
+            <input type="radio" name="xf-fmt" value="har">
+            <b>HAR</b>
+            <span class="desc">Each request with its latest saved example as the response. For devtools and proxies.</span>
+            <code>.har</code>
+          </label>
+          <label class="xf-fmt">
+            <input type="radio" name="xf-fmt" value="openapi">
+            <b>OpenAPI 3.0</b>
+            <span class="desc">An API spec for Swagger UI, Redoc, Apidog and code generators. Built in the app, nothing to install.</span>
+            <code>.yaml</code>
+          </label>
+        </div>
+        <div class="set-list xf-opts xf-opts-full">
+          <div class="set-item">
+            <div class="set-text">
+              <span class="set-label">Environments</span>
+              <span class="desc">Collection variables always go along</span>
+            </div>
+            <div class="seg" role="group" aria-label="Environments">
+              <button type="button" aria-pressed="false">
+                None
+              </button>
+              <button type="button" aria-pressed="true">
+                Staging
+              </button>
+              <button type="button" aria-pressed="false">
+                All 3
+              </button>
+            </div>
+          </div>
+          <div class="set-item">
+            <div class="set-text">
+              <span class="set-label">Variable values</span>
+              <span class="desc">Names are kept, values are emptied</span>
+            </div>
+            <div class="seg" role="group" aria-label="Variable values">
+              <button type="button" aria-pressed="true">
+                Blank
+              </button>
+              <button type="button" aria-pressed="false">
+                Keep
+              </button>
+            </div>
+          </div>
+          <div class="set-item">
+            <div class="set-text">
+              <label class="set-label" for="xf-exx">
+                Saved examples
+              </label>
+              <span class="desc">1 example, already masked when saved</span>
+            </div>
+            <input id="xf-exx" type="checkbox" class="switch" checked>
+          </div>
+        </div>
+      </div>
+      <div class="xf-foot">
+        <span class="note">
+          <code>orders-api.voidhttp.json</code>
+        </span>
+        <button type="button" class="btn">
+          Cancel
+        </button>
+        <button type="button" class="btn btn--primary" aria-busy="false">
+          Export…
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+
+<script>
+  /* where each kind lives and who opens it; all from grep of src/ on 2026-11-25 */
+  const KINDS = [
+    { kind: "prompt", shell: true, comp: "PromptModal", at: "src/components/Modals.tsx:91", payload: "title, initial, onSubmit", keys: "",
+      from: [["Sidebar: new collection", "src/components/Sidebar.tsx:129"], ["Sidebar: new folder", "src/components/Sidebar.tsx:419"], ["Action: new collection", "src/shortcuts.ts:253"]] },
+    { kind: "confirm", shell: true, comp: "Shell (inline)", at: "src/components/Modals.tsx:45", payload: "title, message, onConfirm, confirmLabel? (default Delete)", keys: "",
+      from: [["Home: delete project", "src/components/Home.tsx:65"], ["Sidebar: clear history", "src/components/Sidebar.tsx:132"], ["Sidebar: delete item", "src/components/Sidebar.tsx:413"], ["Sidebar: delete example", "src/components/Sidebar.tsx:530"], ["Request pane: delete example", "src/components/RequestPane.tsx:156"]] },
+    { kind: "save", shell: true, comp: "SaveModal", at: "src/components/Modals.tsx:115", payload: "tabId", keys: "⌘S / ⇧⌘S",
+      from: [["Shortcut", "src/shortcuts.ts:172"], ["Sidebar", "src/components/Sidebar.tsx:619"], ["Store save of an unsaved tab", "src/store.ts:1635"]] },
+    { kind: "environments", shell: true, comp: "VariablesModal", at: "src/components/Modals.tsx:175", payload: "select?, addVar?", keys: "⌘E",
+      from: [["Shortcut", "src/shortcuts.ts:227"], ["Tabs bar env picker", "src/components/TabsBar.tsx:166"], ["Unresolved variable: add it", "src/components/RequestPane.tsx:101"], ["Collection menu: edit variables", "src/components/Sidebar.tsx:429"], ["App", "src/App.tsx:287"]] },
+    { kind: "settings", shell: true, comp: "SettingsModal", at: "src/components/Modals.tsx:461", payload: "section? appearance | requests | network | certificates | shortcuts | updates", keys: "⌘,",
+      from: [["Gear in title strip", "src/App.tsx:128"], ["App menu: updates", "src/App.tsx:190"], ["Request pane: requests", "src/components/RequestPane.tsx:357"], ["Request pane: requests", "src/components/RequestPane.tsx:617"], ["Response pane: requests", "src/components/ResponsePane.tsx:291"], ["gRPC pane: requests", "src/components/GrpcPane.tsx:245"], ["Kafka: network", "src/components/KafkaResponse.tsx:769"], ["Kafka: certificates", "src/components/KafkaResponse.tsx:774"], ["MQTT: network", "src/components/MqttResponse.tsx:764"], ["MQTT: certificates", "src/components/MqttResponse.tsx:769"], ["Pub/Sub: network", "src/components/PubsubResponse.tsx:673"]] },
+    { kind: "quickopen", comp: "QuickOpen", at: "src/components/QuickOpen.tsx:158", payload: "actions?", keys: "⌘P / ⇧⌘P",
+      from: [["Shortcut", "src/shortcuts.ts:249"]] },
+    { kind: "about", comp: "AboutModal", at: "src/components/AboutModal.tsx:18", payload: "none", keys: "",
+      from: [["App menu", "src/App.tsx:199"], ["Dev build tag", "src/components/BuildTag.tsx:16"], ["Action", "src/components/QuickOpen.tsx:219"]] },
+    { kind: "project", shell: true, comp: "ProjectModal", at: "src/components/Modals.tsx:1237", payload: "projectId? (none = new)", keys: "",
+      from: [["Home: new project", "src/components/Home.tsx:84"], ["Home: edit card", "src/components/Home.tsx:116"], ["Home: new project tile", "src/components/Home.tsx:125"]] },
+    { kind: "import", comp: "ImportModal", at: "src/components/ImportModal.tsx:124", payload: "source? (set when a file was dropped)", keys: "⌘O",
+      from: [["Shortcut", "src/shortcuts.ts:234"], ["Home", "src/components/Home.tsx:80"], ["Sidebar", "src/components/Sidebar.tsx:127"], ["File dropped on the window", "src/components/DropImport.tsx:28"]] },
+    { kind: "export", comp: "ExportModal", at: "src/components/ExportModal.tsx:54", payload: "collectionId", keys: "",
+      from: [["Collection menu: Export…", "src/components/Sidebar.tsx:434"]] },
+    { kind: "example", comp: "ExampleModal", at: "src/components/ExampleModal.tsx:34", payload: "request, response, target?", keys: "",
+      from: [["Response pane", "src/components/ResponsePane.tsx:127"], ["gRPC response", "src/components/GrpcResponse.tsx:33"], ["History row", "src/components/Sidebar.tsx:614"]] },
+  ];
+  const CALLS = [
+    ["Delete project “…”?", "src/components/Home.tsx:65", "confirm:delete-project"],
+    ["Clear history?", "src/components/Sidebar.tsx:132", "confirm:clear-history"],
+    ["Delete “…”? (collection, folder, request)", "src/components/Sidebar.tsx:413", "confirm:delete-request"],
+    ["Delete example “…”?", "src/components/Sidebar.tsx:530", "confirm:delete-project"],
+    ["Delete example “…”?", "src/components/RequestPane.tsx:156", "confirm:delete-project"],
+    ["New collection", "src/components/Sidebar.tsx:129", "prompt:new-collection"],
+    ["New collection", "src/shortcuts.ts:253", "prompt:new-collection"],
+    ["New folder", "src/components/Sidebar.tsx:419", "prompt:new-folder"],
+  ];
+  const OUTSIDE = [
+    ["Update popovers: available, downloading, ready, failed", "src/components/UpdateChip.tsx:85"],
+    ["gRPC method picker", "src/components/GrpcPane.tsx:375"],
+    ["Pub/Sub project, topic, subscription picker", "src/components/PubsubPane.tsx:311"],
+    ["Native open and save file dialogs", "src/lib/files.ts:3"],
+    ["Native file pickers in KVEditor, CertificatesPane, GrpcPane, GqlPane, PubsubPane", "@tauri-apps/plugin-dialog"],
+    ["About 20 role=menu dropdowns: EnvMenu, MethodMenu, RowMenu, Runs, send options, snippets, filters", "src/components/*"],
+  ];
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const el = (tag, props = {}, kids = []) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
+  const tpls = [...document.querySelectorAll("template[data-modal]")];
+  const statesOf = (k) => tpls.filter((t) => t.dataset.modal === k);
+
+  // rail: kinds with their states, then the call sites, then what lives outside the slot
+  const kindList = $("#mv-kinds");
+  for (const k of KINDS) {
+    const states = statesOf(k.kind);
+    const btn = el("button", { type: "button", className: "mv-kind" }, [el("code", { textContent: k.kind }), el("small", { textContent: k.shell ? k.comp + ", on Shell" : k.comp })]);
+    btn.dataset.kind = k.kind;
+    btn.addEventListener("click", () => go(k.kind + ":" + (states[0]?.dataset.state ?? "")));
+    const row = el("li", {}, [btn]);
+    if (states.length > 1) {
+      const wrap = el("div", { className: "mv-states" });
+      wrap.dataset.for = k.kind;
+      for (const t of states) {
+        const s = el("button", { type: "button", className: "mv-state", textContent: t.dataset.title });
+        s.dataset.go = k.kind + ":" + t.dataset.state;
+        s.addEventListener("click", () => go(s.dataset.go));
+        wrap.append(s);
+      }
+      row.append(wrap);
+    }
+    kindList.append(row);
+  }
+  for (const [title, at, target] of CALLS) {
+    const b = el("button", { type: "button", className: "mv-call" }, [el("span", { textContent: title }), el("small", { textContent: at })]);
+    b.dataset.go = target;
+    b.addEventListener("click", () => go(target));
+    $("#mv-calls").append(el("li", {}, [b]));
+  }
+  for (const [title, at] of OUTSIDE) $("#mv-outside").append(el("li", { className: "mv-static" }, [el("span", { textContent: title }), el("small", { textContent: at })]));
+
+  function go(id) {
+    const [kind, state] = id.split(":");
+    const k = KINDS.find((x) => x.kind === kind) ?? KINDS[0];
+    const t = statesOf(k.kind).find((x) => x.dataset.state === state) ?? statesOf(k.kind)[0];
+    const canvas = $("#mv-canvas");
+    canvas.replaceChildren();
+    if (t) {
+      canvas.append(t.content.cloneNode(true));
+      if (mode === "proposed" && k.shell) propose(canvas, k.kind, t.dataset.state);
+      canvas.querySelectorAll("a[href]").forEach((a) => a.addEventListener("click", (e) => e.preventDefault()));
+      canvas.querySelectorAll("form").forEach((f) => f.addEventListener("submit", (e) => e.preventDefault()));
+    } else {
+      canvas.append(el("p", { className: "pv-muted", textContent: "No drawing for this kind yet." }));
+    }
+    const cur = k.kind + ":" + (t?.dataset.state ?? "");
+    document.querySelectorAll(".mv-kind").forEach((b) => b.setAttribute("aria-current", String(b.dataset.kind === k.kind)));
+    document.querySelectorAll(".mv-states").forEach((w) => { w.hidden = w.dataset.for !== k.kind; });
+    document.querySelectorAll(".mv-state").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.go === cur)));
+    document.querySelectorAll(".mv-call").forEach((b) => b.setAttribute("aria-current", String(b.dataset.go === cur && b === document.activeElement)));
+    facts(k, t);
+    canvas.dataset.mode = mode;
+    history.replaceState(null, "", "#" + cur);
+  }
+
+  function facts(k, t) {
+    const f = $("#mv-facts");
+    const list = (rows) => el("ul", {}, rows.map(([label, at]) => el("li", {}, [el("span", { textContent: label }), el("code", { textContent: at })])));
+    const keys = k.keys ? [el("p", {}, ["Shortcut ", ...k.keys.split(" / ").flatMap((x, i) => (i ? [" or ", el("kbd", { textContent: x })] : [el("kbd", { textContent: x })]))])] : [];
+    f.replaceChildren(
+      el("div", {}, [el("h3", { textContent: "Component" }), el("p", {}, [el("code", { textContent: k.comp })]), el("p", {}, [el("code", { textContent: k.at })]), ...keys]),
+      el("div", {}, [el("h3", { textContent: "Payload" }), el("p", {}, [el("code", { textContent: `{ kind: "${k.kind}"${k.payload === "none" ? "" : ", " + k.payload} }` })]), ...(t ? [el("p", { className: "pv-muted", textContent: "Showing: " + t.dataset.title })] : [])]),
+      el("div", {}, [el("h3", { textContent: `Opened from (${k.from.length})` }), list(k.from)]),
+    );
+  }
+
+  // Proposed Shell: a header that says what the dialog does (icon tile, title, one line of context), a softer raised surface,
+  // the action named on its button. The prompt shows where the new item lands, live, and refuses a name already there.
+  // Done in the page, on the shipped markup, so every Shell modal shows what one Shell change would do to it.
+  let mode = new URLSearchParams(location.search).get("shell") === "proposed" ? "proposed" : "today";
+  const svg = (n, cls = "ico") => { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("aria-hidden", "true"); s.setAttribute("class", cls); const u = document.createElementNS("http://www.w3.org/2000/svg", "use"); u.setAttribute("href", "#i-" + n); s.append(u); return s; };
+  const path = (parts) => parts.flatMap((x, i) => (i ? [el("span", { className: "sep", textContent: "/" }), el("b", { textContent: x })] : [el("b", { textContent: x })]));
+
+  /** tone: create (accent), danger (error), plain (neutral) */
+  const HEAD = {
+    "prompt:new-collection": { icon: "library-big", tone: "create", sub: ["In project", ["Shopfront"]], verb: ["Create collection", "plus"] },
+    "prompt:new-folder": { icon: "folder-plus", tone: "create", sub: ["In", ["orders-api"]], verb: ["Create folder", "plus"] },
+    "confirm:delete-project": { icon: "trash-2", tone: "danger", verb: [null, "trash-2"] },
+    "confirm:clear-history": { icon: "history", tone: "danger", verb: [null, "trash-2"] },
+    "confirm:delete-request": { icon: "trash-2", tone: "danger", verb: [null, "trash-2"] },
+    "save:default": { icon: "bookmark-plus", tone: "create", sub: ["POST", ["Create order"]], verb: [null, "check"] },
+    "project:new": { tile: true, sub: ["Collections, environments and history of its own", []], verb: ["Create project", "plus"] },
+    "project:edit": { tile: true, sub: ["Shopfront", []], verb: [null, "check"] },
+    "environments:env": { icon: "braces", tone: "plain", sub: ["Shopfront", []] },
+    "environments:collection": { icon: "braces", tone: "plain", sub: ["Shopfront", []] },
+    settings: { icon: "settings", tone: "plain", sub: ["Applies to every project", []] },
+  };
+
+  /** what the prompt's preview tree holds: the parent, its children, where the new row goes */
+  const TREE = {
+    "new-collection": { kind: "collection", parent: null, siblings: ["orders-api", "auth-service"], ph: "payments-service" },
+    "new-folder": { kind: "folder", parent: "orders-api", siblings: ["orders", "refunds"], requests: [["POST", "Ping"]], ph: "Refunds" },
+  };
+
+  function previewTree(t, input, submit, err) {
+    const box = el("div", { className: "sh-tree", ariaHidden: "true" });
+    const row = (cls, indent, kids) => { const r = el("div", { className: "row " + cls }); r.style.setProperty("--indent", indent + "px"); r.append(el("div", { className: "row-main" }, kids)); return r; };
+    const caret = (open) => svg(open ? "chevron-down" : "chevron-right", "ico caret");
+    let indent = 0;
+    if (t.parent) { box.append(row("collection", 0, [caret(true), el("span", { className: "name", textContent: t.parent })])); indent = 16; }
+    const ghost = row("sh-ghost" + (t.kind === "collection" ? " collection" : ""), indent, [caret(false), ...(t.kind === "folder" ? [svg("folder", "ico folder")] : []), el("span", { className: "name" })]);
+    const sibs = t.siblings.map((n) => row("sh-sib" + (t.kind === "collection" ? " collection" : ""), indent, [caret(false), ...(t.kind === "folder" ? [svg("folder", "ico folder")] : []), el("span", { className: "name", textContent: n }), el("span", { className: "sh-tag", textContent: "Already here" })]));
+    box.append(ghost, ...sibs, ...(t.requests ?? []).map(([m, n]) => row("sh-sib", indent + 24, [el("span", { className: "m m-" + m, textContent: m }), el("span", { className: "name", textContent: n })])));
+    const sync = () => {
+      const v = input.value.trim();
+      const name = ghost.querySelector(".name");
+      name.textContent = v || t.ph;
+      ghost.classList.toggle("is-empty", !v);
+      const dupe = sibs.find((s) => s.querySelector(".name").textContent.toLowerCase() === v.toLowerCase());
+      sibs.forEach((s) => s.classList.toggle("sh-dupe", s === dupe));
+      ghost.classList.toggle("is-dupe", !!dupe);
+      input.toggleAttribute("aria-invalid", !!dupe);
+      err.hidden = !dupe;
+      if (dupe) err.lastChild.textContent = `${t.parent ?? "Shopfront"} already has ${t.kind === "folder" ? "a folder" : "a collection"} named ${dupe.querySelector(".name").textContent}.`;
+      submit.disabled = !v || !!dupe;
+    };
+    input.addEventListener("input", sync);
+    sync();
+    return box;
+  }
+
+  function propose(root, kind, state) {
+    const d = root.querySelector(".dialog");
+    if (!d) return;
+    const cfg = HEAD[kind + ":" + state] ?? HEAD[kind] ?? {};
+    d.classList.add("sh");
+    root.querySelector(".backdrop")?.classList.add("sh-backdrop");
+
+    // header: tile, title over its context, close
+    const h3 = d.querySelector(":scope > h3");
+    const tile = cfg.tile ? d.querySelector(".proj-preview .proj-tile") : el("span", { className: "sh-tile sh-tile--" + (cfg.tone ?? "plain") }, [svg(cfg.icon ?? "square")]);
+    if (cfg.tile) { tile.classList.add("sh-tile"); }
+    const text = el("div", { className: "sh-title" }, [h3]);
+    const msg = kind === "confirm" ? d.querySelector(":scope > p") : null;
+    if (msg) { msg.className = "sh-sub"; text.append(msg); }
+    else if (cfg.sub) {
+      const [lead, parts] = cfg.sub;
+      const sub = el("p", { className: "sh-sub" }, [lead]);
+      if (parts.length) { sub.append(" ", ...path(parts)); }
+      if (kind === "save") { sub.replaceChildren(el("span", { className: "m m-POST", textContent: "POST" }), " ", el("b", { textContent: "Create order" })); }
+      text.append(sub);
+    }
+    const head = el("div", { className: "sh-head" }, [tile, text, el("button", { type: "button", className: "icon-btn sh-close", ariaLabel: "Close" }, [svg("x")])]);
+    d.prepend(head);
+    d.querySelector(".proj-preview")?.remove();
+
+    // body and footer
+    const box = d.querySelector(":scope > form") ?? d;
+    const foot = box.querySelector(":scope > footer");
+    const body = el("div", { className: "sh-body" });
+    [...box.children].filter((n) => n !== head && n !== foot).forEach((n) => body.append(n));
+    box.insertBefore(body, foot ?? null);
+    if (!body.childElementCount) body.remove();
+    if (foot && kind === "settings") { foot.remove(); body.classList.add("sh-body--end"); }
+    else if (foot) {
+      const f = el("div", { className: "sh-foot" }); f.append(...foot.childNodes); foot.replaceWith(f);
+      f.querySelectorAll(".btn:not(.btn--primary):not(.btn--danger)").forEach((b) => b.classList.add("btn--quiet"));
+      const main = f.querySelector(".btn--primary, .btn--danger");
+      if (main && cfg.verb) {
+        const [label, ic] = cfg.verb;
+        if (label) main.textContent = label;
+        if (ic) main.prepend(svg(ic));
+        if (main.classList.contains("btn--danger")) main.classList.add("sh-danger");
+      }
+    }
+
+    // the prompt: a big name field, then the tree it lands in
+    if (kind === "prompt" && TREE[state]) {
+      const t = TREE[state], input = body.querySelector("input");
+      input.id = "sh-name"; input.removeAttribute("aria-label"); input.classList.add("sh-input");
+      const label = el("label", { className: "sh-label", htmlFor: "sh-name", textContent: "Name" });
+      const wrap = el("div", { className: "sh-field" }, [svg(t.kind === "folder" ? "folder" : "library-big"), input]);
+      const err = el("p", { className: "sh-err", hidden: true }, [svg("circle-alert"), el("span")]);
+      err.id = "sh-err"; input.setAttribute("aria-describedby", "sh-err");
+      body.prepend(label, wrap, err);
+      body.append(previewTree(t, input, d.querySelector(".btn--primary"), err));
+      requestAnimationFrame(() => { input.focus(); input.select(); });
+    }
+  }
+  const setMode = (m) => {
+    mode = m;
+    document.querySelectorAll("[data-shell-set]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.shellSet === m)));
+    const u = new URL(location.href); if (m === "proposed") u.searchParams.set("shell", "proposed"); else u.searchParams.delete("shell");
+    history.replaceState(null, "", u);
+    go(decodeURIComponent(location.hash.slice(1)) || "prompt:new-collection");
+  };
+  document.querySelectorAll("[data-shell-set]").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.shellSet)));
+
+  // light / dark: tokens.css reads data-theme on <html>
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => {
+    document.documentElement.dataset.theme = b.dataset.themeSet;
+    document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  }));
+  if (new URLSearchParams(location.search).get("theme") === "dark") $('[data-theme-set="dark"]').click();
+
+  setMode(mode);
+</script>
+<!-- icons used by the proposed Shell: #i-x #i-folder #i-library-big #i-folder-plus #i-trash-2 #i-history #i-bookmark-plus #i-braces #i-settings #i-circle-alert #i-check #i-plus #i-square #i-chevron-down #i-chevron-right -->
+</body>
+</html>

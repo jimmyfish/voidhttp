@@ -1,17 +1,17 @@
 # Graph Report - voidHTTP  (2026-11-25)
 
 ## Corpus Check
-- 135 files · ~312,786 words
+- 136 files · ~331,678 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 34 file(s) not represented in the graph (top: .css 23, (none) 7, .lock 1)
+- Unclassified: 36 file(s) not represented in the graph (top: .css 25, (none) 7, .lock 1)
 
 ## Summary
-- 3055 nodes · 7978 edges · 136 communities (111 shown, 25 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 248 edges (avg confidence: 0.85)
+- 3066 nodes · 8015 edges · 137 communities (112 shown, 25 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 252 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f49655ca`
+- Built from commit: `3acd0605`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -33,39 +33,39 @@
 - RequestPane.tsx
 - MQTT Tests
 - package.json
-- types.ts
+- Sidebar.tsx
 - Release Workflow
 - auth.rs
 - App Store Actions
 - mqtt.rs
 - MqttResponse.tsx
-- PubsubResponse.tsx
+- SioEvent
 - File Storage (Rust)
-- Format Common & Masking
-- Import Detection & OpenAPI
+- mask.ts
 - model.ts
+- ResponseBody.tsx
 - README Icons & Prelude
 - ws.rs
-- ResponseBody.tsx
+- main.tsx
 - WebSocket Response View
 - Parser
 - About & Build Previews
 - gRPC Metadata & Reflection
 - App Icon & Window SVGs
-- Example Modal
-- Sidebar.tsx
-- KafkaResponse.tsx
-- stripJsonComments
-- postman.ts
-- curl.ts
+- MqttPane.tsx
+- CertificatesPane.tsx
+- Home.tsx
+- net_test
 - pubsub.rs
+- curl.ts
+- Cmd
 - MQTT Events & Acks
 - KafkaEvent
 - Cache Workflow
 - ImportModal.tsx
 - Tauri Config
-- Drop Import & Export
-- MqttPane.tsx
+- KafkaResponse.tsx
+- Kv
 - pubsub/tests.rs
 - Kafka Metadata & SASL
 - Agent & Contribution Docs
@@ -77,11 +77,11 @@
 - gRPC Proto Compile
 - Lucide README Icons
 - Session
-- net.ts
-- native.ts
+- Conns
+- PubsubResponse.tsx
 - TypeScript Config
 - Feature Docs (README)
-- .produce
+- Net
 - Bug Report Template
 - Feature Request Template
 - Error
@@ -95,7 +95,7 @@
 - GraphQL Previews
 - Base Preview Shell
 - Scripts Preview
-- updater.ts
+- .produce
 - JsonTable.tsx
 - System Fonts
 - Repo Doc Files
@@ -128,7 +128,7 @@
 - History & Masking Docs
 - esbuild
 - useStore
-- Example
+- highlightLines
 - Icon 32
 - Icon 64
 - Icon 89
@@ -138,15 +138,17 @@
 - Cargo Crate
 - Themes & Fonts Docs
 - Wishlist
+- GrpcState
 - openapiExport.ts
+- SavedRef
+- root_cause
+- promptNewCollection
 - Conns
 - ExampleRef
 - DropWhere
 - ProjectData
 - ProjectMeta
-- GrpcPane.tsx
 - vite.config.ts
-- GrpcState
 - scripts
 
 ## God Nodes (most connected - your core abstractions)
@@ -155,8 +157,8 @@
 3. `RequestPane()` - 53 edges
 4. `react` - 48 edges
 5. `uid()` - 41 edges
-6. `request()` - 40 edges
-7. `resolve()` - 40 edges
+6. `resolve()` - 40 edges
+7. `request()` - 40 edges
 8. `stripJsonComments()` - 39 edges
 9. `start()` - 37 edges
 10. `ico` - 35 edges
@@ -164,11 +166,11 @@
 ## Surprising Connections (you probably didn't know these)
 - `Sending an HTTP request` --references--> `prepare()`  [INFERRED]
   docs/ARCHITECTURE.md → src/lib/http.ts
-- `<img src="docs/assets/icons/flask-conical.svg" width="20" height="20" align="top" alt="" /> Scripts (yes, your Postman ones)` --references--> `upsert()`  [INFERRED]
+- `<img src="docs/assets/icons/flask-conical.svg" width="20" height="20" align="top" alt="" /> Scripts (yes, your Postman ones)` --references--> `get()`  [INFERRED]
   README.md → src-tauri/src/script/prelude.js
 - `<img src="docs/assets/icons/flask-conical.svg" width="20" height="20" align="top" alt="" /> Scripts (yes, your Postman ones)` --references--> `remove()`  [INFERRED]
   README.md → src-tauri/src/script/prelude.js
-- `<img src="docs/assets/icons/flask-conical.svg" width="20" height="20" align="top" alt="" /> Scripts (yes, your Postman ones)` --references--> `get()`  [INFERRED]
+- `<img src="docs/assets/icons/flask-conical.svg" width="20" height="20" align="top" alt="" /> Scripts (yes, your Postman ones)` --references--> `upsert()`  [INFERRED]
   README.md → src-tauri/src/script/prelude.js
 - `Requests Run in Rust (reqwest + rustls)` --semantically_similar_to--> `Two halves`  [INFERRED] [semantically similar]
   README.md → docs/ARCHITECTURE.md
@@ -195,67 +197,67 @@
 - **Request/response workflow shown in window illustration** — docs_assets_voidhttp_window_collections_sidebar, docs_assets_voidhttp_window_request_tabs, docs_assets_voidhttp_window_environment_selector, docs_assets_voidhttp_window_url_bar_variables, docs_assets_voidhttp_window_request_editor, docs_assets_voidhttp_window_response_viewer [INFERRED 0.85]
 - **Docs feature icons (Lucide, ISC, #3d74ec stroke)** — docs_assets_icons_arrow_right_left_icon, docs_assets_icons_ban_icon, docs_assets_icons_check_icon, docs_assets_icons_circle_help_icon, docs_assets_icons_code_xml_icon, docs_assets_icons_database_icon, docs_assets_icons_download_icon, docs_assets_icons_feather_icon, docs_assets_icons_flask_conical_icon, docs_assets_icons_folder_tree_icon, docs_assets_icons_globe_icon, docs_assets_icons_hard_drive_icon, docs_assets_icons_history_icon, docs_assets_icons_keyboard_icon, docs_assets_icons_lightbulb_icon [INFERRED 0.95]
 
-## Communities (136 total, 25 thin omitted)
+## Communities (137 total, 25 thin omitted)
 
 ### Community 0 - "certs.rs"
 Cohesion: 0.05
 Nodes (54): a_dev_ca_and_a_client_certificate_reach_a_mutual_tls_server(), a_pfx_opens_with_its_passphrase_only(), a_private_key_is_not_taken_for_a_ca(), added_cert_fits(), AddedCertVerifier, an_openssl_self_signed_server_certificate_is_trusted_once_added(), ca_file_info_names_the_certificate(), CertConfig (+46 more)
 
 ### Community 1 - "store.ts"
-Cohesion: 0.04
-Nodes (83): RFC-6455, prepareGrpc(), base64Utf8(), CONTENT_TYPES, prepare(), WireBody, WireKV, b64() (+75 more)
+Cohesion: 0.03
+Nodes (128): RFC-6455, @tauri-apps/api, DropImport(), clientStreams(), findMethod(), grpcCancel(), grpcEndSending(), GrpcEvent (+120 more)
 
 ### Community 2 - "MQTT Packet Codec"
 Cohesion: 0.09
 Nodes (36): Ack, broken_packets_are_errors(), ConnAck, connack_reason(), Connect, connect_bytes_match_the_spec(), decode(), Disconnect (+28 more)
 
 ### Community 3 - "run_over"
-Cohesion: 0.14
-Nodes (18): Cmd, Close, Publish, conn_info(), connect_and_run(), Failure, Handshake, handshake() (+10 more)
+Cohesion: 0.16
+Nodes (13): conn_info(), connect_and_run(), Failure, Handshake, handshake(), hint_for(), Link, Stream (+5 more)
 
 ### Community 4 - "net.rs"
-Cohesion: 0.06
-Nodes (32): ALWAYS_DIRECT, bootstrap(), connect_any(), custom_group(), doh_resolver(), http_connect(), http_connect_tunnel(), lists_cover_subdomains() (+24 more)
+Cohesion: 0.09
+Nodes (16): ALWAYS_DIRECT, bootstrap(), custom_group(), lists_cover_subdomains(), matches_any(), NET, NetCheck, NetStep (+8 more)
 
 ### Community 5 - "sio.rs"
-Cohesion: 0.07
-Nodes (42): ACK, BINARY_ACK, BINARY_EVENT, Cmd, Close, Emit, collect(), CONNECT (+34 more)
+Cohesion: 0.09
+Nodes (26): ACK, BINARY_ACK, BINARY_EVENT, Cmd, Close, Emit, collect(), CONNECT (+18 more)
 
 ### Community 6 - "Modals.tsx"
-Cohesion: 0.11
-Nodes (30): CODE_SIZES, DevUpdatesPane(), EnvColor(), FontRow(), Modals(), MONO_FONTS, ProjectModal(), PromptModal() (+22 more)
+Cohesion: 0.08
+Nodes (37): BuildBadge(), CODE_SIZES, DevUpdatesPane(), FontRow(), Modals(), MONO_FONTS, NetworkPane(), Path() (+29 more)
 
 ### Community 7 - "GraphQL Pane & Schema"
-Cohesion: 0.08
-Nodes (53): Args(), DocsBrowser(), fieldCount(), FieldRow(), GqlQueryEditor(), KIND_LABEL, kindLabel(), OPEN_GQL_LINE (+45 more)
+Cohesion: 0.07
+Nodes (58): @tauri-apps/plugin-dialog, Args(), DocsBrowser(), fieldCount(), FieldRow(), GqlQueryEditor(), KIND_LABEL, kindLabel() (+50 more)
 
 ### Community 8 - "Script Runtime (Rust)"
-Cohesion: 0.11
-Nodes (26): async_tests_settle(), chai_edges(), console_is_capped(), endless_loop_is_stopped(), endless_promise_jobs_are_stopped(), errors_carry_the_line(), fail(), FAKE (+18 more)
+Cohesion: 0.07
+Nodes (32): ABOUT, build(), CHECK_UPDATES, CLOSE_TAB, CLOSE_WINDOW, on_event(), async_tests_settle(), chai_edges() (+24 more)
 
 ### Community 9 - "QuickOpen.tsx"
-Cohesion: 0.05
-Nodes (37): react, App(), AppStrip(), SIDEBAR_DEFAULT, stack(), useTheme(), useTypeTokens(), BuildTag() (+29 more)
+Cohesion: 0.06
+Nodes (25): SIDEBAR_DEFAULT, stack(), useTypeTokens(), ExIcon(), Fields, fuzzy(), Item, Marked() (+17 more)
 
 ### Community 10 - "Transfer/Shortcuts/Certs Previews"
 Cohesion: 0.06
 Nodes (44): Certificates design preview (certificates.html), Add client certificate form (CRT + KEY or PFX/P12), Trust custom CA certificates (.pem, on top of public CAs), CA file validation (private key rejected, expiry warning), Client certificates for mutual TLS (matched by host:port, wildcard hosts), Certificates screen router (data-screen + URL hash), Skip TLS verification notice (from Requests settings), Network settings design preview (network.html) (+36 more)
 
 ### Community 11 - "AboutModal.tsx"
-Cohesion: 0.15
-Nodes (18): @tauri-apps/plugin-opener, DEV_BUILD, DevBuild, AboutModal(), BuildCard(), Line(), Notes(), UpdateCard() (+10 more)
+Cohesion: 0.09
+Nodes (29): @tauri-apps/plugin-opener@^2, @tauri-apps/plugin-opener, DEV_BUILD, DevBuild, AboutModal(), BuildCard(), Line(), Notes() (+21 more)
 
 ### Community 12 - "Kafka Protocol Calls"
 Cohesion: 0.05
 Nodes (11): broker_lists(), DEFAULT_TIMEOUT, FETCH_BYTES, FETCH_WAIT_MS, Io, MAX_FAILS, MAX_FRAME, parse_brokers() (+3 more)
 
 ### Community 13 - "HTTP Client Engine"
-Cohesion: 0.08
-Nodes (22): build_multipart(), cancel_request(), ClientKey, execute(), form_pairs_are_encoded(), HttpRequest, HttpResponse, HttpState (+14 more)
+Cohesion: 0.07
+Nodes (21): build_multipart(), cancel_request(), ClientKey, execute(), form_pairs_are_encoded(), HttpRequest, HttpResponse, HttpState (+13 more)
 
 ### Community 14 - "RequestPane.tsx"
-Cohesion: 0.08
-Nodes (57): GrpcRequestPane(), Props, renameTab(), TitleName(), AuthEditor(), KafkaRequestPane(), Props, Section (+49 more)
+Cohesion: 0.07
+Nodes (63): react, Props, GrpcRequestPane(), MethodPicker(), Props, SchemaEditor(), Section, time() (+55 more)
 
 ### Community 15 - "MQTT Tests"
 Cohesion: 0.10
@@ -265,45 +267,45 @@ Nodes (57): MqttRequest, PublishRequest, random_client_id(), a_broker_that_stops
 Cohesion: 0.19
 Nodes (13): devDependencies, @tauri-apps/cli@^2.0.0, @types/react@^18.3.11, @types/react-dom@^18.3.1, typescript@^5.6.3, name, private, type (+5 more)
 
-### Community 17 - "types.ts"
-Cohesion: 0.07
-Nodes (31): ParsedGrpcurl, applyVarOps(), OPEN_SCRIPT, OpenScript, runScript(), ScriptOutput, SNIPPETS, TEXT_BODY (+23 more)
+### Community 17 - "Sidebar.tsx"
+Cohesion: 0.08
+Nodes (29): RenameField(), EnvItem(), MenuItem, openAtPointer(), RowMenu(), CollectionView(), containerIds(), DragCtx (+21 more)
 
 ### Community 18 - "Release Workflow"
 Cohesion: 0.05
 Nodes (40): outputs, runs-on, steps, GITHUB_TOKEN, TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD, jobs, create-release (+32 more)
 
 ### Community 19 - "auth.rs"
-Cohesion: 0.08
-Nodes (46): access_token(), adc_path(), AuthError, AuthReq, cache(), cache_key(), Cached, Creds (+38 more)
+Cohesion: 0.07
+Nodes (48): access_token(), adc_path(), AuthError, AuthReq, cache(), cache_key(), Cached, Creds (+40 more)
 
 ### Community 21 - "mqtt.rs"
 Cohesion: 0.09
-Nodes (23): Subs, ConnInfo, DEFAULT_TIMEOUT, Io, MAX_IN, mqtt_close(), mqtt_connect(), mqtt_publish() (+15 more)
+Nodes (27): Cmd, Close, Publish, Subs, ConnInfo, DEFAULT_TIMEOUT, Io, MAX_IN (+19 more)
 
 ### Community 22 - "MqttResponse.tsx"
-Cohesion: 0.16
-Nodes (26): AckRow(), CloseRow(), ConnectionView(), duration(), FAILED, Failed(), hex(), MessageList() (+18 more)
+Cohesion: 0.10
+Nodes (25): AckRow(), CloseRow(), ConnectionView(), duration(), FAILED, hex(), MessageList(), MessageRow() (+17 more)
 
-### Community 23 - "PubsubResponse.tsx"
-Cohesion: 0.14
-Nodes (18): AckRow(), attrText(), dataText(), duration(), FAILED, MessageList(), MessageRow(), MODE_LINE (+10 more)
+### Community 23 - "SioEvent"
+Cohesion: 0.12
+Nodes (17): handle(), Next, Close, Go, run(), Session, sio_connect(), SioEvent (+9 more)
 
 ### Community 24 - "File Storage (Rust)"
-Cohesion: 0.07
-Nodes (34): a_spec_in_the_home_folder_reaches_no_secrets_beside_it(), an_export_does_not_follow_a_planted_temp_symlink(), MAX_READ, read_ref(), read_ref_file(), read_text_file(), ref_files_stay_in_the_spec_folder_through_symlinks(), write_text_file() (+26 more)
-
-### Community 25 - "Format Common & Masking"
-Cohesion: 0.16
-Nodes (34): addressLike(), basicKept(), blankHarEnv(), blankKv(), blankSecretJson(), blankSecretKv(), blankSecretXml(), blankValues() (+26 more)
-
-### Community 26 - "Import Detection & OpenAPI"
 Cohesion: 0.11
-Nodes (33): detect(), parseDoc(), Source, HarFile, Analysis, Build, buildAuth(), buildBody() (+25 more)
+Nodes (28): a_spec_in_the_home_folder_reaches_no_secrets_beside_it(), an_export_does_not_follow_a_planted_temp_symlink(), MAX_READ, read_ref(), read_ref_file(), read_text_file(), ref_files_stay_in_the_spec_folder_through_symlinks(), write_text_file() (+20 more)
 
-### Community 27 - "model.ts"
-Cohesion: 0.13
-Nodes (21): harBody(), harHeaders(), HarOptions, harPlan(), harResponse(), harToCollection(), hostVar(), readHar() (+13 more)
+### Community 25 - "mask.ts"
+Cohesion: 0.07
+Nodes (61): allRequests(), ExampleModal(), key(), statusName(), addressLike(), basicKept(), blankHarEnv(), blankKv() (+53 more)
+
+### Community 26 - "model.ts"
+Cohesion: 0.04
+Nodes (132): yaml, Envs, ExportModal(), Format, FORMATS, plural(), fetchText(), Found (+124 more)
+
+### Community 27 - "ResponseBody.tsx"
+Cohesion: 0.11
+Nodes (14): ico, icoLg, BodyViewer(), EXAMPLES, Filtered, filters, markMatches(), when() (+6 more)
 
 ### Community 28 - "README Icons & Prelude"
 Cohesion: 0.07
@@ -311,19 +313,19 @@ Nodes (22): <img src="docs/assets/icons/flask-conical.svg" width="20" height="20
 
 ### Community 29 - "ws.rs"
 Cohesion: 0.09
-Nodes (17): bad_header_is_an_error(), build_request(), CLOSE_GRACE, echo_and_close(), Handshake, handshake_headers_are_kept_and_extras_added(), header_list(), is_handshake_header() (+9 more)
+Nodes (16): bad_header_is_an_error(), build_request(), echo_and_close(), Handshake, handshake_headers_are_kept_and_extras_added(), header_list(), is_handshake_header(), MAX_REFUSED_BODY (+8 more)
 
-### Community 30 - "ResponseBody.tsx"
-Cohesion: 0.15
-Nodes (17): BodyViewer(), EXAMPLES, Filtered, filters, markMatches(), esc(), GQL_KEYWORDS, highlightGraphql() (+9 more)
+### Community 30 - "main.tsx"
+Cohesion: 0.38
+Nodes (4): react-dom@^18.3.1, react-dom, ghost(), installModalExit()
 
 ### Community 31 - "WebSocket Response View"
-Cohesion: 0.14
-Nodes (27): AckWait(), closeLabel(), CloseRow(), duration(), EventFilter(), Handshake(), MessageList(), MessageRow() (+19 more)
+Cohesion: 0.13
+Nodes (28): AckWait(), closeLabel(), CloseRow(), duration(), EventFilter(), Handshake(), MessageList(), MessageRow() (+20 more)
 
 ### Community 32 - "Parser"
 Cohesion: 0.14
-Nodes (17): child(), children(), CMP, equal(), evaluate(), Expr, has(), isObj() (+9 more)
+Nodes (18): child(), children(), CMP, equal(), evaluate(), Expr, has(), isObj() (+10 more)
 
 ### Community 33 - "About & Build Previews"
 Cohesion: 0.10
@@ -337,37 +339,37 @@ Nodes (15): describe(), ERROR_DETAILS_PROTO, example(), home(), reflect_impl!, M
 Cohesion: 0.09
 Nodes (28): Void / Black-Hole Brand Motif, voidHTTP App Icon (blue tile, void rings, white slash), Lucide arrow-right-left icon, Lucide ban icon, Lucide check icon, Lucide circle-help icon, Lucide code-xml icon, Lucide database icon (+20 more)
 
-### Community 36 - "Example Modal"
-Cohesion: 0.14
-Nodes (29): allRequests(), ExampleModal(), key(), statusName(), applyMasks(), COOKIE_ATTRS, COOKIE_FLAGS, findSensitive() (+21 more)
+### Community 36 - "MqttPane.tsx"
+Cohesion: 0.08
+Nodes (53): CodeArea(), MessageEditor(), KeyTypePicker(), PartitionPicker(), RecordEditor(), AuthEditor(), FilterInput(), MessageEditor() (+45 more)
 
-### Community 37 - "Sidebar.tsx"
-Cohesion: 0.05
-Nodes (60): CaRow(), CERT_FILES, CertificatesPane(), ClientForm(), ClientRow(), FilePick(), KEY_FILES, PFX_FILES (+52 more)
+### Community 37 - "CertificatesPane.tsx"
+Cohesion: 0.12
+Nodes (28): CaRow(), CERT_FILES, CertificatesPane(), ClientForm(), ClientRow(), FilePick(), KEY_FILES, PFX_FILES (+20 more)
 
-### Community 38 - "KafkaResponse.tsx"
-Cohesion: 0.14
-Nodes (21): AckRow(), ACKS, duration(), FAILED, keyText(), num(), parseMaybe(), PartitionFilter() (+13 more)
+### Community 38 - "Home.tsx"
+Cohesion: 0.23
+Nodes (11): greeting(), Home(), pathOf(), ProjectModal(), PROJECT_COLORS, PROJECT_ICONS, ProjectTile(), tileStyle() (+3 more)
 
-### Community 39 - "stripJsonComments"
-Cohesion: 0.24
-Nodes (18): CodeArea(), Props, MessageEditor(), RecordEditor(), MessageEditor(), WillEditor(), MessageEditor(), BodyEditor() (+10 more)
+### Community 39 - "net_test"
+Cohesion: 0.22
+Nodes (10): connect_any(), http_connect(), http_connect_tunnel(), net_test(), parse_proxy(), Proxy, proxy_addresses(), ProxyKind (+2 more)
 
-### Community 40 - "postman.ts"
-Cohesion: 0.14
-Nodes (30): commandsSummary(), importCommands(), nameOf(), splitCommands(), dropFilePaths(), Note, str(), analyze() (+22 more)
+### Community 40 - "pubsub.rs"
+Cohesion: 0.13
+Nodes (24): attributes_of(), data_of(), dead_letter_of(), DeadLetter, DEFAULT_ENDPOINT, DEFAULT_TIMEOUT, delivery(), duration_label() (+16 more)
 
 ### Community 41 - "curl.ts"
-Cohesion: 0.16
-Nodes (17): ANSI, decodeForm(), LONG_VALUE, looksForm(), looksJson(), parseCurl(), ParsedCurl, plausibleUrl() (+9 more)
+Cohesion: 0.11
+Nodes (21): Props, Row, ANSI, decodeForm(), LONG_VALUE, looksForm(), looksJson(), parseCurl() (+13 more)
 
-### Community 42 - "pubsub.rs"
-Cohesion: 0.09
-Nodes (30): check_request(), Cmd, Close, Pause, Publish, Pull, Refresh, data_of() (+22 more)
+### Community 42 - "Cmd"
+Cohesion: 0.24
+Nodes (15): Cmd, Close, Pause, Publish, Pull, Refresh, Publish, pubsub_close() (+7 more)
 
 ### Community 43 - "MQTT Events & Acks"
-Cohesion: 0.20
-Nodes (9): ack_event(), Emit, End, Client, Lost, Server, Outgoing, Session (+1 more)
+Cohesion: 0.19
+Nodes (10): ack_event(), Emit, End, Client, Lost, Server, Outgoing, Session (+2 more)
 
 ### Community 44 - "KafkaEvent"
 Cohesion: 0.11
@@ -378,24 +380,24 @@ Cohesion: 0.08
 Nodes (24): jobs, macos, runs-on, steps, strategy, target, name, on (+16 more)
 
 ### Community 46 - "ImportModal.tsx"
-Cohesion: 0.17
-Nodes (24): Check3(), fetchText(), FileCard(), FileTab(), Frame(), HarReview(), Head(), ImportModal() (+16 more)
+Cohesion: 0.11
+Nodes (29): EnvMenu(), Check3(), FileCard(), FileTab(), Frame(), HarReview(), Head(), ImportModal() (+21 more)
 
 ### Community 47 - "Tauri Config"
 Cohesion: 0.08
 Nodes (24): app, security, windows, build, beforeBuildCommand, beforeDevCommand, devUrl, frontendDist (+16 more)
 
-### Community 48 - "Drop Import & Export"
-Cohesion: 0.18
-Nodes (19): @tauri-apps/api, Envs, ExportModal(), Format, FORMATS, plural(), baseName(), IMPORT_EXTENSIONS (+11 more)
+### Community 48 - "KafkaResponse.tsx"
+Cohesion: 0.17
+Nodes (24): AckRow(), ACKS, duration(), FAILED, Failed(), KafkaResponsePane(), keyText(), num() (+16 more)
 
-### Community 49 - "MqttPane.tsx"
-Cohesion: 0.08
-Nodes (36): KeyTypePicker(), PartitionPicker(), AuthEditor(), FilterInput(), NumField(), PropsEditor(), QosSeg(), SchemeChip() (+28 more)
+### Community 49 - "Kv"
+Cohesion: 0.67
+Nodes (3): apply_metadata(), metadata_list(), Kv
 
 ### Community 50 - "pubsub/tests.rs"
 Cohesion: 0.08
-Nodes (20): b64url(), jwt(), pem_der(), SaKey, sub_path(), temp_name(), b64url_decode(), google_errors_read_plainly() (+12 more)
+Nodes (22): b64url(), jwt(), pem_der(), SaKey, check_id(), check_request(), PubsubRequest, sub_path() (+14 more)
 
 ### Community 51 - "Kafka Metadata & SASL"
 Cohesion: 0.21
@@ -426,8 +428,8 @@ Cohesion: 0.13
 Nodes (19): Kafka Advertised Listener Error, Kafka Produce Record (key, partition, value), Preview Screen Switcher (data-screen), Kafka Topic Partition View, Socket.IO Emit with Ack, Engine.IO Handshake View, Socket.IO Event Name Filter, Socket.IO Namespace connect_error (+11 more)
 
 ### Community 58 - "gRPC Proto Compile"
-Cohesion: 0.19
-Nodes (17): address_gets_scheme_and_port(), cached_pool(), compile_protos(), connect(), grpc_describe(), load_pool(), parse_address(), pool_key() (+9 more)
+Cohesion: 0.24
+Nodes (14): address_gets_scheme_and_port(), cached_pool(), compile_protos(), connect(), grpc_describe(), load_pool(), parse_address(), pool_key() (+6 more)
 
 ### Community 59 - "Lucide README Icons"
 Cohesion: 0.12
@@ -435,15 +437,15 @@ Nodes (18): Lucide Icon Set (ISC license, stroke #3d74ec, 24x24), Map Icon (fold
 
 ### Community 60 - "Session"
 Cohesion: 0.17
-Nodes (18): Api, ApiErr, attributes_of(), check_id(), dead_letter_of(), delivery(), Emit, Fail (+10 more)
+Nodes (8): Api, ApiErr, Emit, Fail, pubsub_list(), run(), Session, topic_path()
 
-### Community 61 - "net.ts"
-Cohesion: 0.20
-Nodes (13): NetworkPane(), apply(), checkHost(), DEFAULT_NET, DNS_PROVIDERS, listeners, NetCheck, netSettings() (+5 more)
+### Community 61 - "Conns"
+Cohesion: 0.29
+Nodes (3): ConnGuard, Conns, Conns<C>
 
-### Community 62 - "native.ts"
+### Community 62 - "PubsubResponse.tsx"
 Cohesion: 0.15
-Nodes (25): Found, ImportPlan, importNative(), NATIVE_VERSION, NativeFile, num(), pairs(), rows() (+17 more)
+Nodes (19): AckRow(), attrText(), dataText(), duration(), FAILED, MessageList(), MessageRow(), MODE_LINE (+11 more)
 
 ### Community 63 - "TypeScript Config"
 Cohesion: 0.12
@@ -453,9 +455,9 @@ Nodes (16): compilerOptions, isolatedModules, jsx, lib, module, moduleResolution
 Cohesion: 0.17
 Nodes (14): 0.1.6 (WebSocket, Socket.IO, GraphQL, Network, Certificates, Scripts, License), Import/Export Pipeline (src/lib/formats, common.ts checks, files.rs), GraphQL Support, HTTP Requests (methods, auth, bodies, responses), Import and Export Formats (voidHTTP, Postman, OpenAPI, HAR, cURL/grpcurl), Large Response Guard (512 KB highlight, 4 MB truncate), Apache 2.0 + Commons Clause License, Moonbase Demo API (docs/examples/moonbase-api.yaml) (+6 more)
 
-### Community 65 - ".produce"
-Cohesion: 0.17
-Nodes (9): ack_event(), chrono_now_ms(), murmur2(), murmur2_matches_the_java_client(), Produce, produce_error(), record_event(), show() (+1 more)
+### Community 65 - "Net"
+Cohesion: 0.16
+Nodes (6): doh_resolver(), Net, net_configure(), NetConfig, Resolve, secure_dns_and_check()
 
 ### Community 66 - "Bug Report Template"
 Cohesion: 0.13
@@ -470,12 +472,12 @@ Cohesion: 0.28
 Nodes (5): bad(), Error, Malformed, Reader, Reader<'a>
 
 ### Community 69 - "gRPC Codec"
-Cohesion: 0.14
-Nodes (5): apply_metadata(), DynamicCodec, DynamicDecoder, DynamicEncoder, metadata_list()
+Cohesion: 0.18
+Nodes (3): DynamicCodec, DynamicDecoder, DynamicEncoder
 
 ### Community 70 - "themes.ts"
 Cohesion: 0.18
-Nodes (18): alpha(), BUILTIN, BuiltinId, contrast(), DEFAULT_SCHEME, FAMILIES, fit(), Ghostty (+10 more)
+Nodes (20): useTheme(), alpha(), BUILTIN, BuiltinId, contrast(), FAMILIES, findScheme(), fit() (+12 more)
 
 ### Community 71 - "Kafka Commands"
 Cohesion: 0.35
@@ -494,8 +496,8 @@ Cohesion: 0.17
 Nodes (12): 1. Correction, 2. Warning, 3. Temporary Ban, 4. Permanent Ban, Attribution, Contributor Covenant Code of Conduct, Enforcement, Enforcement Guidelines (+4 more)
 
 ### Community 75 - "Variable Formats"
-Cohesion: 0.29
-Nodes (11): formatVars(), fromDotenv(), fromJson(), needsQuotes(), parseVars(), rowFor(), toDotenv(), toJson() (+3 more)
+Cohesion: 0.33
+Nodes (10): formatVars(), fromDotenv(), fromJson(), needsQuotes(), parseVars(), rowFor(), toDotenv(), toJson() (+2 more)
 
 ### Community 76 - "GraphQL Previews"
 Cohesion: 0.22
@@ -509,9 +511,9 @@ Nodes (9): Address Bar Token Highlighter, App Shell (title strip, rail, sidebar,
 Cohesion: 0.31
 Nodes (10): Lucide Icon Sprite (v0.460.0), voidHTTP Scripts Preview, pm Scripting API (Postman-compatible), Post-response Script, Pre-request Script, Pre-request Script Failure State, Preview Screen Switcher (data-screen), Script Console (+2 more)
 
-### Community 79 - "updater.ts"
-Cohesion: 0.18
-Nodes (10): checkForUpdate(), hasPendingUpdate(), installUpdate(), message(), NOTE_PREFIX, RELEASES_URL, REPO_URL, restartToUpdate() (+2 more)
+### Community 79 - ".produce"
+Cohesion: 0.17
+Nodes (9): ack_event(), chrono_now_ms(), murmur2(), murmur2_matches_the_java_client(), Produce, produce_error(), record_event(), show() (+1 more)
 
 ### Community 80 - "JsonTable.tsx"
 Cohesion: 0.11
@@ -534,8 +536,8 @@ Cohesion: 0.33
 Nodes (4): decode_details(), EmbeddedFile, error_details_decode(), error_details_pool()
 
 ### Community 86 - "PubsubEvent"
-Cohesion: 0.17
-Nodes (12): DeadLetter, Info, PubsubEvent, Close, Connected, Failed, Message, Notice (+4 more)
+Cohesion: 0.22
+Nodes (9): PubsubEvent, Close, Connected, Failed, Message, Notice, Paused, Pulled (+1 more)
 
 ### Community 87 - "Kafka Preview"
 Cohesion: 0.47
@@ -562,8 +564,8 @@ Cohesion: 0.23
 Nodes (18): every_packet_round_trips(), Packet, Auth, ConnAck, Connect, Disconnect, PingReq, PingResp (+10 more)
 
 ### Community 94 - "PubsubPane.tsx"
-Cohesion: 0.12
-Nodes (34): AuthEditor(), clock(), Group, listArgs(), listError(), ListPicker(), Loaded, ProjectPicker() (+26 more)
+Cohesion: 0.09
+Nodes (42): AuthEditor(), clock(), Group, listArgs(), listError(), ListPicker(), Loaded, ProjectPicker() (+34 more)
 
 ### Community 95 - "fake.ts"
 Cohesion: 0.25
@@ -606,36 +608,40 @@ Cohesion: 0.67
 Nodes (3): Square71x71Logo (voidHTTP app icon, 71x71), voidHTTP logo mark: white slashed circle (empty-set / void symbol) on blue rounded square, Windows Store / UWP square tile asset (Tauri bundle icon set)
 
 ### Community 107 - "dependencies"
-Cohesion: 0.12
-Nodes (17): dependencies, lucide-react@^1.75.0, react@^18.3.1, react-dom@^18.3.1, @tauri-apps/api@^2.0.0, @tauri-apps/plugin-dialog@^2.0.0, @tauri-apps/plugin-opener@^2, @tauri-apps/plugin-process@^2 (+9 more)
+Cohesion: 0.15
+Nodes (13): dependencies, lucide-react@^1.75.0, react@^18.3.1, @tauri-apps/api@^2.0.0, @tauri-apps/plugin-dialog@^2.0.0, @tauri-apps/plugin-process@^2, @tauri-apps/plugin-updater@^2, yaml@2.6.1 (+5 more)
 
 ### Community 111 - "esbuild"
 Cohesion: 0.40
 Nodes (3): esbuild@0.21.5, esbuild, root
 
 ### Community 112 - "useStore"
-Cohesion: 0.12
-Nodes (42): duration(), EndRow(), GrpcResponsePane(), MessageList(), MessageRow(), pretty(), SaveExampleButton(), seconds() (+34 more)
+Cohesion: 0.11
+Nodes (45): App(), AppStrip(), duration(), EndRow(), GrpcResponsePane(), MessageList(), MessageRow(), pretty() (+37 more)
+
+### Community 113 - "highlightLines"
+Cohesion: 0.36
+Nodes (10): esc(), GQL_KEYWORDS, highlightGraphql(), highlightJson(), highlightLines(), jsRuns(), KEYWORDS, line() (+2 more)
+
+### Community 125 - "GrpcState"
+Cohesion: 0.38
+Nodes (5): CallGuard, grpc_cancel(), grpc_end(), grpc_send(), GrpcState
 
 ### Community 126 - "openapiExport.ts"
-Cohesion: 0.13
-Nodes (26): UrlTab(), Any, HarRow, addBody(), addExample(), addParams(), addResponses(), camel() (+18 more)
+Cohesion: 0.17
+Nodes (22): addBody(), addExample(), addParams(), addResponses(), camel(), exampleOf(), exportOpenApi(), Media (+14 more)
+
+### Community 128 - "root_cause"
+Cohesion: 0.67
+Nodes (3): describe_error(), root_cause(), lost()
 
 ### Community 130 - "Conns"
-Cohesion: 0.11
-Nodes (16): Cmd, Close, Send, ConnGuard, Conns, Conns<C>, run(), ws_close() (+8 more)
-
-### Community 137 - "GrpcPane.tsx"
-Cohesion: 0.06
-Nodes (38): @tauri-apps/plugin-dialog, MethodPicker(), SchemaEditor(), Section, time(), Props, Row, clientStreams() (+30 more)
+Cohesion: 0.17
+Nodes (13): Cmd, Close, Send, run(), ws_close(), ws_connect(), ws_send(), WsEvent (+5 more)
 
 ### Community 139 - "vite.config.ts"
 Cohesion: 0.29
 Nodes (6): vite@^5.4.10, @vitejs/plugin-react@^4.3.2, vite, @vitejs/plugin-react, devBuild(), git()
-
-### Community 140 - "GrpcState"
-Cohesion: 0.38
-Nodes (5): CallGuard, grpc_cancel(), grpc_end(), grpc_send(), GrpcState
 
 ### Community 147 - "scripts"
 Cohesion: 0.33
@@ -646,25 +652,25 @@ Nodes (6): scripts, build, dev, fake, tauri, typecheck
   .hallmark/preview/mqtt.html · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **188 isolated node(s):** `voidhttp`, `Reflection`, `Protos`, `Headers`, `Message` (+183 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 862 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **188 isolated node(s):** `voidHTTP App Icon`, `#root Mount Element`, `RFC-6455`, `T`, `ConnGuard<'_, C>` (+183 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 863 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **25 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Architecture` connect `Agent & Contribution Docs` to `Feature Docs (README)`, `Repo Doc Files`, `Changelog Releases`, `Quick Open Features Docs`?**
-  _High betweenness centrality (0.042) - this node is a cross-community bridge._
-- **What connects `voidhttp`, `Reflection`, `Protos` to the rest of the system?**
+- **Why does `prepare()` connect `store.ts` to `MqttPane.tsx`, `GraphQL Pane & Schema`, `ImportModal.tsx`, `RequestPane.tsx`, `Agent & Contribution Docs`, `model.ts`?**
+  _High betweenness centrality (0.037) - this node is a cross-community bridge._
+- **What connects `voidHTTP App Icon`, `#root Mount Element`, `RFC-6455` to the rest of the system?**
   _188 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `certs.rs` be split into smaller, more focused modules?**
   _Cohesion score 0.05218365061590145 - nodes in this community are weakly interconnected._
-- **Why does `prepare()` connect `store.ts` to `GraphQL Pane & Schema`, `stripJsonComments`, `GrpcPane.tsx`, `ImportModal.tsx`, `RequestPane.tsx`, `Drop Import & Export`, `Agent & Contribution Docs`, `model.ts`?**
-  _High betweenness centrality (0.042) - this node is a cross-community bridge._
+- **Why does `Architecture` connect `Agent & Contribution Docs` to `Feature Docs (README)`, `Repo Doc Files`, `Changelog Releases`, `Quick Open Features Docs`?**
+  _High betweenness centrality (0.036) - this node is a cross-community bridge._
 - **Should `store.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.036941580756013746 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.02730407231385705 - nodes in this community are weakly interconnected._
 - **Why does `Sending an HTTP request` connect `Agent & Contribution Docs` to `store.ts`?**
-  _High betweenness centrality (0.041) - this node is a cross-community bridge._
+  _High betweenness centrality (0.036) - this node is a cross-community bridge._
 
 ### Low-confidence Hints
 _AMBIGUOUS edges — the extractor was unsure. Verify before acting on these._

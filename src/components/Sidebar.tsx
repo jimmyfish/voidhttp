@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { RenameField } from "./InlineRename";
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";
-import { useStore } from "../store";
+import { promptNewCollection, promptNewFolder, useStore } from "../store";
 import type { Collection, Example, GrpcResult, HistoryEntry, TreeNode } from "../types";
 import { countRequests, entryStatus, findNode, methodLabel, type DropWhere } from "../lib/model";
 import {
@@ -125,8 +125,7 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
   const s = useStore.getState(); // actions only
 
   const openImport = () => s.openModal({ kind: "import" });
-  const newCollection = () =>
-    s.openModal({ kind: "prompt", title: "New collection", initial: "My collection", onSubmit: (n) => s.createCollection(n) });
+  const newCollection = promptNewCollection;
   const clearHistory = () =>
     s.openModal({
       kind: "confirm",
@@ -134,6 +133,7 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
       message: "Every request in history is removed. Saved collections are not touched.",
       onConfirm: () => s.clearHistory(),
       confirmLabel: "Clear",
+      icon: "history",
     });
 
   /** Pointer-driven drag (HTML5 drag and drop is unreliable inside the Tauri webview). */
@@ -415,8 +415,7 @@ function Row({ collectionId, nodeId, name, depth, method, count, open, active, f
       message: container ? "Everything inside it will be deleted too." : "This cannot be undone.",
       onConfirm: () => s.deleteNode(collectionId, nodeId),
     });
-  const addFolder = () =>
-    s.openModal({ kind: "prompt", title: "New folder", initial: "New folder", onSubmit: (v) => s.addFolder(collectionId, parentId, v) });
+  const addFolder = () => promptNewFolder(collectionId, parentId);
 
   const items: MenuItem[] = [
     ...(container

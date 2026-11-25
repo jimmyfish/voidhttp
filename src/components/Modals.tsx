@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Select } from "./Select";
-import { useStore, type SettingsSection } from "../store";
+import { useStore, type PromptPlace, type SettingsSection } from "../store";
 import type { Environment, KV } from "../types";
-import { kv, listFolders, uid } from "../lib/model";
+import { kv, listFolders, methodLabel, uid } from "../lib/model";
 import { ExampleModal } from "./ExampleModal";
 import { ImportModal } from "./ImportModal";
 import { ExportModal } from "./ExportModal";
 import { KVEditor } from "./KVEditor";
-import { Ban, Check, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, FileBadge, Keyboard, Network, Plus, Send, Trash2, TriangleAlert, Type, ico } from "./Icon";
+import { Ban, BookmarkPlus, Braces, Check, ChevronDown, ChevronRight, CircleAlert, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, FileBadge, Folder, FolderPlus, HistoryIcon, Keyboard, LibraryBig, Network, Plus, Send, Settings as Gear, Trash2, TriangleAlert, Type, X, ico } from "./Icon";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useUpdates } from "../updates";
 import { DEV_BUILD } from "../build";
@@ -41,16 +41,16 @@ export function Modals() {
   if (!modal) return null;
   switch (modal.kind) {
     case "prompt":
-      return <PromptModal title={modal.title} initial={modal.initial} onSubmit={(v) => (modal.onSubmit(v), close())} onClose={close} />;
+      return <PromptModal title={modal.title} initial={modal.initial} place={modal.place} onSubmit={(v) => (modal.onSubmit(v), close())} onClose={close} />;
     case "confirm":
       return (
-        <Shell title={modal.title} onClose={close}>
-          <p>{modal.message}</p>
-          <footer>
-            <button type="button" className="btn" onClick={close}>
+        <Shell title={modal.title} sub={modal.message} tone="danger" icon={modal.icon === "history" ? <HistoryIcon {...ico} /> : <Trash2 {...ico} />} onClose={close}>
+          <footer className="sh-foot">
+            <button type="button" className="btn btn--quiet" onClick={close}>
               Cancel
             </button>
-            <button type="button" className="btn btn--danger" autoFocus onClick={() => (modal.onConfirm(), close())}>
+            <button type="button" className="btn btn--danger sh-danger" autoFocus onClick={() => (modal.onConfirm(), close())}>
+              <Trash2 {...ico} />
               {modal.confirmLabel ?? "Delete"}
             </button>
           </footer>
@@ -63,7 +63,7 @@ export function Modals() {
     case "settings":
       return <SettingsModal onClose={close} section={modal.section} />;
     case "quickopen":
-      return <QuickOpen key={modal.actions ? "actions" : "open"} actions={modal.actions} onClose={close} />;
+      return <QuickOpen actions={modal.actions} onClose={close} />;
     case "about":
       return <AboutModal onClose={close} />;
     case "project":
@@ -77,34 +77,185 @@ export function Modals() {
   }
 }
 
-function Shell({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+type Tone = "create" | "danger" | "plain";
+
+/**
+ * Every simple dialog: a header that says what it does (a tinted tile, the title, one line of context, close),
+ * then the caller's `.sh-body` and `footer.sh-foot`. Escape and a click on the backdrop close it too.
+ */
+function Shell({
+  title,
+  sub,
+  icon,
+  tile,
+  tone = "plain",
+  onClose,
+  children,
+  wide,
+}: {
+  title: string;
+  sub?: ReactNode;
+  icon?: ReactNode;
+  /** replaces the tinted tile, e.g. the project's own tile */
+  tile?: ReactNode;
+  tone?: Tone;
+  onClose: () => void;
+  children: ReactNode;
+  wide?: boolean;
+}) {
+  const id = useId();
   return (
     <div className="backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={`dialog ${wide ? "wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
-        <h3>{title}</h3>
+      <div className={`dialog sh${wide ? " wide" : ""}`} role="dialog" aria-modal="true" aria-labelledby={`${id}t`} aria-describedby={sub ? `${id}s` : undefined}>
+        <div className="sh-head">
+          {tile ?? <span className={`sh-tile sh-tile--${tone}`}>{icon}</span>}
+          <div className="sh-title">
+            <h3 id={`${id}t`}>{title}</h3>
+            {sub && (
+              <p className="sh-sub" id={`${id}s`}>
+                {sub}
+              </p>
+            )}
+          </div>
+          <button type="button" className="icon-btn sh-close" aria-label="Close" title="Close" onClick={onClose}>
+            <X {...ico} />
+          </button>
+        </div>
         {children}
       </div>
     </div>
   );
 }
 
-function PromptModal({ title, initial, onSubmit, onClose }: { title: string; initial: string; onSubmit: (v: string) => void; onClose: () => void }) {
-  const [v, setV] = useState(initial);
+/** "In orders-api / refunds": a lead word, then names joined by slashes. */
+function Path({ lead, parts }: { lead: string; parts: string[] }) {
   return (
-    <Shell title={title} onClose={onClose}>
+    <>
+      {lead}
+      {parts.map((p, i) => (
+        <Fragment key={i}>
+          {i > 0 && <span className="sep">/</span>}
+          <b>{p}</b>
+        </Fragment>
+      ))}
+    </>
+  );
+}
+
+/** Where a prompt's new item lands, drawn with the sidebar's own rows: the parent, the new row, what is already there. */
+function PlaceTree({ place, name, clash }: { place: PromptPlace; name: string; clash?: string }) {
+  const folder = place.kind === "folder";
+  const indent = { "--indent": folder ? "16px" : "0px" } as React.CSSProperties;
+  const shown = place.taken.slice(0, 4);
+  if (clash && !shown.includes(clash)) shown.splice(Math.max(0, shown.length - 1), 1, clash);
+  const more = place.taken.length - shown.length;
+  const glyph = folder ? <Folder {...ico} className="ico folder" /> : null;
+  const parent = place.path[place.path.length - 1];
+  return (
+    <div className="sh-tree" aria-hidden="true">
+      {folder && (
+        <div className={`row${place.path.length === 1 ? " collection" : ""}`}>
+          <div className="row-main">
+            <ChevronDown {...ico} className="ico caret" />
+            {place.path.length > 1 && <Folder {...ico} className="ico folder" />}
+            <span className="name">{parent}</span>
+          </div>
+        </div>
+      )}
+      <div className={`row sh-ghost${folder ? "" : " collection"}${name ? "" : " is-empty"}${clash ? " is-dupe" : ""}`} style={indent}>
+        <div className="row-main">
+          <ChevronRight {...ico} className="ico caret" />
+          {glyph}
+          <span className="name">{name || (folder ? "Refunds" : "payments-service")}</span>
+        </div>
+      </div>
+      {shown.map((t) => (
+        <div key={t} className={`row sh-sib${folder ? "" : " collection"}${t === clash ? " sh-dupe" : ""}`} style={indent}>
+          <div className="row-main">
+            <ChevronRight {...ico} className="ico caret" />
+            {glyph}
+            <span className="name">{t}</span>
+            {t === clash && <span className="sh-tag">Already here</span>}
+          </div>
+        </div>
+      ))}
+      {more > 0 && (
+        <p className="sh-more" style={indent}>
+          {more} more
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PromptModal({
+  title,
+  initial,
+  place,
+  onSubmit,
+  onClose,
+}: {
+  title: string;
+  initial: string;
+  place?: PromptPlace;
+  onSubmit: (v: string) => void;
+  onClose: () => void;
+}) {
+  const [v, setV] = useState(initial);
+  const id = useId();
+  const name = v.trim();
+  const clash = place && name ? place.taken.find((t) => t.toLowerCase() === name.toLowerCase()) : undefined;
+  const ok = !!name && !clash;
+  const folder = place?.kind === "folder";
+  const Glyph = folder ? Folder : LibraryBig;
+  const owner = place ? (folder ? place.path[place.path.length - 1] : place.path[0]) : "";
+  return (
+    <Shell
+      title={title}
+      tone="create"
+      icon={folder ? <FolderPlus {...ico} /> : <LibraryBig {...ico} />}
+      sub={place && <Path lead={folder ? "In" : "In project"} parts={place.path} />}
+      onClose={onClose}
+    >
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (v.trim()) onSubmit(v.trim());
+          if (ok) onSubmit(name);
         }}
       >
-        <input className="field" aria-label={title} autoFocus value={v} onFocus={(e) => e.target.select()} onChange={(e) => setV(e.target.value)} />
-        <footer>
-          <button type="button" className="btn" onClick={onClose}>
+        <div className="sh-body">
+          <label className="sh-label" htmlFor={`${id}n`}>
+            Name
+          </label>
+          <div className="sh-field">
+            <Glyph {...ico} />
+            <input
+              id={`${id}n`}
+              className="field sh-input"
+              autoFocus
+              value={v}
+              placeholder={folder ? "e.g. Refunds" : "e.g. payments-service"}
+              aria-invalid={clash ? true : undefined}
+              aria-describedby={clash ? `${id}e` : undefined}
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => setV(e.target.value)}
+            />
+          </div>
+          {clash && (
+            <p className="sh-err" id={`${id}e`}>
+              <CircleAlert {...ico} />
+              {owner} already has {folder ? "a folder" : "a collection"} named {clash}.
+            </p>
+          )}
+          {place && <PlaceTree place={place} name={name} clash={clash} />}
+        </div>
+        <footer className="sh-foot">
+          <button type="button" className="btn btn--quiet" onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" className="btn btn--primary">
-            OK
+          <button type="submit" className="btn btn--primary" disabled={!ok}>
+            <Plus {...ico} />
+            {folder ? "Create folder" : place ? "Create collection" : "Create"}
           </button>
         </footer>
       </form>
@@ -131,39 +282,55 @@ function SaveModal({ tabId, onClose }: { tabId: string; onClose: () => void }) {
   };
 
   return (
-    <Shell title="Save request" onClose={onClose}>
-      <label>
-        Name
-        <input className="field" autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} />
-      </label>
-      <label>
-        Save to
-        <Select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
-          {s.collections.map((c) => [
-            <option key={c.id} value={`${c.id}|`}>
-              {c.name}
-            </option>,
-            ...listFolders(c.children).map(({ folder, depth }) => (
-              <option key={folder.id} value={`${c.id}|${folder.id}`}>
-                {"  ".repeat(depth + 1)}
-                {folder.name}
-              </option>
-            )),
-          ])}
-          <option value="">New collection…</option>
-        </Select>
-      </label>
-      {target === "" && (
+    <Shell
+      title="Save request"
+      tone="create"
+      icon={<BookmarkPlus {...ico} />}
+      sub={
+        tab && (
+          <>
+            <span className={`m m-${tab.request.method}`}>{methodLabel(tab.request.method)}</span>
+            <b>{tab.request.name || "Untitled request"}</b>
+          </>
+        )
+      }
+      onClose={onClose}
+    >
+      <div className="sh-body">
         <label>
-          Collection name
-          <input className="field" value={newCol} onChange={(e) => setNewCol(e.target.value)} />
+          Name
+          <input className="field" autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} />
         </label>
-      )}
-      <footer>
-        <button type="button" className="btn" onClick={onClose}>
+        <label>
+          Save to
+          <Select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
+            {s.collections.map((c) => [
+              <option key={c.id} value={`${c.id}|`}>
+                {c.name}
+              </option>,
+              ...listFolders(c.children).map(({ folder, depth }) => (
+                <option key={folder.id} value={`${c.id}|${folder.id}`}>
+                  {"  ".repeat(depth + 1)}
+                  {folder.name}
+                </option>
+              )),
+            ])}
+            <option value="">New collection…</option>
+          </Select>
+        </label>
+        {target === "" && (
+          <label>
+            Collection name
+            <input className="field" value={newCol} onChange={(e) => setNewCol(e.target.value)} />
+          </label>
+        )}
+      </div>
+      <footer className="sh-foot">
+        <button type="button" className="btn btn--quiet" onClick={onClose}>
           Cancel
         </button>
         <button type="button" className="btn btn--primary" onClick={submit}>
+          <Check {...ico} />
           Save
         </button>
       </footer>
@@ -174,6 +341,7 @@ function SaveModal({ tabId, onClose }: { tabId: string; onClose: () => void }) {
 /** Environments + collection variables, edited on a local draft and committed on Save. */
 function VariablesModal({ onClose, select, addVar }: { onClose: () => void; select?: string; addVar?: string }) {
   const s = useStore.getState();
+  const projectName = s.projects.find((p) => p.id === s.currentProjectId)?.name;
   // a variable added from the address bar lands in the draft, so Cancel drops it
   const withNew = (id: string, vars: KV[]) => (addVar && id === select ? [...vars, kv(addVar)] : vars);
   const [envs, setEnvs] = useState<Environment[]>(() =>
@@ -266,79 +434,82 @@ function VariablesModal({ onClose, select, addVar }: { onClose: () => void; sele
     );
 
   return (
-    <Shell title="Variables" onClose={onClose} wide>
-      <div className="vars">
-        <ul>
-          <li className="group">
-            Environments
-            <button type="button" className="icon-btn" title="Add environment" aria-label="Add environment" onClick={addEnv}>
-              <Plus {...ico} />
-            </button>
-          </li>
-          {envs.map((e) => (
-            <EnvItem
-              key={e.id}
-              env={e}
-              current={sel === e.id}
-              onSelect={() => !error && setSel(e.id)}
-              onDuplicate={() => duplicateEnv(e.id)}
-              onDelete={() => deleteEnv(e.id)}
-            />
-          ))}
-          {s.collections.length > 0 && <li className="group">Collection variables</li>}
-          {s.collections.map((c) => (
-            <li key={c.id}>
-              <button type="button" aria-current={sel === c.id} onClick={() => !error && setSel(c.id)}>
-                {c.name}
+    <Shell title="Variables" sub={projectName} icon={<Braces {...ico} />} onClose={onClose} wide>
+      <div className="sh-body">
+        <div className="vars">
+          <ul>
+            <li className="group">
+              Environments
+              <button type="button" className="icon-btn" title="Add environment" aria-label="Add environment" onClick={addEnv}>
+                <Plus {...ico} />
               </button>
             </li>
-          ))}
-        </ul>
-        <div className="vars-body">
-          {(env || col) && (
-            <>
-              {env ? (
-                <div className="env-head">
-                  <input
-                    className="field"
-                    aria-label="Environment name"
-                    value={env.name}
-                    onChange={(ev) => setEnvs(envs.map((x) => (x.id === env.id ? { ...x, name: ev.target.value } : x)))}
-                  />
-                  <EnvColor value={env.color} onChange={(color) => setEnvs(envs.map((x) => (x.id === env.id ? { ...x, color } : x)))} />
+            {envs.map((e) => (
+              <EnvItem
+                key={e.id}
+                env={e}
+                current={sel === e.id}
+                onSelect={() => !error && setSel(e.id)}
+                onDuplicate={() => duplicateEnv(e.id)}
+                onDelete={() => deleteEnv(e.id)}
+              />
+            ))}
+            {s.collections.length > 0 && <li className="group">Collection variables</li>}
+            {s.collections.map((c) => (
+              <li key={c.id}>
+                <button type="button" aria-current={sel === c.id} onClick={() => !error && setSel(c.id)}>
+                  {c.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="vars-body">
+            {(env || col) && (
+              <>
+                {env ? (
+                  <div className="env-head">
+                    <input
+                      className="field"
+                      aria-label="Environment name"
+                      value={env.name}
+                      onChange={(ev) => setEnvs(envs.map((x) => (x.id === env.id ? { ...x, name: ev.target.value } : x)))}
+                    />
+                    <EnvColor value={env.color} onChange={(color) => setEnvs(envs.map((x) => (x.id === env.id ? { ...x, color } : x)))} />
+                  </div>
+                ) : (
+                  <p className="muted">
+                    Used by requests saved in <b>{col!.name}</b>. Environment values override these.
+                  </p>
+                )}
+                <div className="vars-tools">
+                  <div className="seg" role="group" aria-label="Format">
+                    {(["table", "json", "env"] as VarsFormat[]).map((f) => (
+                      <button key={f} type="button" aria-pressed={format === f} disabled={!!error && format !== f} onClick={() => pickFormat(f)}>
+                        {f === "table" ? "Table" : f === "json" ? "JSON" : ".env"}
+                      </button>
+                    ))}
+                  </div>
+                  {format === "json" && rows.some((r) => !r.enabled && r.key) && <span className="vars-hint">Disabled variables are kept, not shown</span>}
+                  {format === "env" && <span className="vars-hint">Lines starting with # are disabled</span>}
                 </div>
-              ) : (
-                <p className="muted">
-                  Used by requests saved in <b>{col!.name}</b>. Environment values override these.
-                </p>
-              )}
-              <div className="vars-tools">
-                <div className="seg" role="group" aria-label="Format">
-                  {(["table", "json", "env"] as VarsFormat[]).map((f) => (
-                    <button key={f} type="button" aria-pressed={format === f} disabled={!!error && format !== f} onClick={() => pickFormat(f)}>
-                      {f === "table" ? "Table" : f === "json" ? "JSON" : ".env"}
-                    </button>
-                  ))}
-                </div>
-                {format === "json" && rows.some((r) => !r.enabled && r.key) && <span className="vars-hint">Disabled variables are kept, not shown</span>}
-                {format === "env" && <span className="vars-hint">Lines starting with # are disabled</span>}
+                {editor}
+              </>
+            )}
+            {!env && !col && (
+              <div className="empty">
+                <strong>No environments yet</strong>
+                <span>Add one to store variables like {"{{baseUrl}}"}.</span>
               </div>
-              {editor}
-            </>
-          )}
-          {!env && !col && (
-            <div className="empty">
-              <strong>No environments yet</strong>
-              <span>Add one to store variables like {"{{baseUrl}}"}.</span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-      <footer>
-        <button type="button" className="btn" onClick={onClose}>
+      <footer className="sh-foot">
+        <button type="button" className="btn btn--quiet" onClick={onClose}>
           Cancel
         </button>
         <button type="button" className="btn btn--primary" disabled={!!error} title={error ? "Fix the variables text first" : undefined} onClick={save}>
+          <Check {...ico} />
           Save
         </button>
       </footer>
@@ -479,263 +650,260 @@ function SettingsModal({ onClose, section: initial }: { onClose: () => void; sec
   }, []);
 
   return (
-    <Shell title="Settings" onClose={onClose} wide>
-      <div className="vars settings">
-        <ul>
-          <li>
-            <button type="button" aria-current={section === "appearance"} onClick={() => setSection("appearance")}>
-              <Type {...ico} />
-              Appearance
-            </button>
-          </li>
-          <li>
-            <button type="button" aria-current={section === "requests"} onClick={() => setSection("requests")}>
-              <Send {...ico} />
-              Requests
-            </button>
-          </li>
-          <li>
-            <button type="button" aria-current={section === "network"} onClick={() => setSection("network")}>
-              <Network {...ico} />
-              Network
-            </button>
-          </li>
-          <li>
-            <button type="button" aria-current={section === "certificates"} onClick={() => setSection("certificates")}>
-              <FileBadge {...ico} />
-              Certificates
-            </button>
-          </li>
-          <li>
-            <button type="button" aria-current={section === "shortcuts"} onClick={() => setSection("shortcuts")}>
-              <Keyboard {...ico} />
-              Shortcuts
-            </button>
-          </li>
-          <li>
-            <button type="button" aria-current={section === "updates"} onClick={() => setSection("updates")}>
-              <CircleArrowDown {...ico} />
-              Updates
-            </button>
-          </li>
-        </ul>
+    <Shell title="Settings" sub="Applies to every project" icon={<Gear {...ico} />} onClose={onClose} wide>
+      <div className="sh-body sh-body--end">
+        <div className="vars settings">
+          <ul>
+            <li>
+              <button type="button" aria-current={section === "appearance"} onClick={() => setSection("appearance")}>
+                <Type {...ico} />
+                Appearance
+              </button>
+            </li>
+            <li>
+              <button type="button" aria-current={section === "requests"} onClick={() => setSection("requests")}>
+                <Send {...ico} />
+                Requests
+              </button>
+            </li>
+            <li>
+              <button type="button" aria-current={section === "network"} onClick={() => setSection("network")}>
+                <Network {...ico} />
+                Network
+              </button>
+            </li>
+            <li>
+              <button type="button" aria-current={section === "certificates"} onClick={() => setSection("certificates")}>
+                <FileBadge {...ico} />
+                Certificates
+              </button>
+            </li>
+            <li>
+              <button type="button" aria-current={section === "shortcuts"} onClick={() => setSection("shortcuts")}>
+                <Keyboard {...ico} />
+                Shortcuts
+              </button>
+            </li>
+            <li>
+              <button type="button" aria-current={section === "updates"} onClick={() => setSection("updates")}>
+                <CircleArrowDown {...ico} />
+                Updates
+              </button>
+            </li>
+          </ul>
 
-        {section === "appearance" ? (
-          <div className="set-pane">
-            <h4>Appearance</h4>
-            <div className="set-list">
-              <div className="set-item">
-                <div className="set-text">
-                  <span className="set-label" id="set-theme">
-                    Theme
-                  </span>
-                  <span className="desc">Auto follows your Mac's appearance</span>
+          {section === "appearance" ? (
+            <div className="set-pane">
+              <h4>Appearance</h4>
+              <div className="set-list">
+                <div className="set-item">
+                  <div className="set-text">
+                    <span className="set-label" id="set-theme">
+                      Theme
+                    </span>
+                    <span className="desc">Auto follows your Mac's appearance</span>
+                  </div>
+                  <div className="set-ctl">
+                    <div className="seg seg--lg" role="group" aria-labelledby="set-theme">
+                      {(["auto", "light", "dark"] as const).map((t) => (
+                        <button key={t} type="button" aria-pressed={theme === t} onClick={() => setSettings({ theme: t === "auto" ? undefined : t })}>
+                          {t[0].toUpperCase() + t.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="set-ctl">
-                  <div className="seg seg--lg" role="group" aria-labelledby="set-theme">
-                    {(["auto", "light", "dark"] as const).map((t) => (
-                      <button key={t} type="button" aria-pressed={theme === t} onClick={() => setSettings({ theme: t === "auto" ? undefined : t })}>
-                        {t[0].toUpperCase() + t.slice(1)}
-                      </button>
-                    ))}
+                {theme === "auto" ? (
+                  <>
+                    <SchemeRow id="set-scheme-light" label="Light theme" desc="Used while your Mac is light" value={settings.lightScheme ?? DEFAULT_SCHEME.light} onChange={(lightScheme) => setSettings({ lightScheme })} />
+                    <SchemeRow id="set-scheme-dark" label="Dark theme" desc="Used while your Mac is dark" value={settings.darkScheme ?? DEFAULT_SCHEME.dark} onChange={(darkScheme) => setSettings({ darkScheme })} />
+                  </>
+                ) : (
+                  <SchemeRow
+                    id="set-scheme"
+                    label="Color scheme"
+                    desc="Any scheme, light or dark"
+                    value={(theme === "dark" ? settings.darkScheme : settings.lightScheme) ?? DEFAULT_SCHEME[theme]}
+                    onChange={(v) => setSettings(theme === "dark" ? { darkScheme: v } : { lightScheme: v })}
+                  />
+                )}
+                <div className="set-item">
+                  <div className="set-text">
+                    <label htmlFor="set-compact">Compact mode</label>
+                    <span className="desc">UI elements take up less screen space</span>
+                  </div>
+                  <div className="set-ctl">
+                    <input
+                      id="set-compact"
+                      className="switch"
+                      type="checkbox"
+                      role="switch"
+                      checked={settings.compact === true}
+                      onChange={(e) => setSettings({ compact: e.target.checked || undefined })}
+                    />
+                  </div>
+                </div>
+                <FontRow
+                  id="set-ui-font"
+                  label="Interface font"
+                  desc="Menus, tabs and dialogs"
+                  placeholder="System default"
+                  fonts={fonts.all}
+                  font={settings.fontUi}
+                  size={settings.fontSizeUi ?? 14}
+                  sizes={UI_SIZES}
+                  onFont={(fontUi) => setSettings({ fontUi })}
+                  onSize={(n) => setSettings({ fontSizeUi: n === 14 ? undefined : n })}
+                />
+                <FontRow
+                  id="set-code-font"
+                  label="Code font"
+                  desc="URLs, bodies and responses"
+                  placeholder="System monospace"
+                  fonts={fonts.mono}
+                  font={settings.fontMono}
+                  size={settings.fontSizeCode ?? 13}
+                  sizes={CODE_SIZES}
+                  onFont={(fontMono) => setSettings({ fontMono })}
+                  onSize={(n) => setSettings({ fontSizeCode: n === 13 ? undefined : n })}
+                />
+                <div className="set-sample" aria-label="Sample">
+                  <span className="set-sample-ui">
+                    Create customer <span className="muted">trx-service / Customers</span>
+                  </span>
+                  <code>
+                    <span className="m m-POST">POST</span> {"{{baseUrl}}"}/v1/customers
+                  </code>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="link set-reset"
+                onClick={() => setSettings({ theme: undefined, lightScheme: undefined, darkScheme: undefined, compact: undefined, fontUi: undefined, fontMono: undefined, fontSizeUi: undefined, fontSizeCode: undefined })}
+              >
+                Reset to defaults
+              </button>
+            </div>
+          ) : section === "updates" ? (
+            <UpdatesPane />
+          ) : section === "network" ? (
+            <NetworkPane />
+          ) : section === "shortcuts" ? (
+            <ShortcutsPane />
+          ) : section === "certificates" ? (
+            <CertificatesPane onOpenRequests={() => setSection("requests")} />
+          ) : (
+            <div className="set-pane">
+              <h4>Requests</h4>
+              <div className="set-list">
+                <div className="set-item">
+                  <div className="set-text">
+                    <label htmlFor="set-timeout">Timeout</label>
+                    <span className="desc">How long to wait for a response before giving up</span>
+                  </div>
+                  <div className="set-ctl">
+                    <span className="unit-field">
+                      <input
+                        id="set-timeout"
+                        className="field"
+                        type="number"
+                        min={1}
+                        value={settings.timeoutMs}
+                        onChange={(e) => setSettings({ timeoutMs: Math.max(1, Number(e.target.value) || 30000) })}
+                      />
+                      <span className="unit">ms</span>
+                    </span>
+                  </div>
+                </div>
+                <div className="set-item">
+                  <div className="set-text">
+                    <label htmlFor="set-redirects">Follow redirects</label>
+                    <span className="desc">Follow 3xx responses to their Location</span>
+                  </div>
+                  <div className="set-ctl">
+                    <input
+                      id="set-redirects"
+                      className="switch"
+                      type="checkbox"
+                      role="switch"
+                      checked={settings.followRedirects}
+                      onChange={(e) => setSettings({ followRedirects: e.target.checked })}
+                    />
+                  </div>
+                </div>
+                <div className="set-item">
+                  <div className="set-text">
+                    <label htmlFor="set-insecure">Skip TLS verification</label>
+                    <span className="desc">Accept self-signed or invalid certificates. Use only for local servers.</span>
+                  </div>
+                  <div className="set-ctl">
+                    <input
+                      id="set-insecure"
+                      className="switch switch--warn"
+                      type="checkbox"
+                      role="switch"
+                      checked={settings.insecure}
+                      onChange={(e) => setSettings({ insecure: e.target.checked })}
+                    />
+                  </div>
+                </div>
+                <div className="set-item">
+                  <div className="set-text">
+                    <label htmlFor="set-scripts">Run scripts</label>
+                    <span className="desc">Run pre-request and post-response scripts on each send, including those from imported collections</span>
+                  </div>
+                  <div className="set-ctl">
+                    <input
+                      id="set-scripts"
+                      className="switch"
+                      type="checkbox"
+                      role="switch"
+                      checked={settings.runScripts !== false}
+                      onChange={(e) => setSettings({ runScripts: e.target.checked })}
+                    />
+                  </div>
+                </div>
+                <div className="set-item">
+                  <div className="set-text">
+                    <label htmlFor="set-keep">Keep responses in history</label>
+                    <span className="desc">Status, headers and body of each send, stored on this Mac as received</span>
+                  </div>
+                  <div className="set-ctl">
+                    <input
+                      id="set-keep"
+                      className="switch"
+                      type="checkbox"
+                      role="switch"
+                      checked={settings.keepResponses !== false}
+                      onChange={(e) => setSettings({ keepResponses: e.target.checked })}
+                    />
+                  </div>
+                </div>
+                <div className="set-item">
+                  <div className="set-text">
+                    <label htmlFor="set-keep-max">Largest body kept</label>
+                    <span className="desc">Bigger responses keep only status and headers</span>
+                  </div>
+                  <div className="set-ctl">
+                    <span className="unit-field">
+                      <input
+                        id="set-keep-max"
+                        className="field"
+                        type="number"
+                        min={1}
+                        disabled={settings.keepResponses === false}
+                        value={settings.keepResponseMaxMb ?? 1}
+                        onChange={(e) => setSettings({ keepResponseMaxMb: Math.max(1, Number(e.target.value) || 1) })}
+                      />
+                      <span className="unit">MB</span>
+                    </span>
                   </div>
                 </div>
               </div>
-              {theme === "auto" ? (
-                <>
-                  <SchemeRow id="set-scheme-light" label="Light theme" desc="Used while your Mac is light" value={settings.lightScheme ?? DEFAULT_SCHEME.light} onChange={(lightScheme) => setSettings({ lightScheme })} />
-                  <SchemeRow id="set-scheme-dark" label="Dark theme" desc="Used while your Mac is dark" value={settings.darkScheme ?? DEFAULT_SCHEME.dark} onChange={(darkScheme) => setSettings({ darkScheme })} />
-                </>
-              ) : (
-                <SchemeRow
-                  id="set-scheme"
-                  label="Color scheme"
-                  desc="Any scheme, light or dark"
-                  value={(theme === "dark" ? settings.darkScheme : settings.lightScheme) ?? DEFAULT_SCHEME[theme]}
-                  onChange={(v) => setSettings(theme === "dark" ? { darkScheme: v } : { lightScheme: v })}
-                />
-              )}
-              <div className="set-item">
-                <div className="set-text">
-                  <label htmlFor="set-compact">Compact mode</label>
-                  <span className="desc">UI elements take up less screen space</span>
-                </div>
-                <div className="set-ctl">
-                  <input
-                    id="set-compact"
-                    className="switch"
-                    type="checkbox"
-                    role="switch"
-                    checked={settings.compact === true}
-                    onChange={(e) => setSettings({ compact: e.target.checked || undefined })}
-                  />
-                </div>
-              </div>
-              <FontRow
-                id="set-ui-font"
-                label="Interface font"
-                desc="Menus, tabs and dialogs"
-                placeholder="System default"
-                fonts={fonts.all}
-                font={settings.fontUi}
-                size={settings.fontSizeUi ?? 14}
-                sizes={UI_SIZES}
-                onFont={(fontUi) => setSettings({ fontUi })}
-                onSize={(n) => setSettings({ fontSizeUi: n === 14 ? undefined : n })}
-              />
-              <FontRow
-                id="set-code-font"
-                label="Code font"
-                desc="URLs, bodies and responses"
-                placeholder="System monospace"
-                fonts={fonts.mono}
-                font={settings.fontMono}
-                size={settings.fontSizeCode ?? 13}
-                sizes={CODE_SIZES}
-                onFont={(fontMono) => setSettings({ fontMono })}
-                onSize={(n) => setSettings({ fontSizeCode: n === 13 ? undefined : n })}
-              />
-              <div className="set-sample" aria-label="Sample">
-                <span className="set-sample-ui">
-                  Create customer <span className="muted">trx-service / Customers</span>
-                </span>
-                <code>
-                  <span className="m m-POST">POST</span> {"{{baseUrl}}"}/v1/customers
-                </code>
-              </div>
             </div>
-            <button
-              type="button"
-              className="link set-reset"
-              onClick={() => setSettings({ theme: undefined, lightScheme: undefined, darkScheme: undefined, compact: undefined, fontUi: undefined, fontMono: undefined, fontSizeUi: undefined, fontSizeCode: undefined })}
-            >
-              Reset to defaults
-            </button>
-          </div>
-        ) : section === "updates" ? (
-          <UpdatesPane />
-        ) : section === "network" ? (
-          <NetworkPane />
-        ) : section === "shortcuts" ? (
-          <ShortcutsPane />
-        ) : section === "certificates" ? (
-          <CertificatesPane onOpenRequests={() => setSection("requests")} />
-        ) : (
-          <div className="set-pane">
-            <h4>Requests</h4>
-            <div className="set-list">
-              <div className="set-item">
-                <div className="set-text">
-                  <label htmlFor="set-timeout">Timeout</label>
-                  <span className="desc">How long to wait for a response before giving up</span>
-                </div>
-                <div className="set-ctl">
-                  <span className="unit-field">
-                    <input
-                      id="set-timeout"
-                      className="field"
-                      type="number"
-                      min={1}
-                      value={settings.timeoutMs}
-                      onChange={(e) => setSettings({ timeoutMs: Math.max(1, Number(e.target.value) || 30000) })}
-                    />
-                    <span className="unit">ms</span>
-                  </span>
-                </div>
-              </div>
-              <div className="set-item">
-                <div className="set-text">
-                  <label htmlFor="set-redirects">Follow redirects</label>
-                  <span className="desc">Follow 3xx responses to their Location</span>
-                </div>
-                <div className="set-ctl">
-                  <input
-                    id="set-redirects"
-                    className="switch"
-                    type="checkbox"
-                    role="switch"
-                    checked={settings.followRedirects}
-                    onChange={(e) => setSettings({ followRedirects: e.target.checked })}
-                  />
-                </div>
-              </div>
-              <div className="set-item">
-                <div className="set-text">
-                  <label htmlFor="set-insecure">Skip TLS verification</label>
-                  <span className="desc">Accept self-signed or invalid certificates. Use only for local servers.</span>
-                </div>
-                <div className="set-ctl">
-                  <input
-                    id="set-insecure"
-                    className="switch switch--warn"
-                    type="checkbox"
-                    role="switch"
-                    checked={settings.insecure}
-                    onChange={(e) => setSettings({ insecure: e.target.checked })}
-                  />
-                </div>
-              </div>
-              <div className="set-item">
-                <div className="set-text">
-                  <label htmlFor="set-scripts">Run scripts</label>
-                  <span className="desc">Run pre-request and post-response scripts on each send, including those from imported collections</span>
-                </div>
-                <div className="set-ctl">
-                  <input
-                    id="set-scripts"
-                    className="switch"
-                    type="checkbox"
-                    role="switch"
-                    checked={settings.runScripts !== false}
-                    onChange={(e) => setSettings({ runScripts: e.target.checked })}
-                  />
-                </div>
-              </div>
-              <div className="set-item">
-                <div className="set-text">
-                  <label htmlFor="set-keep">Keep responses in history</label>
-                  <span className="desc">Status, headers and body of each send, stored on this Mac as received</span>
-                </div>
-                <div className="set-ctl">
-                  <input
-                    id="set-keep"
-                    className="switch"
-                    type="checkbox"
-                    role="switch"
-                    checked={settings.keepResponses !== false}
-                    onChange={(e) => setSettings({ keepResponses: e.target.checked })}
-                  />
-                </div>
-              </div>
-              <div className="set-item">
-                <div className="set-text">
-                  <label htmlFor="set-keep-max">Largest body kept</label>
-                  <span className="desc">Bigger responses keep only status and headers</span>
-                </div>
-                <div className="set-ctl">
-                  <span className="unit-field">
-                    <input
-                      id="set-keep-max"
-                      className="field"
-                      type="number"
-                      min={1}
-                      disabled={settings.keepResponses === false}
-                      value={settings.keepResponseMaxMb ?? 1}
-                      onChange={(e) => setSettings({ keepResponseMaxMb: Math.max(1, Number(e.target.value) || 1) })}
-                    />
-                    <span className="unit">MB</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-      <footer>
-        <button type="button" className="btn btn--primary" onClick={onClose}>
-          Done
-        </button>
-      </footer>
     </Shell>
   );
 }
@@ -1251,70 +1419,66 @@ function ProjectModal({ projectId, onClose }: { projectId?: string; onClose: () 
   };
 
   return (
-    <Shell title={title} onClose={onClose}>
-      <div className="proj-preview">
-        <ProjectTile icon={icon} color={color} />
-        <div>
-          <strong>{name.trim() || "Untitled project"}</strong>
-          <span className="muted">Collections, environments and history of its own</span>
+    <Shell title={title} sub={existing ? existing.name : "Collections, environments and history of its own"} tile={<ProjectTile icon={icon} color={color} />} onClose={onClose}>
+      <div className="sh-body">
+        <label>
+          Name
+          <input
+            className="field"
+            autoFocus
+            placeholder="e.g. Amarbank"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+          />
+        </label>
+        <div className="pick">
+          <span className="pick-label" id="lbl-icon">
+            Icon
+          </span>
+          <div className="icon-grid" role="radiogroup" aria-labelledby="lbl-icon" style={tileStyle(color)}>
+            {Object.entries(PROJECT_ICONS).map(([key, I]) => (
+              <button
+                key={key}
+                type="button"
+                role="radio"
+                aria-checked={icon === key}
+                aria-label={key.replace(/-/g, " ")}
+                title={key.replace(/-/g, " ")}
+                onClick={() => setIcon(key)}
+              >
+                <I {...ico} />
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="pick">
+          <span className="pick-label" id="lbl-colour">
+            Colour
+          </span>
+          <div className="swatches" role="radiogroup" aria-labelledby="lbl-colour">
+            {PROJECT_COLORS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                role="radio"
+                aria-checked={color === c.id}
+                aria-label={c.name}
+                style={tileStyle(c.id)}
+                onClick={() => setColor(c.id)}
+              >
+                <Check {...ico} />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-      <label>
-        Name
-        <input
-          className="field"
-          autoFocus
-          placeholder="e.g. Amarbank"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-        />
-      </label>
-      <div className="pick">
-        <span className="pick-label" id="lbl-icon">
-          Icon
-        </span>
-        <div className="icon-grid" role="radiogroup" aria-labelledby="lbl-icon" style={tileStyle(color)}>
-          {Object.entries(PROJECT_ICONS).map(([key, I]) => (
-            <button
-              key={key}
-              type="button"
-              role="radio"
-              aria-checked={icon === key}
-              aria-label={key.replace(/-/g, " ")}
-              title={key.replace(/-/g, " ")}
-              onClick={() => setIcon(key)}
-            >
-              <I {...ico} />
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="pick">
-        <span className="pick-label" id="lbl-colour">
-          Colour
-        </span>
-        <div className="swatches" role="radiogroup" aria-labelledby="lbl-colour">
-          {PROJECT_COLORS.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              role="radio"
-              aria-checked={color === c.id}
-              aria-label={c.name}
-              style={tileStyle(c.id)}
-              onClick={() => setColor(c.id)}
-            >
-              <Check {...ico} />
-            </button>
-          ))}
-        </div>
-      </div>
-      <footer>
-        <button type="button" className="btn" onClick={onClose}>
+      <footer className="sh-foot">
+        <button type="button" className="btn btn--quiet" onClick={onClose}>
           Cancel
         </button>
         <button type="button" className="btn btn--primary" disabled={!name.trim()} onClick={submit}>
+          {existing ? <Check {...ico} /> : <Plus {...ico} />}
           {existing ? "Save" : "Create project"}
         </button>
       </footer>

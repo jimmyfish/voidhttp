@@ -1,0 +1,43 @@
+/* Hallmark · shape: app screen (component proposal) · genre: modern-minimal · theme: brand (locked: src/tokens.css) · signature: the name field says where the new thing will land · preview only until approved · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, three directions on one base; each reuses xf-head, xf-foot, menu and row-rename before adding anything */
+
+.pv-bar { position: relative; z-index: calc(var(--z-modal) + 1); }
+.pv-group { display: flex; align-items: center; gap: var(--space-2xs); }
+.pv-group > span { color: var(--color-muted); margin-right: var(--space-2xs); }
+
+/* where the new thing lands: collection, then folder, read as a path */
+.pm-where { display: flex; align-items: center; gap: var(--space-2xs); min-width: 0; margin: 0 0 var(--space-sm); color: var(--color-muted); font-size: var(--text-sm); }
+.pm-where .ico { width: 14px; height: 14px; flex-shrink: 0; }
+.pm-where b { font-weight: 600; color: var(--color-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pm-where .sep { color: var(--color-placeholder); }
+
+/* the field and what is wrong with it, said once, under it */
+.dialog label.pm-field { margin-bottom: var(--space-2xs); }
+.pm .field { width: 100%; }
+.field[aria-invalid="true"] { border-color: var(--color-error); }
+.field[aria-invalid="true"]:focus, .field[aria-invalid="true"]:focus-visible { outline-color: var(--color-error); }
+.pm-err { display: flex; align-items: flex-start; gap: var(--space-2xs); margin: var(--space-2xs) 0 0; color: var(--color-error); font-size: var(--text-sm); }
+.pm-err .ico { width: 14px; height: 14px; flex-shrink: 0; margin-top: var(--space-3xs); }
+
+/* A: the dialog, rebuilt on the import/export frame */
+.dialog.xf.pm { width: 420px; }
+.pm .xf-body { padding-bottom: var(--space-lg); }
+.pm .xf-foot .btn:first-child { margin-left: auto; }
+
+/* B: no dialog, a new row in the tree, named in place like Rename */
+.row.pm-new { background: var(--color-paper-3); }
+.row.pm-new .row-main { cursor: default; }
+.row.pm-new .row-rename[aria-invalid="true"] { outline-color: var(--color-error); }
+.pm-tip { display: flex; align-items: center; gap: var(--space-2xs); margin: var(--space-3xs) 0 var(--space-2xs); padding: var(--space-2xs) var(--space-xs); padding-left: calc(var(--indent, 0px) + var(--space-xs)); color: var(--color-muted); font-size: var(--text-xs); }
+.pm-tip.is-err { color: var(--color-error); }
+.pm-tip .ico { width: 13px; height: 13px; flex-shrink: 0; }
+
+/* C: a small popover under the button that asked for it */
+.pm-pop { position: fixed; z-index: var(--z-modal); width: 300px; padding: var(--space-sm); display: grid; gap: var(--space-xs); }
+.pm-pop .pm-where { margin: 0; }
+.pm-pop form { display: grid; gap: var(--space-xs); }
+.pm-pop .pm-row { display: flex; gap: var(--space-xs); }
+.pm-pop .pm-row .field { flex: 1; min-width: 0; }
+.pm-pop .pm-err { margin: 0; }
+
+.pm-off { display: none !important; }

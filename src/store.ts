@@ -30,6 +30,7 @@ import {
   mapTree,
   newRequest,
   nodeIds,
+  pathTo,
   placeNode,
   removeFromTree,
   toRequestDef,
@@ -65,9 +66,19 @@ const GRPC_MESSAGE_LIMIT = 2000;
 /** A WebSocket keeps this many messages on screen, the same way. */
 const WS_MESSAGE_LIMIT = 2000;
 
+/** Where a prompt's new item goes: named under the title, drawn as a small tree; names in `taken` are refused. */
+export interface PromptPlace {
+  kind: "folder" | "collection";
+  /** for a collection, the project; for a folder, the collection and folders down to its parent */
+  path: string[];
+  /** names already in that place (folders beside it, or the project's collections) */
+  taken: string[];
+}
+
 export type Modal =
-  | { kind: "prompt"; title: string; initial: string; onSubmit: (v: string) => void }
-  | { kind: "confirm"; title: string; message: string; onConfirm: () => void; confirmLabel?: string }
+  | { kind: "prompt"; title: string; initial: string; onSubmit: (v: string) => void; place?: PromptPlace }
+  /** icon: the header tile, a bin unless it says otherwise */
+  | { kind: "confirm"; title: string; message: string; onConfirm: () => void; confirmLabel?: string; icon?: "trash" | "history" }
   | { kind: "save"; tabId: string }
   /** select: an environment or collection id to open on */
   /** addVar: start a new, empty variable of that name in the selected environment or collection */
@@ -1916,3 +1927,33 @@ persist(
   }),
   800,
 );
+
+/** New collection in the open project; refuses a name the project already has. */
+export function promptNewCollection() {
+  const s = useStore.getState();
+  const project = s.projects.find((p) => p.id === s.currentProjectId)?.name ?? "this project";
+  s.openModal({
+    kind: "prompt",
+    title: "New collection",
+    initial: "My collection",
+    place: { kind: "collection", path: [project], taken: s.collections.map((c) => c.name) },
+    onSubmit: (n) => s.createCollection(n),
+  });
+}
+
+/** New folder in a collection (parentId null) or a folder; refuses a name a folder beside it already has. */
+export function promptNewFolder(collectionId: string, parentId: string | null) {
+  const s = useStore.getState();
+  const c = s.collections.find((x) => x.id === collectionId);
+  if (!c) return;
+  const parent = parentId ? findNode(c.children, parentId) : undefined;
+  const siblings = parent?.type === "folder" ? parent.children : c.children;
+  const trail = parent ? [...(pathTo(c.children, parent.id) ?? []), parent.name] : [];
+  s.openModal({
+    kind: "prompt",
+    title: "New folder",
+    initial: "New folder",
+    place: { kind: "folder", path: [c.name, ...trail], taken: siblings.filter((n) => n.type === "folder").map((n) => n.name) },
+    onSubmit: (v) => s.addFolder(collectionId, parentId, v),
+  });
+}

@@ -1,0 +1,121 @@
+/* Hallmark · shape: app screen (reference gallery) · genre: modern-minimal · theme: brand (locked: src/tokens.css) · signature: every modal drawn live with the app's own stylesheet · preview only, never ported into src/ · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, the page is an index, the modals carry the look */
+/* waive 54: kind names are code identifiers set in the code face because they are the material */
+/* waive 48, 63, 24a, 39a, 56, 67, 10a in modals.html: findings come from src/styles.css and from modal markup copied verbatim from src/ (scheme swatch inline colours, certificate meta lines); the preview mirrors the app and never restyles it */
+/* waive 24b: 1px to 6px nudges keep rail rows on the app's 28px rhythm */
+
+.mv { flex: 1; min-height: 0; display: grid; grid-template-columns: 272px minmax(0, 1fr); }
+
+/* index rail */
+.mv-rail { min-height: 0; overflow-y: auto; border-right: 1px solid var(--color-rule); background: var(--color-paper); padding: var(--space-sm) 0 var(--space-lg); }
+.mv-group + .mv-group { margin-top: var(--space-md); padding-top: var(--space-sm); border-top: 1px solid var(--color-rule); }
+.mv-group h2 { max-width: none; margin: 0 0 var(--space-2xs); padding: 0 var(--space-md); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600; letter-spacing: 0; line-height: 1.4; color: var(--color-ink); }
+.mv-group > p { padding: 0 var(--space-md); margin-bottom: var(--space-xs); color: var(--color-muted); font-size: var(--text-sm); }
+.mv-list { list-style: none; margin: 0; padding: 0; }
+.mv-kind { display: grid; width: 100%; padding: 6px var(--space-md); border: 0; background: none; color: var(--color-ink); text-align: left; cursor: pointer; }
+.mv-kind code { font-family: var(--font-mono); font-size: var(--text-sm); font-weight: 600; }
+.mv-kind small { color: var(--color-muted); font-size: var(--text-xs, 12px); }
+.mv-kind:hover { background: var(--color-paper-3); }
+.mv-kind[aria-current="true"] { background: var(--color-accent-soft); box-shadow: inset 2px 0 0 var(--color-accent); }
+.mv-kind[aria-current="true"] code { color: var(--color-link); }
+.mv-kind:focus-visible, .mv-state:focus-visible, .mv-call:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.mv-states { display: flex; flex-wrap: wrap; gap: var(--space-2xs); padding: var(--space-3xs) var(--space-md) 6px; }
+.mv-states[hidden] { display: none; }
+.mv-state { min-height: 24px; padding: 0 var(--space-xs); border: 1px solid var(--color-rule); border-radius: var(--radius-pill); background: var(--color-paper); color: var(--color-muted); font-size: var(--text-xs, 12px); cursor: pointer; }
+.mv-state:hover { color: var(--color-ink); border-color: var(--color-edge-soft); }
+.mv-state[aria-pressed="true"] { color: var(--color-link); border-color: var(--color-link); background: var(--color-accent-soft); }
+
+.mv-call { display: grid; gap: 1px; width: 100%; padding: 5px var(--space-md); border: 0; background: none; color: var(--color-ink); text-align: left; font-size: var(--text-sm); cursor: pointer; }
+.mv-call:hover { background: var(--color-paper-3); }
+.mv-call[aria-current="true"] { background: var(--color-accent-soft); }
+.mv-call small, .mv-static small { color: var(--color-muted); font-family: var(--font-mono); font-size: var(--text-xs, 12px); }
+.mv-static { display: grid; gap: 1px; padding: 5px var(--space-md); font-size: var(--text-sm); }
+
+/* stage: the modal on its backdrop, then the facts strip */
+.mv-main { min-width: 0; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; }
+.mv-canvas { position: relative; min-height: 0; overflow: auto; background: var(--color-canvas); }
+.mv-canvas > .backdrop { position: absolute; inset: 0; min-height: 100%; padding: var(--space-lg) var(--space-md); overflow: auto; }
+.mv-canvas > .backdrop > * { margin-block: auto; }
+
+.mv-facts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-md); padding: var(--space-sm) var(--space-md); border-top: 1px solid var(--color-rule); background: var(--color-paper); font-size: var(--text-sm); max-height: 200px; overflow: auto; }
+.mv-facts h3 { max-width: none; margin: 0 0 var(--space-2xs); font-family: var(--font-ui); font-size: var(--text-sm); font-weight: 600; letter-spacing: 0; line-height: 1.4; color: var(--color-muted); }
+.mv-facts code { font-family: var(--font-mono); font-size: var(--text-xs, 12px); color: var(--color-ink); overflow-wrap: anywhere; }
+.mv-facts ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.mv-facts li { display: flex; gap: var(--space-xs); align-items: baseline; min-width: 0; }
+.mv-facts li span { color: var(--color-muted); }
+.mv-facts p { max-width: none; }
+.mv-facts kbd { font-family: var(--font-mono); font-size: var(--text-xs, 12px); padding: 0 5px; border: 1px solid var(--color-rule); border-radius: 4px; background: var(--color-paper-3); }
+
+@media (max-width: 820px) {
+  .mv { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .mv-rail { max-height: 34vh; border-right: 0; border-bottom: 1px solid var(--color-rule); }
+  .mv-facts { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* proposed Shell: a raised sheet with a header that says what it does; ported to src/styles.css once approved */
+.mv-mode { margin-left: auto; align-items: center; }
+.mv-canvas {
+  --sh-radius: calc(var(--radius-card) + 4px);
+  --sh-lift: 0 1px 2px var(--color-shadow), 0 12px 24px -8px var(--color-shadow), 0 32px 64px -16px var(--color-shadow);
+  --sh-ghost: var(--color-accent-soft);
+  --sh-dupe: color-mix(in oklab, var(--color-error) 12%, var(--color-paper));
+}
+.mv-canvas .sh-backdrop { backdrop-filter: blur(3px) saturate(1.05); -webkit-backdrop-filter: blur(3px) saturate(1.05); animation: sh-fade var(--dur-short) var(--ease-out); }
+.mv-canvas .dialog.sh { padding: 0; border-radius: var(--sh-radius); border-color: var(--color-edge-soft); box-shadow: var(--sh-lift); overflow: hidden; display: flex; flex-direction: column; max-height: calc(100% - 32px); animation: sh-in var(--dur-short) var(--ease-out); }
+.mv-canvas .dialog.sh > form { display: contents; }
+.mv-canvas .dialog.sh:not(.wide) { width: 460px; }
+
+.sh-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: var(--space-sm); padding: var(--space-lg) var(--space-md) var(--space-md) var(--space-lg); }
+.sh-tile { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; }
+.sh-tile .ico { width: 20px; height: 20px; }
+.sh-tile--create { background: var(--color-accent-soft); color: var(--color-link); }
+.sh-tile--danger { background: var(--sh-dupe); color: var(--color-error); }
+.sh-tile--plain { background: var(--color-paper-2); color: var(--color-ink-2); }
+.proj-tile.sh-tile { width: 40px; height: 40px; }
+.sh-title { min-width: 0; display: grid; gap: var(--space-3xs); padding-top: var(--space-3xs); }
+.dialog.sh .sh-title h3 { margin: 0; font-size: var(--text-lg); font-weight: 600; line-height: 1.3; max-width: none; }
+.sh-sub { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs); max-width: none; color: var(--color-muted); font-size: var(--text-sm); line-height: 1.45; }
+.sh-sub b { color: var(--color-ink); font-weight: 600; }
+.sh-sub .sep { color: var(--color-placeholder); }
+.sh-close { margin: calc(var(--space-2xs) * -1) 0 0; }
+
+.sh-body { flex: 1; min-height: 0; overflow: auto; padding: 0 var(--space-lg) var(--space-sm); }
+.sh-body--end { padding-bottom: var(--space-lg); }
+.sh-foot { display: flex; justify-content: flex-end; align-items: center; gap: var(--space-xs); padding: var(--space-md) var(--space-lg) var(--space-lg); }
+.dialog.sh.wide .sh-foot { border-top: 1px solid var(--color-rule); padding-top: var(--space-sm); padding-bottom: var(--space-sm); }
+.sh-foot .btn { min-height: 34px; padding-inline: var(--space-md); }
+.sh-foot .btn .ico { width: 15px; height: 15px; }
+.sh-foot .btn--primary, .sh-foot .sh-danger { display: inline-flex; align-items: center; gap: var(--space-2xs); }
+.sh-foot .sh-danger { background: var(--color-error); border-color: var(--color-error); color: var(--color-accent-ink); font-weight: 600; }
+.sh-foot .sh-danger:hover { filter: brightness(1.08); }
+.sh-foot .sh-danger:focus-visible { outline: 2px solid var(--color-error); outline-offset: 2px; }
+
+/* the prompt: big name field, then the tree it lands in */
+.dialog.sh .sh-label { margin: 0 0 var(--space-2xs); color: var(--color-muted); font-size: var(--text-sm); }
+.sh-field { position: relative; }
+.sh-field > .ico { position: absolute; left: var(--space-sm); top: 50%; translate: 0 -50%; color: var(--color-muted); pointer-events: none; }
+.sh-field .sh-input { width: 100%; height: 40px; padding-left: var(--space-xl); font-size: var(--text-md); font-weight: 500; border-radius: 10px; }
+.sh-input[aria-invalid] { border-color: var(--color-error); }
+.sh-input[aria-invalid]:focus, .sh-input[aria-invalid]:focus-visible { outline-color: var(--color-error); }
+.sh-err { display: flex; align-items: center; gap: var(--space-2xs); margin: var(--space-xs) 0 0; color: var(--color-error); font-size: var(--text-sm); max-width: none; }
+.sh-err .ico { width: 14px; height: 14px; flex-shrink: 0; }
+
+.sh-tree { margin-top: var(--space-md); padding: var(--space-2xs); border: 1px solid var(--color-rule); border-radius: 10px; background: var(--color-paper-3); pointer-events: none; }
+.sh-tree .row { height: 28px; }
+.sh-tree .row-main { gap: var(--space-xs); }
+.sh-sib { opacity: 0.6; }
+.sh-sib .sh-tag { display: none; margin-left: auto; color: var(--color-error); font-size: var(--text-xs); }
+.sh-ghost { background: var(--sh-ghost); animation: sh-in var(--dur-short) var(--ease-out); }
+.sh-ghost .name { color: var(--color-link); font-weight: 600; }
+.sh-ghost .folder { color: var(--color-link); }
+.sh-ghost.is-empty .name { color: var(--color-placeholder); font-weight: 400; }
+.sh-ghost.is-dupe { background: transparent; }
+.sh-ghost.is-dupe .name, .sh-ghost.is-dupe .folder { color: var(--color-error); }
+.sh-sib.sh-dupe { opacity: 1; background: var(--sh-dupe); }
+.sh-sib.sh-dupe .sh-tag { display: inline; }
+
+@keyframes sh-in { from { opacity: 0; transform: translateY(8px) scale(0.985); } }
+@keyframes sh-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .mv-canvas .sh-backdrop, .mv-canvas .dialog.sh, .sh-ghost { animation: none; }
+}

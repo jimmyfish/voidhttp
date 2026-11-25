@@ -158,6 +158,13 @@ function Marked({ text, hits }: { text: string; hits?: Set<number> }) {
 export function QuickOpen({ actions, onClose }: { actions?: boolean; onClose: () => void }) {
   const [q, setQ] = useState(actions ? ">" : "");
   const [sel, setSel] = useState(0);
+  // ⌘P and ⇧⌘P swap the mode on the same box (no remount, so the open and close animations never double up)
+  const [mode, setMode] = useState(!!actions);
+  if (mode !== !!actions) {
+    setMode(!!actions);
+    setQ(actions ? ">" : "");
+    setSel(0);
+  }
   const listRef = useRef<HTMLDivElement>(null);
   const tabs = useStore((s) => s.tabs);
   const activeTabId = useStore((s) => s.activeTabId);
