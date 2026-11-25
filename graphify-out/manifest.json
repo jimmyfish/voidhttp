@@ -48,9 +48,9 @@
     "semantic_hash": ""
   },
   "src-tauri/tauri.conf.json": {
-    "mtime": 1795022305.3247874,
-    "seen": 1795074796.678043,
-    "ast_hash": "d0612c7a5fc39a12d64a02f22d195f05",
+    "mtime": 1795596902.5873067,
+    "seen": 1795596903.677186,
+    "ast_hash": "990ee38a874393fac1632f19cb68522d",
     "semantic_hash": ""
   },
   "src/App.tsx": {
@@ -162,9 +162,9 @@
     "semantic_hash": "c757ecb2632d169616e3e1c63ea1a3eb"
   },
   "README.md": {
-    "mtime": 1795585296.9897978,
-    "seen": 1795585300.049106,
-    "ast_hash": "23f52684be2ad51e0503f8f11cb8bdd0",
+    "mtime": 1795596902.5689862,
+    "seen": 1795596903.677266,
+    "ast_hash": "34804d756ace44b2af61df6affef1223",
     "semantic_hash": ""
   },
   "index.html": {
@@ -684,9 +684,9 @@
     "semantic_hash": ""
   },
   "CHANGELOG.md": {
-    "mtime": 1795594522.215076,
-    "seen": 1795594523.964461,
-    "ast_hash": "d99e72a2b0e0aff31fbe7a5bd111cbb6",
+    "mtime": 1795596902.6221132,
+    "seen": 1795596903.677263,
+    "ast_hash": "203dd56e74eae8034afbd80fc551b44f",
     "semantic_hash": ""
   },
   "CODE_OF_CONDUCT.md": {

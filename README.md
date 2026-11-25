@@ -189,7 +189,7 @@ Bring stuff in from a file (picker or just drag it onto the window), a URL, or p
 | --- | --- | --- |
 | voidHTTP export (`.voidhttp.json`): collections and environments, nothing lost | <img src="docs/assets/icons/check.svg" width="16" height="16" align="top" alt="" /> | <img src="docs/assets/icons/check.svg" width="16" height="16" align="top" alt="" /> |
 | Postman Collection v2.0 / v2.1 and Postman environments | <img src="docs/assets/icons/check.svg" width="16" height="16" align="top" alt="" /> auth inheritance flattened; request scripts kept, folder and collection scripts dropped; GraphQL bodies become GraphQL requests | <img src="docs/assets/icons/check.svg" width="16" height="16" align="top" alt="" /> v2.1, environments written beside it |
-| OpenAPI 3.x and Swagger 2 (JSON or YAML) | <img src="docs/assets/icons/check.svg" width="16" height="16" align="top" alt="" /> folders from tags or paths, `{{baseUrl}}` from the first server, response examples, `$ref` into nearby files or URLs | |
+| OpenAPI 3.x and Swagger 2 (JSON or YAML) | <img src="docs/assets/icons/check.svg" width="16" height="16" align="top" alt="" /> folders from tags or paths, `{{baseUrl}}` from the first server, response examples, `$ref` into nearby files or URLs | <img src="docs/assets/icons/check.svg" width="16" height="16" align="top" alt="" /> OpenAPI 3.0.3 as YAML or JSON; folders become tags, saved examples become responses, environment addresses become servers |
 | HAR | <img src="docs/assets/icons/check.svg" width="16" height="16" align="top" alt="" /> you pick which captured calls become requests | <img src="docs/assets/icons/check.svg" width="16" height="16" align="top" alt="" /> each request with its latest saved example as the response |
 | cURL and grpcurl commands, one or many | <img src="docs/assets/icons/check.svg" width="16" height="16" align="top" alt="" /> | |
 
@@ -266,7 +266,7 @@ Every shortcut is also listed in **Settings › Shortcuts** (`⌘/Ctrl + /`). Th
 | `⌘/Ctrl + ,` | Settings |
 | `⌘/Ctrl + /` | Comment or uncomment lines in a JSON, script or GraphQL editor; anywhere else, open the shortcut list |
 | `⌘/Ctrl + Shift + W` | Close window |
-| Middle-click a tab | Close it |
+| Middle-click a tab | Close it (pinned tabs stay open) |
 
 ## <img src="docs/assets/icons/database.svg" width="24" height="24" align="top" alt="" /> Where's my data?
 
