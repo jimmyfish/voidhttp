@@ -41,6 +41,7 @@ export {
   FileKey,
   FileOutput,
   FilePlus,
+  FileText,
   FileUp,
   Filter,
   Folder,

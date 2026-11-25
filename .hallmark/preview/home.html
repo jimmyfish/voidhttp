@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>voidHTTP home</title>
+<meta name="description" content="Design preview of the reworked Home screen: project cards with their week, the week in figures and the latest requests.">
+<link rel="stylesheet" href="../../src/styles.css">
+<link rel="stylesheet" href="./preview.css">
+<link rel="stylesheet" href="./home.css">
+</head>
+<body>
+<!-- icons: Lucide (ISC), generated from node_modules/lucide-react -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-house" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4"/></symbol>
+  <symbol id="i-ellipsis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></symbol>
+  <symbol id="i-user-round" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/><path d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244"/><path d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></symbol>
+  <symbol id="i-timer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></symbol>
+  <symbol id="i-circle-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></symbol>
+  <symbol id="i-circle-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></symbol>
+  <symbol id="i-trending-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></symbol>
+  <symbol id="i-trending-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 17h6v-6"/><path d="m22 17-8.5-8.5-5 5L2 7"/></symbol>
+  <symbol id="i-arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+  <symbol id="i-braces" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-file-input" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M2 15h10"/><path d="m9 18 3-3-3-3"/></symbol>
+  <symbol id="i-folder-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></symbol>
+  <symbol id="i-package" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><polyline points="3.29 7 12 12 20.71 7"/><path d="m7.5 4.27 9 5.15"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></symbol>
+</svg>
+
+<header class="pv-bar">
+  <strong>voidHTTP preview · home</strong>
+  <nav class="pv-screens" aria-label="Screens">
+    <a class="btn btn--quiet" href="./index.html" style="min-height:var(--control)">← Base</a>
+    <button type="button" data-show="busy">Busy week</button>
+    <button type="button" data-show="quiet">Quiet week</button>
+    <button type="button" data-show="first">First run</button>
+  </nav>
+  <div class="pv-theme" role="group" aria-label="Theme">
+    <button type="button" data-theme-set="light" aria-pressed="true">Light</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<div class="pv-stage">
+<div class="app">
+  <div class="app-strip">
+    <nav class="ptabs" aria-label="Projects" id="ptabs"></nav>
+    <div class="strip-end"><button type="button" class="icon-btn strip-settings" title="Settings  ⌘," aria-label="Settings"><svg aria-hidden="true" class="ico"><use href="#i-settings"/></svg></button></div>
+  </div>
+  <main class="home"><div class="home-inner" id="home"></div></main>
+</div>
+</div>
+
+<script>
+{
+  const DAY = 86400000;
+  const startOfDay = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const icon = (n, cls = "ico") => `<svg aria-hidden="true" class="${cls}"><use href="#i-${n}"/></svg>`;
+  const ago = (t) => { const s = (Date.now() - t) / 1000; if (s < 60) return "just now"; if (s < 3600) return `${Math.floor(s / 60)}m ago`; if (s < 86400) return `${Math.floor(s / 3600)}h ago`; return `${Math.floor(s / 86400)}d ago`; };
+  const LABEL = { GRPC: "gRPC", PUBSUB: "PSUB" };
+  const methodLabel = (m) => LABEL[m] || m;
+  const entryStatus = (h) => h.status === undefined ? { text: "ERR", ok: false } : h.method === "GRPC" ? { text: h.status === 0 ? "OK" : String(h.status), ok: h.status === 0 } : { text: String(h.status), ok: h.status < 400 };
+  const bucket = (h) => h.status === undefined || (h.method === "GRPC" && h.status !== 0) ? "err" : h.method === "GRPC" || h.status === 101 ? "2xx" : `${String(h.status)[0]}xx`;
+  const split = (url) => { const m = url.match(/^(https?:\/\/[^/]+|wss?:\/\/[^/]+|\{\{[^}]+\}\}|[^/{]+(?=\/|$))?(.*)$/); const p = (m[2] || "/").split(/[?#]/)[0] || "/"; return { host: (m[1] || "").replace(/^(https?|wss?):\/\//, ""), path: p }; };
+  const greeting = (h) => (h < 5 ? "Good night" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening");
+  const pct = (x) => `${(x * 100).toFixed(1)}%`;
+
+  // mock workspace: three projects and a seeded history (the app reads projectData(id).history)
+  const PROJECTS = [
+    { name: "Amarbank", icon: "landmark", color: 1, created: 1, opened: Date.now() - 2 * 3600e3, collections: ["trx-service", "Centralized Login", "Notification"], requests: 38, envs: 3,
+      calls: [["POST", "{{baseUrl}}/v1/transfers"], ["GET", "{{baseUrl}}/v1/transfers/:id"], ["POST", "{{auth}}/oauth/token"], ["GET", "{{baseUrl}}/v1/accounts/balance"], ["GRPC", "trx.internal:443"], ["PATCH", "{{baseUrl}}/v1/limits"]] },
+    { name: "Personal", icon: "user-round", color: 2, created: 2, opened: Date.now() - 26 * 3600e3, collections: ["GitHub API", "Weather"], requests: 11, envs: 1,
+      calls: [["GET", "https://api.github.com/repos/:owner/:repo/pulls"], ["GET", "https://api.open-meteo.com/v1/forecast"], ["GQL", "https://api.github.com/graphql"]] },
+    { name: "Storefront", icon: "store", color: 4, created: 3, opened: Date.now() - 5 * 86400e3, collections: ["Catalog", "Checkout", "Webhooks"], requests: 24, envs: 2,
+      calls: [["GET", "{{shop}}/products"], ["POST", "{{shop}}/cart/items"], ["DELETE", "{{shop}}/cart/items/:sku"], ["WS", "wss://shop.example.dev/live"]] },
+  ];
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const makeHistory = () => {
+    seed = 7; const out = []; const now = Date.now();
+    const perDay = [9, 14, 6, 21, 18, 3, 2, 12, 25, 17, 30, 22, 4, 8, 19, 27, 15, 33, 24, 11];
+    perDay.forEach((n, i) => {
+      const day = startOfDay(now) - (perDay.length - 1 - i) * DAY;
+      for (let k = 0; k < n; k++) {
+        const p = PROJECTS[rnd() < 0.55 ? 0 : rnd() < 0.6 ? 1 : 2];
+        if (i === perDay.length - 1 && p.name === "Storefront") continue;
+        const [method, url] = p.calls[Math.floor(rnd() * p.calls.length)];
+        const r = rnd();
+        const status = method === "GRPC" ? (r < 0.93 ? 0 : 14) : method === "WS" ? 101 : r < 0.86 ? (method === "POST" ? 201 : 200) : r < 0.89 ? 304 : r < 0.95 ? 404 : r < 0.98 ? 502 : undefined;
+        const at = i === perDay.length - 1 ? now - rnd() * Math.min(now - day, 9 * 3600e3) : day + 8 * 3600e3 + rnd() * 11 * 3600e3;
+        out.push({ at, method, url, status, ms: status === undefined ? undefined : Math.round(40 + rnd() ** 2 * 900), project: p });
+      }
+    });
+    return out.sort((a, b) => b.at - a.at);
+  };
+
+  function stats(list, from, to) {
+    const inR = list.filter((h) => h.at >= from && h.at < to);
+    const ok = inR.filter((h) => entryStatus(h).ok).length;
+    const times = inR.map((h) => h.ms).filter((t) => t !== undefined).sort((a, b) => a - b);
+    return { list: inR, sent: inR.length, rate: inR.length ? ok / inR.length : null, median: times.length ? times[Math.floor(times.length / 2)] : null };
+  }
+  const tile = (p, sm) => `<span class="proj-tile${sm ? " proj-tile--sm" : ""}" style="--fg: var(--proj-${p.color}-fg); --bg: var(--proj-${p.color}-bg)">${icon(p.icon)}</span>`;
+
+  function render(screen) {
+    const projects = screen === "first" ? [] : PROJECTS;
+    const all = screen === "busy" ? makeHistory() : [];
+    const now = Date.now(), from = startOfDay(now) - 6 * DAY;
+    const week = stats(all, from, now + 1);
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const s = from + i * DAY, inDay = week.list.filter((h) => h.at >= s && h.at < s + DAY);
+      return { label: i === 6 ? "Today" : new Date(s).toLocaleDateString(undefined, { weekday: "short" }), n: inDay.length, fail: inDay.filter((h) => !entryStatus(h).ok).length };
+    });
+    const max = Math.max(1, ...days.map((d) => d.n));
+    const tally = new Map();
+    for (const h of week.list) { const p = split(h.url).path, k = `${h.method} ${p}`; const t = tally.get(k) || { method: h.method, path: p, n: 0 }; t.n++; tally.set(k, t); }
+    const top = [...tally.values()].sort((a, b) => b.n - a.n)[0];
+    const mix = ["2xx", "3xx", "4xx", "5xx", "err"].map((k) => ({ k, n: week.list.filter((h) => bucket(h) === k).length }));
+    const MIXNAME = { "2xx": "2xx and OK", "3xx": "3xx", "4xx": "4xx", "5xx": "5xx", err: "Failed" };
+
+    document.getElementById("ptabs").innerHTML = `<button type="button" class="ptab" aria-current="page">${icon("house")}Home</button>` +
+      (projects.length ? `<span class="ptab-sep" aria-hidden="true"></span>` : "") +
+      projects.slice(0, 2).map((p) => `<div class="ptab ptab--project"><button type="button" class="ptab-main">${tile(p, true)}${p.name}</button><button type="button" class="icon-btn ptab-close" aria-label="Close ${p.name}">${icon("x")}</button></div>`).join("");
+
+    const date = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+    const sub = !projects.length ? `${date}. Make a project to keep collections, environments and history together.`
+      : week.sent ? `${date}. <strong>${week.sent.toLocaleString()}</strong> ${week.sent === 1 ? "request" : "requests"} this week, <strong>${pct(week.rate)}</strong> came back OK.`
+      : `${date}. Nothing sent this week yet.`;
+    const hero = `
+      <header class="hm-hero">
+        <div>
+          <h1>${projects.length ? greeting(new Date().getHours()) : "Welcome to voidHTTP"}</h1>
+          <p class="hm-sub">${sub}</p>
+        </div>
+        <div class="home-actions">
+          <button type="button" class="btn">${icon("import")}Import</button>
+          <button type="button" class="btn btn--primary">${icon("plus")}New project</button>
+        </div>
+      </header>`;
+
+    if (!projects.length) {
+      // first run: the two ways in, side by side. The tiles are the New project dialog's own picks (icon + one of 6 colours)
+      const picks = [["landmark", 1], ["store", 4], ["rocket", 3], ["cloud", 5], ["package", 6], ["user-round", 2]];
+      document.getElementById("home").innerHTML = hero.replace(/<div class="home-actions">[\s\S]*?<\/div>\s*<\/header>/, "</header>") + `
+        <section class="hm-start" aria-label="Get started">
+          <button type="button" class="hm-way">
+            <span class="hm-picks" aria-hidden="true">${picks.map(([i, c]) => tile({ icon: i, color: c })).join("")}</span>
+            <strong>New project</strong>
+            <span>Pick an icon and a colour, then add collections, environments and requests.</span>
+          </button>
+          <button type="button" class="hm-way hm-way--import">
+            <span class="hm-formats" aria-hidden="true">${["Postman", "OpenAPI", "Swagger", "HAR", "cURL"].map((f) => `<span>${f}</span>`).join("")}</span>
+            <strong>Import</strong>
+            <span>Bring requests over from Postman, OpenAPI or Swagger, HAR, cURL or a voidHTTP export. Or drop a file anywhere on the window.</span>
+          </button>
+        </section>`;
+      return;
+    }
+
+    const cards = [...projects].sort((a, b) => a.created - b.created).map((p) => {
+      const mine = week.list.filter((h) => h.project === p);
+      const spark = Array.from({ length: 7 }, (_, i) => mine.filter((h) => h.at >= from + i * DAY && h.at < from + (i + 1) * DAY).length);
+      const sm = Math.max(1, ...spark), ok = mine.filter((h) => entryStatus(h).ok).length;
+      return `
+      <div class="project-card" style="--fg: var(--proj-${p.color}-fg); --bg: var(--proj-${p.color}-bg)">
+        <button type="button" class="project-open" aria-label="Open ${p.name}"></button>
+        <div class="pc-top">
+          ${tile(p)}
+          <span class="pc-title"><span class="proj-name">${p.name}</span><span class="proj-when">Opened ${ago(p.opened)}</span></span>
+        </div>
+        <span class="card-more">
+          <button type="button" class="icon-btn" aria-label="More actions for ${p.name}" aria-haspopup="menu" aria-expanded="false" title="More actions">${icon("ellipsis")}</button>
+          <div class="menu row-menu" role="menu" hidden>
+            <button type="button" role="menuitem">${icon("pencil")}Edit project…</button>
+            <hr><button type="button" role="menuitem" class="danger">${icon("trash")}Delete…</button>
+          </div>
+        </span>
+        <span class="proj-cols" title="${esc(p.collections.join(", "))}">${esc(p.collections.join(", ")) || "No collections yet"}</span>
+        <div class="pc-week">
+          <span class="pc-spark" aria-hidden="true">${spark.map((n) => `<i style="--h:${(n / sm) * 100}%"></i>`).join("")}</span>
+          <span class="pc-week-n">${mine.length ? `<strong>${mine.length}</strong> sent this week` : "Nothing sent this week"}</span>
+          ${mine.length ? `<span class="pc-week-ok" title="Came back OK">${Math.round((ok / mine.length) * 100)}% OK</span>` : ""}
+        </div>
+        <div class="proj-facts">
+          <span title="Collections">${icon("folder")}<b>${p.collections.length}</b></span>
+          <span title="Requests">${icon("file-text")}<b>${p.requests}</b></span>
+          <span title="Environments">${icon("braces")}<b>${p.envs}</b></span>
+        </div>
+      </div>`;
+    }).join("");
+
+    const kpis = `
+      <dl class="stats">
+        <div><dt>Requests sent</dt><dd>${week.sent.toLocaleString()}</dd></div>
+        <div><dt>Success rate</dt>${week.rate === null ? `<dd class="none">None yet</dd>` : `<dd>${pct(week.rate)}</dd>`}</div>
+        <div><dt>Median response</dt>${week.median === null ? `<dd class="none">None yet</dd>` : `<dd>${week.median.toLocaleString()}<small>ms</small></dd>`}</div>
+        <div><dt>Most called</dt>${top ? `<dd class="stat-text"><span class="m m-${top.method}">${methodLabel(top.method)}</span><code title="${esc(top.path)}">${esc(top.path)}</code><small>${top.n} times</small></dd>` : `<dd class="none">None yet</dd>`}</div>
+      </dl>`;
+
+    const chart = `
+      <figure class="bars" aria-labelledby="h-week-chart">
+        <div class="bars-head"><span id="h-week-chart">Requests per day</span><span class="key"><i></i>OK</span><span class="key fail"><i></i>Failed</span></div>
+        <div class="bars-plot" aria-hidden="true">
+          ${days.map((d, i) => `<div class="bar-col"><span class="bar${i === 6 ? " bar--today" : ""}" style="--h:${(d.n / max) * 100}%" data-tip="${d.n}"><i style="--part:${d.n ? ((d.n - d.fail) / d.n) * 100 : 100}%"></i>${d.fail ? `<i class="fail" style="--part:${(d.fail / d.n) * 100}%"></i>` : ""}</span></div>`).join("")}
+        </div>
+        <div class="bar-days" aria-hidden="true">${days.map((d, i) => `<span${i === 6 ? ' class="today"' : ""}>${d.label}</span>`).join("")}</div>
+        <table class="visually-hidden"><caption>Requests per day</caption><tbody>${days.map((d) => `<tr><th>${d.label}</th><td>${d.n}</td><td>${d.fail} failed</td></tr>`).join("")}</tbody></table>
+      </figure>
+      ${week.sent ? `<div class="mix">
+        <div class="mix-bar" role="img" aria-label="Status mix: ${mix.filter((m) => m.n).map((m) => `${m.n} ${MIXNAME[m.k]}`).join(", ")}">${mix.filter((m) => m.n).map((m) => `<i class="s-${m.k}" style="--n:${m.n}"></i>`).join("")}</div>
+        <ul class="mix-legend">${mix.map((m) => `<li><i class="s-${m.k}"></i>${MIXNAME[m.k]} <b>${m.n}</b></li>`).join("")}</ul>
+      </div>` : ""}`;
+
+    const recent = all.length ? `<ol class="hm-recent">${all.slice(0, 7).map((h) => {
+      const { host, path } = split(h.url), s = entryStatus(h), p = h.project;
+      return `<li><button type="button" title="${esc(h.url)}">
+        <span class="m m-${h.method}">${methodLabel(h.method)}</span>
+        <span class="r-path">${esc(path)}</span>
+        <span class="r-status ${s.ok ? "ok" : "fail"}">${s.text}</span>
+        <span class="r-meta"><span class="r-proj">${tile(p, true)}${p.name}</span>${host ? `<span class="host">${esc(host)}</span>` : ""}${h.ms !== undefined ? `<span>${h.ms} ms</span>` : ""}</span>
+        <span class="r-when">${ago(h.at)}</span>
+      </button></li>`;
+    }).join("")}</ol>` : `<div class="hm-empty"><strong>Nothing sent yet</strong><span>Open a project and press ⌘ Enter on a request.</span></div>`;
+
+    document.getElementById("home").innerHTML = hero + `
+      <section aria-labelledby="h-projects">
+        <div class="hm-sec-head"><h2 id="h-projects">Projects</h2><span class="hm-count">${projects.length}</span></div>
+        <div class="projects">${cards}
+          <button type="button" class="project-card project-card--new">${icon("plus")}<span>New project</span></button>
+        </div>
+      </section>
+      <div class="home-grid">
+        <section class="panel-box" aria-labelledby="h-week">
+          <div class="hm-sec-head"><h2 id="h-week">Last 7 days</h2><span class="hm-aside">All projects</span></div>
+          ${kpis}${chart}
+        </section>
+        <section class="panel-box" aria-labelledby="h-recent">
+          <div class="hm-sec-head"><h2 id="h-recent">Recent requests</h2></div>
+          ${recent}
+        </section>
+      </div>`;
+
+    document.querySelectorAll(".card-more > .icon-btn").forEach((b) => b.addEventListener("click", (e) => {
+      e.stopPropagation(); const m = b.nextElementSibling, open = m.hidden;
+      document.querySelectorAll(".card-more .menu").forEach((x) => { x.hidden = true; x.previousElementSibling.setAttribute("aria-expanded", "false"); });
+      m.hidden = !open; b.setAttribute("aria-expanded", String(open));
+    }));
+  }
+  document.addEventListener("click", () => document.querySelectorAll(".card-more .menu").forEach((x) => { x.hidden = true; }));
+
+  const show = (k) => {
+    document.querySelectorAll("[data-show]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.show === k)));
+    history.replaceState(null, "", "#" + k); render(k);
+  };
+  document.querySelectorAll("[data-show]").forEach((b) => b.addEventListener("click", () => show(b.dataset.show)));
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => {
+    document.documentElement.dataset.theme = b.dataset.themeSet;
+    document.querySelectorAll("[data-theme-set]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  }));
+  if (new URLSearchParams(location.search).get("theme") === "dark") document.querySelector('[data-theme-set="dark"]').click();
+  else document.documentElement.dataset.theme = "light";
+  const h0 = location.hash.slice(1);
+  show(["busy", "quiet", "first"].includes(h0) ? h0 : "busy");
+}
+</script>
+</body>
+</html>
