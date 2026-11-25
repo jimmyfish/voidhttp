@@ -34,6 +34,7 @@ export const KEYS = {
   duplicate: "⌘D",
   remove: "⌘⌫",
   toggleSidebar: "⌘\\",
+  toggleLayout: "⌘K",
   variables: "⌘E",
   environment: "⌥E",
   zoomIn: "⌘+",
@@ -102,6 +103,7 @@ export const SHORTCUT_GROUPS: { title: string; rows: ShortcutRow[] }[] = [
     title: "Interface",
     rows: [
       { label: "Show or hide sidebar", keys: [KEYS.toggleSidebar] },
+      { label: "Response below or beside the request", keys: [KEYS.toggleLayout] },
       { label: "Variables", keys: [KEYS.variables] },
       { label: "Switch environment", keys: [KEYS.environment] },
       { label: "Zoom in, out, reset", keys: [KEYS.zoomIn, KEYS.zoomOut, KEYS.zoomReset] },
@@ -308,6 +310,7 @@ export function onGlobalKey(e: KeyboardEvent) {
   if (k === "p") return run(() => act.quickOpen(e.shiftKey));
   if (k === "e" && !e.shiftKey) return run(act.variables);
   if (k === "\\") return run(act.toggleSidebar);
+  if (k === "k" && !e.shiftKey) return run(act.toggleLayout);
   if (e.key === "Enter" && s.activeTabId) return run(act.send);
   if (k === "s" && s.activeTabId) return run(e.shiftKey ? act.saveAs : act.save);
   if (k === "t") return run(e.shiftKey ? act.reopenTab : act.newTab);

@@ -192,7 +192,7 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
                   <span className="desc">
                     {format === "openapi" ? (
                       <>
-                        Each one's <code>baseUrl</code> becomes a server
+                        The address in front of each path, filled in from each one, becomes a server
                       </>
                     ) : format === "postman" ? (
                       "Written as files beside the collection"
@@ -250,7 +250,7 @@ export function ExportModal({ collectionId, onClose }: { collectionId: string; o
           </div>
           {format === "openapi" && (
             <p className="xf-hint">
-              Folders become tags. <code>{"{{customerId}}"}</code> and <code>:id</code> in a path become <code>{"{customerId}"}</code> parameters. Bodies get a schema read from their JSON. Auth becomes a security scheme.
+              Folder paths become tags. <code>{"{{customerId}}"}</code> and <code>:id</code> in a path become <code>{"{customerId}"}</code> parameters. Bodies get a schema read from their JSON. Auth becomes a security scheme.
             </p>
           )}
           {keep && (

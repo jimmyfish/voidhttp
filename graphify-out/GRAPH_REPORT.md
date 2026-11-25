@@ -1,17 +1,17 @@
 # Graph Report - voidHTTP  (2026-11-25)
 
 ## Corpus Check
-- 136 files · ~331,678 words
+- 136 files · ~331,958 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 36 file(s) not represented in the graph (top: .css 25, (none) 7, .lock 1)
 
 ## Summary
-- 3066 nodes · 8015 edges · 137 communities (112 shown, 25 thin omitted)
+- 3066 nodes · 8016 edges · 137 communities (112 shown, 25 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 252 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3acd0605`
+- Built from commit: `0e7dc3a2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -660,17 +660,17 @@ Nodes (6): scripts, build, dev, fake, tauri, typecheck
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `prepare()` connect `store.ts` to `MqttPane.tsx`, `GraphQL Pane & Schema`, `ImportModal.tsx`, `RequestPane.tsx`, `Agent & Contribution Docs`, `model.ts`?**
-  _High betweenness centrality (0.037) - this node is a cross-community bridge._
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
 - **What connects `voidHTTP App Icon`, `#root Mount Element`, `RFC-6455` to the rest of the system?**
   _188 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `certs.rs` be split into smaller, more focused modules?**
   _Cohesion score 0.05218365061590145 - nodes in this community are weakly interconnected._
-- **Why does `Architecture` connect `Agent & Contribution Docs` to `Feature Docs (README)`, `Repo Doc Files`, `Changelog Releases`, `Quick Open Features Docs`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+- **Why does `Sending an HTTP request` connect `Agent & Contribution Docs` to `store.ts`?**
+  _High betweenness centrality (0.032) - this node is a cross-community bridge._
 - **Should `store.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.02730407231385705 - nodes in this community are weakly interconnected._
-- **Why does `Sending an HTTP request` connect `Agent & Contribution Docs` to `store.ts`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+- **Why does `Architecture` connect `Agent & Contribution Docs` to `Feature Docs (README)`, `Repo Doc Files`, `Changelog Releases`, `Quick Open Features Docs`?**
+  _High betweenness centrality (0.032) - this node is a cross-community bridge._
 
 ### Low-confidence Hints
 _AMBIGUOUS edges — the extractor was unsure. Verify before acting on these._

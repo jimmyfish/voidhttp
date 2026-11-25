@@ -210,6 +210,7 @@ export function QuickOpen({ actions, onClose }: { actions?: boolean; onClose: ()
           group: "View",
           icon: settings.layout === "split" ? <PanelBottom {...ico} /> : <PanelRight {...ico} />,
           name: settings.layout === "split" ? "Response below the request" : "Response beside the request",
+          keys: KEYS.toggleLayout,
           run: act.toggleLayout,
         },
         { group: "View", icon: <ZoomIn {...ico} />, name: "Zoom in", keys: KEYS.zoomIn, run: act.zoomIn },

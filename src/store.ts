@@ -565,7 +565,7 @@ export const useStore = create<State>((set, get) => {
       if (tab) stopInflight(tab);
       if (tab && !pristine(tab)) {
         const key = get().currentProjectId ?? "";
-        const list = [...(closedTabs.get(key) ?? []), { id: tab.id, request: tab.request, savedRef: tab.savedRef, example: tab.example, dirty: tab.dirty }];
+        const list = [...(closedTabs.get(key) ?? []), { id: tab.id, request: tab.request, savedRef: tab.savedRef, example: tab.example, dirty: tab.dirty, pinned: tab.pinned }];
         closedTabs.set(key, list.slice(-CLOSED_LIMIT));
       }
       set((s) => {
@@ -631,6 +631,8 @@ export const useStore = create<State>((set, get) => {
         if (t.example) {
           if (!findExample(get().collections, t.example)) continue;
           get().openExample(t.example);
+          const id = get().activeTabId;
+          if (t.pinned && id) get().pinTab(id, true);
           return;
         }
         const s = get();
@@ -639,12 +641,16 @@ export const useStore = create<State>((set, get) => {
         // a request deleted since comes back as an unsaved one
         const col = t.savedRef && s.collections.find((c) => c.id === t.savedRef!.collectionId);
         const savedRef = col && findNode(col.children, t.savedRef!.nodeId) ? t.savedRef : undefined;
-        const tab: Tab = { id: uid(), request: t.request, savedRef, dirty: t.dirty || (!!t.savedRef && !savedRef) };
+        const tab: Tab = { id: uid(), request: t.request, savedRef, dirty: t.dirty || (!!t.savedRef && !savedRef), pinned: t.pinned };
         const active = s.tabs.find((x) => x.id === s.activeTabId);
         // like opening a saved request: a blank scratch tab gives its place
         set((st) => ({
-          // taking a pinned blank tab's place keeps the pin, so pinned tabs stay first
-          tabs: active && pristine(active) ? st.tabs.map((x) => (x.id === active.id ? { ...tab, pinned: active.pinned } : x)) : [...st.tabs, tab],
+          // a tab closed while pinned comes back pinned; taking a pinned blank tab's place keeps the pin too
+          tabs: pinnedFirst(
+            active && pristine(active)
+              ? st.tabs.map((x) => (x.id === active.id ? { ...tab, pinned: active.pinned || tab.pinned } : x))
+              : [...st.tabs, tab],
+          ),
           activeTabId: tab.id,
         }));
         return;

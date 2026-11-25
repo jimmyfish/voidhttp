@@ -16,7 +16,7 @@ import { BuildTag } from "./components/BuildTag";
 import { useUpdates } from "./updates";
 import { useNetwork } from "./lib/net";
 import { useCerts } from "./lib/certs";
-import { applyZoom, onGlobalKey } from "./shortcuts";
+import { act, applyZoom, onGlobalKey } from "./shortcuts";
 
 export const SIDEBAR_DEFAULT = 296;
 const SIDEBAR_MIN = 220;
@@ -203,12 +203,12 @@ export default function App() {
   }, []);
 
   // ⌘W comes from the native menu (it never reaches keydown): close the open
-  // dialog first, otherwise the active request tab
+  // dialog first, otherwise the active request tab (a pinned one stays)
   useEffect(() => {
     const unlisten = listen("menu:close-tab", () => {
       const s = useStore.getState();
       if (s.modal) s.openModal(null);
-      else if (s.view === "project" && s.activeTabId) s.closeTab(s.activeTabId);
+      else if (s.view === "project") act.closeTab();
     });
     return () => {
       unlisten.then((off) => off());
