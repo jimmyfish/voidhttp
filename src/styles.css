@@ -591,7 +591,8 @@ kbd { font: var(--text-xs) var(--font-mono); padding: var(--space-3xs) var(--spa
 .work-body.split > .req-pane { display: contents; }
 .work-body.split .request-line, .work-body.split .req-title { grid-column: 1 / -1; }
 .work-body.split .req-pane > .subtabs { grid-column: 1; grid-row: 3; }
-.work-body.split .req-pane > .section { grid-column: 1; grid-row: 4; }
+/* bottom padding matches the response body's bottom margin so both panes end on one line */
+.work-body.split .req-pane > .section { grid-column: 1; grid-row: 4; padding-bottom: var(--space-md); }
 .work-body.split > .divider { grid-column: 2; grid-row: 3 / 5; }
 .work-body.split > .response { grid-column: 3; grid-row: 3 / 5; min-width: 0; min-height: 0; }
 /* while a tree row or the sidebar edge is dragged, keep the cursor and stop text selection */
@@ -621,7 +622,8 @@ body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-sel
 }
 .code-input::placeholder { color: var(--color-placeholder); }
 .code-input::selection { background: var(--color-accent-soft); color: transparent; }
-.editor:focus-within { outline: 2px solid var(--color-focus); outline-offset: -1px; }
+/* the editor is a large typing surface: a thin, muted ring marks focus without framing the whole pane in blue */
+.editor:focus-within { outline: 1px solid color-mix(in srgb, var(--color-focus) 45%, transparent); outline-offset: -1px; }
 .code .l:empty::after { content: ""; }
 .code.plain { white-space: pre-wrap; word-break: break-word; padding: var(--space-xs) var(--space-md); }
 /* Wrap off in the response: long lines scroll sideways */
