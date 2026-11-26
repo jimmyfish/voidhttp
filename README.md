@@ -70,10 +70,10 @@ You get 15 requests in 5 folders, with JSON, form and multipart bodies, bearer a
 
 ### <img src="docs/assets/icons/folder-tree.svg" width="20" height="20" align="top" alt="" /> Projects, tabs, the whole workspace
 
-- **Projects** each get their own collections, environments and history. Open ones sit as tabs in the title strip; Home shows them as cards with recent activity (computed from local history, obviously).
-- **Request tabs** with the response stacked below or split beside. Drag the divider until it feels right.
-- **Collections** with nested folders, drag-to-reorder, collection variables and inline rename.
-- **Environments** with `{{variables}}`, a colour tag each so you never fire at prod by accident, and a picker right in the tabs bar. Nested variables work, and so do `{{$guid}}`, `{{$timestamp}}`, `{{$isoTimestamp}}`, `{{$randomInt}}` and Postman's faker set (`{{$randomFirstName}}`, `{{$randomEmail}}`, `{{$randomCity}}` and 110 more, English only).
+- **Projects** each get their own collections, environments and history. Open ones sit as tabs in the title strip; Home greets you with this week's numbers, shows each project as a card with a 7-day spark and its counts, then the last 7 days across all projects (requests sent, success rate, median response time, status mix) and your most recent requests. All of it is computed from local history, obviously.
+- **Request tabs** with the response stacked below or split beside. Drag the divider until it feels right. Drag a tab along the strip to reorder it; pinned tabs stay in front.
+- **Collections** with nested folders, drag-to-reorder, collection variables and inline rename. One button collapses every collection and folder, and expands them again.
+- **Environments** with `{{variables}}`, a colour tag each so you never fire at prod by accident, and a picker right in the tabs bar, tinted with the active environment's colour, showing each environment's variable count, with Manage environments at the bottom. Nested variables work, and so do `{{$guid}}`, `{{$timestamp}}`, `{{$isoTimestamp}}`, `{{$randomInt}}` and Postman's faker set (`{{$randomFirstName}}`, `{{$randomEmail}}`, `{{$randomCity}}` and 110 more, English only).
 - **Edit variables your way**: as a table, as JSON, or as `.env` lines.
 
 ### <img src="docs/assets/icons/globe.svg" width="20" height="20" align="top" alt="" /> HTTP, done properly

@@ -7,10 +7,14 @@ All notable changes to voidHTTP are listed here. The format follows [Keep a Chan
 ### Added
 
 - **Collapse all.** A button at the right of the Collections header closes every collection and folder at once. Once everything is closed it becomes Expand all, which opens them all again. It does the same as ⌥← / ⌥→ on a focused row, without needing a row focused first.
+- **Drag tabs to reorder them.** Grab a request tab and slide it along the strip; the tabs it passes move aside, and dropping it keeps the new order. Pinned tabs stay in front of the others. When tabs scroll past either end of the strip, that edge fades out.
 
 ### Changed
 
 - **Redesigned Home.** Home opens with a greeting and a line about this week: how many requests were sent and how many came back OK. Each project card shows its icon, when it was last opened, its collections, a 7-day spark in the project's colour with "n sent this week" and the share that came back OK, and its collection, request and environment counts; Edit project and Delete are in the card's "…" menu. Last 7 days, across all projects, shows requests sent, success rate, median response time and the most called request, then requests per day as OK / Failed bars and the mix of status classes. Recent requests lists the last 7 sends; clicking one opens it from history in its project. Every figure comes from local history. On first run, Home says "Welcome to voidHTTP" and offers two ways in: New project and Import (Postman, OpenAPI, Swagger, HAR, cURL, or a file dropped anywhere on the window).
+- **Environment picker.** The picker in the tabs bar is a pill tinted with the active environment's colour (grey when it has no colour, muted for No environment). Each row in its menu shows the variable count under the name, and No environment reads "Collection variables only". Manage environments (⌘E) is now the last row of the menu, so the separate button beside the picker is gone.
+- **Save shows its state in one button.** A saved request with no changes reads "Saved" with a green check and can't be clicked. A changed or never-saved request reads "Save" with the tab's blue unsaved dot. Undo your edits back to what is saved and the request counts as unchanged again.
+- **Send and Cancel.** Send shows its shortcut (⌘↵) inside the button. While a request is out, Cancel shows a spinner and its shortcut (⌘.), and keeps Send's width, so Save never shifts.
 
 ### Fixed
 
