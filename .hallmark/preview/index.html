@@ -78,6 +78,8 @@
   <symbol id="i-type" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></symbol>
   <symbol id="i-filter" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></g></symbol>
   <symbol id="i-circle-help" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></g></symbol>
+  <symbol id="i-chevrons-down-up" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 20 5-5 5 5"/><path d="m7 4 5 5 5-5"/></g></symbol>
+  <symbol id="i-chevrons-up-down" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></g></symbol>
   <symbol id="i-chevron-up" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></g></symbol>
   <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></symbol>
   <symbol id="i-bookmark-plus" viewBox="0 0 24 24"><svg class="lucide lucide-bookmark-plus" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /> <line x1="12" x2="12" y1="7" y2="13" /> <line x1="15" x2="9" y1="10" y2="10" /></symbol>
@@ -151,7 +153,7 @@
     <aside class="sidebar">
       <div class="side-resize" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" title="Drag to resize, drag past the edge to hide"></div>
 
-      <div class="side-head"><h2>Collections</h2></div>
+      <div class="side-head"><h2>Collections</h2><button type="button" class="icon-btn" id="fold-all" title="Collapse all" aria-label="Collapse all"><svg aria-hidden="true" class="ico"><use href="#i-chevrons-down-up"/></svg></button></div>
       <div class="side-tools">
         <div class="search"><svg aria-hidden="true" class="ico"><use href="#i-search"/></svg><input class="field" placeholder="Search" aria-label="Search collections"></div>
         <button type="button" class="icon-btn icon-btn--outline" title="Import from Postman" aria-label="Import from Postman"><svg aria-hidden="true" class="ico"><use href="#i-import"/></svg></button>
@@ -470,6 +472,29 @@
     if (new URLSearchParams(location.search).get("density") === "compact" || /compact/.test(location.hash)) setDensity("compact");
   }
   if (new URLSearchParams(location.search).get("theme") === "dark") document.querySelector('[data-theme-set="dark"]').click();
+</script>
+<script>
+/* collapse / expand all: preview stand-in for Sidebar setAll */
+(() => {
+  const btn = document.getElementById("fold-all");
+  const tree = btn.closest(".sidebar").querySelector(".tree");
+  const saved = [...tree.querySelectorAll(".row")].map((r) => [r, r.hidden, r.querySelector("[aria-expanded]")?.getAttribute("aria-expanded")]);
+  const set = (open) => {
+    for (const [r, hid, exp] of saved) {
+      const b = r.querySelector(".row-main[aria-expanded]");
+      if (r.classList.contains("collection")) r.hidden = false; else r.hidden = open ? hid : true;
+      if (b && (r.classList.contains("collection") || b.querySelector(".folder"))) {
+        const o = open ? exp === "true" || r.classList.contains("collection") : false;
+        b.setAttribute("aria-expanded", o);
+        b.querySelector(".caret use")?.setAttribute("href", o ? "#i-chevron-down" : "#i-chevron-right");
+      }
+    }
+    btn.title = btn.ariaLabel = open ? "Collapse all" : "Expand all";
+    btn.querySelector("use").setAttribute("href", open ? "#i-chevrons-down-up" : "#i-chevrons-up-down");
+  };
+  let open = true;
+  btn.addEventListener("click", () => set((open = !open)));
+})();
 </script>
 </body>
 </html>

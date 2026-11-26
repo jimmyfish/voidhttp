@@ -1,0 +1,21 @@
+/* History method filter (under design, preview .hallmark/preview/history.html).
+ * A ListFilter button beside the History search opens the shared .menu/.ev-menu list:
+ * "All methods", then one checkbox row per method found in history, in its method colour, with a count.
+ * Nothing ticked = every method. While a filter is on, the button shows the pressed (accent-soft) state. */
+
+.hf-wrap { position: relative; display: flex; }
+.hf-menu { left: auto; right: 0; min-width: 220px; }
+.hf-menu .menu-sec { padding: var(--space-2xs) var(--space-sm) var(--space-3xs); color: var(--color-muted); font-size: var(--text-sm); font-weight: 600; }
+.hf-menu .m { width: auto; align-self: center; }
+
+/* variant B: the active filter as removable pills under the search */
+.hf-chips { display: flex; flex-wrap: wrap; gap: var(--space-2xs); padding: 0 var(--space-md) var(--space-xs); }
+.hf-chips[hidden] { display: none; }
+.hf-chip {
+  display: inline-flex; align-items: center; gap: var(--space-3xs); height: 22px; padding: 0 var(--space-3xs) 0 var(--space-xs);
+  border: none; border-radius: var(--radius-pill); background: var(--color-paper-3); cursor: pointer;
+}
+.hf-chip .m { width: auto; }
+.hf-chip .ico { width: 12px; height: 12px; color: var(--color-muted); }
+.hf-chip:hover .ico { color: var(--color-ink); }
+.hf-chip:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }

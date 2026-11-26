@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "src/components/Sidebar.tsx": {
-    "mtime": 1795597140.2911892,
-    "seen": 1795610161.84623,
-    "ast_hash": "81dbd0981fbc9dea3bf54b61eb4c7dd1",
+    "mtime": 1795676465.1163316,
+    "seen": 1795676466.9408052,
+    "ast_hash": "a6bcd8a02d939fd1047d958a63fc1e4e",
     "semantic_hash": ""
   },
   "src/components/TabsBar.tsx": {
@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "src/components/Icon.tsx": {
-    "mtime": 1795597140.2877188,
-    "seen": 1795610161.846215,
-    "ast_hash": "2da2fb33a17aca1d676e5cfcaf662596",
+    "mtime": 1795674252.0713863,
+    "seen": 1795674253.8539672,
+    "ast_hash": "873b11601555305171d1cc662fa8b2f4",
     "semantic_hash": ""
   },
   "src/components/ProjectIcon.tsx": {
@@ -300,9 +300,9 @@
     "semantic_hash": "1ab5136e993697d19edab04dcf8e7a90"
   },
   ".hallmark/preview/index.html": {
-    "mtime": 1795597140.266566,
-    "seen": 1795610161.846268,
-    "ast_hash": "5b1033364e5283fecc8d505cd0aa4af5",
+    "mtime": 1795674196.9512022,
+    "seen": 1795674253.854021,
+    "ast_hash": "d951ffab79b27fb6d7b238a7598a2e50",
     "semantic_hash": ""
   },
   ".hallmark/reference-apidog.md": {
@@ -684,9 +684,9 @@
     "semantic_hash": ""
   },
   "CHANGELOG.md": {
-    "mtime": 1795597140.276314,
-    "seen": 1795610161.846279,
-    "ast_hash": "203dd56e74eae8034afbd80fc551b44f",
+    "mtime": 1795674328.748244,
+    "seen": 1795676466.940856,
+    "ast_hash": "1ae9358a1777b117dec4118ccfda3c3f",
     "semantic_hash": ""
   },
   "CODE_OF_CONDUCT.md": {

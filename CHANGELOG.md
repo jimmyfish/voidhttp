@@ -2,6 +2,20 @@
 
 All notable changes to voidHTTP are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.9] - Unreleased
+
+### Added
+
+- **Collapse all.** A button at the right of the Collections header closes every collection and folder at once. Once everything is closed it becomes Expand all, which opens them all again. It does the same as ⌥← / ⌥→ on a focused row, without needing a row focused first.
+
+### Changed
+
+- **Redesigned Home.** Home opens with a greeting and a line about this week: how many requests were sent and how many came back OK. Each project card shows its icon, when it was last opened, its collections, a 7-day spark in the project's colour with "n sent this week" and the share that came back OK, and its collection, request and environment counts; Edit project and Delete are in the card's "…" menu. Last 7 days, across all projects, shows requests sent, success rate, median response time and the most called request, then requests per day as OK / Failed bars and the mix of status classes. Recent requests lists the last 7 sends; clicking one opens it from history in its project. Every figure comes from local history. On first run, Home says "Welcome to voidHTTP" and offers two ways in: New project and Import (Postman, OpenAPI, Swagger, HAR, cURL, or a file dropped anywhere on the window).
+
+### Fixed
+
+- History search now matches what each row shows. It used to look only at the URL, so a gRPC call such as `AuthService/Login` could not be found by its service or method name. It now also checks the method label (`gRPC`, `POST`) and the gRPC `service/method`. A search that matches nothing says "No matches" instead of "No requests yet".
+
 ## [0.1.8] - 2026-11-25
 
 ### Added
@@ -115,6 +129,7 @@ First tagged release.
 - Import from voidHTTP, Postman v2.x, OpenAPI 3 / Swagger 2, HAR, and cURL / grpcurl commands. Export to voidHTTP, Postman v2.1 and HAR.
 - Light and dark themes with colour schemes, system fonts, and compact mode.
 
+[0.1.9]: https://github.com/jimmyfish/voidhttp/compare/v0.1.8...HEAD
 [0.1.8]: https://github.com/jimmyfish/voidhttp/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/jimmyfish/voidhttp/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/jimmyfish/voidhttp/compare/v0.1.5...v0.1.6

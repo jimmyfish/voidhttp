@@ -10,6 +10,8 @@ import {
   Braces,
   ChevronDown,
   ChevronRight,
+  ChevronsDownUp,
+  ChevronsUpDown,
   CopyPlus,
   Ellipsis,
   FileOutput,
@@ -122,6 +124,8 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
     setOpen: (id: string, open: boolean) => setOpenIds((o) => (o[id] === open ? o : { ...o, [id]: open })),
   };
   const setAll = (open: boolean) => setOpenIds(Object.fromEntries(containerIds(useStore.getState().collections).map((id) => [id, open])));
+  // the header button offers Expand all only once every collection is closed
+  const anyOpen = collections.some((c) => openCtx.isOpen(c.id, true));
   const s = useStore.getState(); // actions only
 
   const openImport = () => s.openModal({ kind: "import" });
@@ -222,6 +226,17 @@ export function Sidebar({ view, onResizeStart }: { view: SideView; onResizeStart
       {resize}
       <div className="side-head">
         <h2>Collections</h2>
+        {collections.length > 0 && (
+          <button
+            type="button"
+            className="icon-btn"
+            title={anyOpen ? "Collapse all" : "Expand all"}
+            aria-label={anyOpen ? "Collapse all" : "Expand all"}
+            onClick={() => setAll(!anyOpen)}
+          >
+            {anyOpen ? <ChevronsDownUp {...ico} /> : <ChevronsUpDown {...ico} />}
+          </button>
+        )}
       </div>
       <div className="side-tools">
         {search}
@@ -658,16 +673,28 @@ function HistoryRow({ entry: h }: { entry: HistoryEntry }) {
   );
 }
 
+/** What a history search matches: the URL, the method label and, for gRPC, the full `service/method` the row shows. */
+function historyText(h: HistoryEntry): string {
+  const g = h.request.grpc;
+  return [h.request.url, methodLabel(h.request.method), g?.method ? `${g.service}/${g.method}` : ""].join(" ").toLowerCase();
+}
+
 function HistoryList({ filter }: { filter: string }) {
   const history = useStore((s) => s.history);
-  const items = history.filter((h) => !filter || h.request.url.toLowerCase().includes(filter));
+  const items = history.filter((h) => !filter || historyText(h).includes(filter));
   if (items.length === 0)
     return (
       <div className="tree">
-        <div className="empty">
-          <strong>No requests yet</strong>
-          <span>Requests you send show up here.</span>
-        </div>
+        {history.length > 0 ? (
+          <div className="empty">
+            <strong>No matches</strong>
+          </div>
+        ) : (
+          <div className="empty">
+            <strong>No requests yet</strong>
+            <span>Requests you send show up here.</span>
+          </div>
+        )}
       </div>
     );
 
