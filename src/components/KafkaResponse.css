@@ -1,0 +1,3 @@
+/* KafkaResponse.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+.seek-menu { min-width: 300px; }
+.ktable td.warn { color: var(--color-warn); font-weight: 600; }

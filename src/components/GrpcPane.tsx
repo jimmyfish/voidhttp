@@ -1,3 +1,4 @@
+import "./GrpcPane.css";
 import { defaultSio } from "../lib/sio";
 import { defaultKafka } from "../lib/kafka";
 import { defaultMqtt } from "../lib/mqtt";

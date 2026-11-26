@@ -1,3 +1,4 @@
+import "./GrpcResponse.css";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { GrpcResult, Tab } from "../types";
 import { formatBytes } from "../lib/model";

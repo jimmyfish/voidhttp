@@ -1,0 +1,7 @@
+/* InlineRename.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+/* clicking the title's name edits it in place */
+.title-rename {
+  min-width: 120px; width: 28ch; max-width: 50%; height: 24px; padding: 0 var(--space-2xs); margin: -3px 0 -3px calc(-1 * var(--space-2xs));
+  font: inherit; font-weight: 600; color: var(--color-link); background: var(--color-paper); border: 1px solid var(--color-rule);
+  border-radius: 6px; outline: 2px solid var(--color-focus); outline-offset: -1px; align-self: center;
+}

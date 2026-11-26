@@ -1,3 +1,4 @@
+import "./MqttResponse.css";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { MqttConnInfo, MqttSession, Tab, WsMessage, WsResult } from "../types";
 import { formatBytes } from "../lib/model";

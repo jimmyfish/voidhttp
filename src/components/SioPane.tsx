@@ -1,3 +1,4 @@
+import "./SioPane.css";
 import { useMemo, useState, type ReactNode } from "react";
 import { useStore } from "../store";
 import type { SioDef, Tab } from "../types";

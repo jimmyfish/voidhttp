@@ -1,17 +1,18 @@
 # Graph Report - voidHTTP  (2026-11-26)
 
 ## Corpus Check
-- 136 files · ~336,235 words
+- 136 files · ~339,081 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 37 file(s) not represented in the graph (top: .css 26, (none) 7, .lock 1)
+- Unclassified: 76 file(s) not represented in the graph (top: .css 65, (none) 7, .lock 1)
+- WARNING: 76 of 287 files seen (26%) have no supported extractor and are missing from this graph entirely. It may look complete while representing only part of the codebase.
 
 ## Summary
-- 3079 nodes · 8053 edges · 139 communities (115 shown, 24 thin omitted)
+- 3079 nodes · 8054 edges · 139 communities (116 shown, 23 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 252 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4906cd33`
+- Built from commit: `70274965`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -46,7 +47,7 @@
 - react
 - README Icons & Prelude
 - ws.rs
-- main.tsx
+- varsFormat.ts
 - WebSocket Response View
 - Parser
 - About & Build Previews
@@ -199,7 +200,7 @@
 - **Request/response workflow shown in window illustration** — docs_assets_voidhttp_window_collections_sidebar, docs_assets_voidhttp_window_request_tabs, docs_assets_voidhttp_window_environment_selector, docs_assets_voidhttp_window_url_bar_variables, docs_assets_voidhttp_window_request_editor, docs_assets_voidhttp_window_response_viewer [INFERRED 0.85]
 - **Docs feature icons (Lucide, ISC, #3d74ec stroke)** — docs_assets_icons_arrow_right_left_icon, docs_assets_icons_ban_icon, docs_assets_icons_check_icon, docs_assets_icons_circle_help_icon, docs_assets_icons_code_xml_icon, docs_assets_icons_database_icon, docs_assets_icons_download_icon, docs_assets_icons_feather_icon, docs_assets_icons_flask_conical_icon, docs_assets_icons_folder_tree_icon, docs_assets_icons_globe_icon, docs_assets_icons_hard_drive_icon, docs_assets_icons_history_icon, docs_assets_icons_keyboard_icon, docs_assets_icons_lightbulb_icon [INFERRED 0.95]
 
-## Communities (139 total, 24 thin omitted)
+## Communities (139 total, 23 thin omitted)
 
 ### Community 0 - "certs.rs"
 Cohesion: 0.05
@@ -226,8 +227,8 @@ Cohesion: 0.07
 Nodes (42): ACK, BINARY_ACK, BINARY_EVENT, Cmd, Close, Emit, collect(), CONNECT (+34 more)
 
 ### Community 6 - "Modals.tsx"
-Cohesion: 0.07
-Nodes (45): CODE_SIZES, FontRow(), Modals(), MONO_FONTS, NetworkPane(), Path(), PlaceTree(), ProjectModal() (+37 more)
+Cohesion: 0.08
+Nodes (42): BuildBadge(), CODE_SIZES, DevUpdatesPane(), EnvColor(), EnvItem(), FontRow(), Modals(), MONO_FONTS (+34 more)
 
 ### Community 7 - "GqlPane.tsx"
 Cohesion: 0.06
@@ -238,7 +239,7 @@ Cohesion: 0.10
 Nodes (26): async_tests_settle(), chai_edges(), console_is_capped(), endless_loop_is_stopped(), endless_promise_jobs_are_stopped(), errors_carry_the_line(), fail(), FAKE (+18 more)
 
 ### Community 9 - "QuickOpen.tsx"
-Cohesion: 0.08
+Cohesion: 0.10
 Nodes (13): ExIcon(), Fields, fuzzy(), Item, Marked(), Method(), METHOD_WORDS, pathOf() (+5 more)
 
 ### Community 10 - "Transfer/Shortcuts/Certs Previews"
@@ -246,8 +247,8 @@ Cohesion: 0.06
 Nodes (44): Certificates design preview (certificates.html), Add client certificate form (CRT + KEY or PFX/P12), Trust custom CA certificates (.pem, on top of public CAs), CA file validation (private key rejected, expiry warning), Client certificates for mutual TLS (matched by host:port, wildcard hosts), Certificates screen router (data-screen + URL hash), Skip TLS verification notice (from Requests settings), Network settings design preview (network.html) (+36 more)
 
 ### Community 11 - "AboutModal.tsx"
-Cohesion: 0.09
-Nodes (31): @tauri-apps/plugin-opener@^2, @tauri-apps/plugin-opener, DEV_BUILD, DevBuild, AboutModal(), BuildCard(), Line(), Notes() (+23 more)
+Cohesion: 0.10
+Nodes (28): @tauri-apps/plugin-opener@^2, @tauri-apps/plugin-opener, DEV_BUILD, DevBuild, AboutModal(), BuildCard(), Line(), Notes() (+20 more)
 
 ### Community 12 - "Kafka Protocol Calls"
 Cohesion: 0.05
@@ -266,12 +267,12 @@ Cohesion: 0.10
 Nodes (56): MqttRequest, random_client_id(), a_broker_that_stops_reading_ends_the_session(), a_late_refusal_doesnt_forget_a_newer_subscribe(), a_refused_unsubscribe_is_reported_and_tried_again(), accept(), assigned_client_id_wins(), auth_from_the_broker_is_a_protocol_error() (+48 more)
 
 ### Community 16 - "package.json"
-Cohesion: 0.17
-Nodes (14): devDependencies, esbuild@0.21.5, @tauri-apps/cli@^2.0.0, @types/react@^18.3.11, @types/react-dom@^18.3.1, typescript@^5.6.3, name, private (+6 more)
+Cohesion: 0.19
+Nodes (13): devDependencies, @tauri-apps/cli@^2.0.0, @types/react@^18.3.11, @types/react-dom@^18.3.1, typescript@^5.6.3, name, private, type (+5 more)
 
 ### Community 17 - "Sidebar.tsx"
-Cohesion: 0.09
-Nodes (28): RenameField(), EnvItem(), MenuItem, MenuState, openAtPointer(), RowMenu(), CollectionView(), containerIds() (+20 more)
+Cohesion: 0.08
+Nodes (29): EnvMenu(), RenameField(), MenuItem, MenuState, openAtPointer(), RowMenu(), CollectionView(), containerIds() (+21 more)
 
 ### Community 18 - "Release Workflow"
 Cohesion: 0.05
@@ -306,8 +307,8 @@ Cohesion: 0.13
 Nodes (27): parseDoc(), Build, buildAuth(), buildBody(), buildExamples(), buildOpenApi(), chooseMedia(), collectRefs() (+19 more)
 
 ### Community 27 - "react"
-Cohesion: 0.11
-Nodes (10): react, @tauri-apps/plugin-dialog, EnvMenu(), ico, Props, Row, EnvColor(), envStyle() (+2 more)
+Cohesion: 0.20
+Nodes (7): lucide-react@^1.75.0, lucide-react, react, @tauri-apps/plugin-dialog, ico, Props, Row
 
 ### Community 28 - "README Icons & Prelude"
 Cohesion: 0.07
@@ -317,9 +318,9 @@ Nodes (22): <img src="docs/assets/icons/flask-conical.svg" width="20" height="20
 Cohesion: 0.10
 Nodes (16): bad_header_is_an_error(), build_request(), CLOSE_GRACE, echo_and_close(), handshake_headers_are_kept_and_extras_added(), header_list(), is_handshake_header(), MAX_REFUSED_BODY (+8 more)
 
-### Community 30 - "main.tsx"
-Cohesion: 0.38
-Nodes (4): react-dom@^18.3.1, react-dom, ghost(), installModalExit()
+### Community 30 - "varsFormat.ts"
+Cohesion: 0.33
+Nodes (10): formatVars(), fromDotenv(), fromJson(), needsQuotes(), parseVars(), rowFor(), toDotenv(), toJson() (+2 more)
 
 ### Community 31 - "WebSocket Response View"
 Cohesion: 0.12
@@ -346,12 +347,12 @@ Cohesion: 0.10
 Nodes (35): prepareGrpc(), prepare(), stripJsonComments(), produceOf(), clampQos(), connectMqtt(), defaultMqtt(), mqttClose() (+27 more)
 
 ### Community 37 - "CertificatesPane.tsx"
-Cohesion: 0.13
-Nodes (26): CaRow(), CERT_FILES, CertificatesPane(), ClientForm(), ClientRow(), FilePick(), KEY_FILES, PFX_FILES (+18 more)
+Cohesion: 0.12
+Nodes (27): CaRow(), CERT_FILES, CertificatesPane(), ClientForm(), ClientRow(), FilePick(), KEY_FILES, PFX_FILES (+19 more)
 
 ### Community 38 - "Home.tsx"
-Cohesion: 0.15
-Nodes (21): lucide-react@^1.75.0, lucide-react, Bucket, bucketOf(), BUCKETS, Entry, FIRST_RUN_PICKS, greeting() (+13 more)
+Cohesion: 0.13
+Nodes (20): Bucket, bucketOf(), BUCKETS, Entry, FIRST_RUN_PICKS, greeting(), Home(), hostOf() (+12 more)
 
 ### Community 39 - "GrpcPane.tsx"
 Cohesion: 0.06
@@ -382,8 +383,8 @@ Cohesion: 0.08
 Nodes (24): jobs, macos, runs-on, steps, strategy, target, name, on (+16 more)
 
 ### Community 46 - "ImportModal.tsx"
-Cohesion: 0.18
-Nodes (22): Check3(), FileCard(), FileTab(), Frame(), HarReview(), Head(), ImportModal(), isUrl() (+14 more)
+Cohesion: 0.13
+Nodes (28): @tauri-apps/api, DropImport(), Check3(), FileCard(), FileTab(), Frame(), HarReview(), Head() (+20 more)
 
 ### Community 47 - "Tauri Config"
 Cohesion: 0.08
@@ -610,8 +611,8 @@ Cohesion: 0.67
 Nodes (3): Square71x71Logo (voidHTTP app icon, 71x71), voidHTTP logo mark: white slashed circle (empty-set / void symbol) on blue rounded square, Windows Store / UWP square tile asset (Tauri bundle icon set)
 
 ### Community 107 - "dependencies"
-Cohesion: 0.17
-Nodes (12): dependencies, react@^18.3.1, @tauri-apps/api@^2.0.0, @tauri-apps/plugin-dialog@^2.0.0, @tauri-apps/plugin-process@^2, @tauri-apps/plugin-updater@^2, yaml@2.6.1, zustand@^4.5.5 (+4 more)
+Cohesion: 0.14
+Nodes (14): dependencies, react@^18.3.1, react-dom@^18.3.1, @tauri-apps/api@^2.0.0, @tauri-apps/plugin-dialog@^2.0.0, @tauri-apps/plugin-process@^2, @tauri-apps/plugin-updater@^2, yaml@2.6.1 (+6 more)
 
 ### Community 111 - "native.ts"
 Cohesion: 0.25
@@ -638,8 +639,8 @@ Cohesion: 0.67
 Nodes (3): describe_error(), root_cause(), lost()
 
 ### Community 129 - "App.tsx"
-Cohesion: 0.10
-Nodes (24): @tauri-apps/api, App(), AppStrip(), SIDEBAR_DEFAULT, stack(), useTypeTokens(), BuildTag(), DropImport() (+16 more)
+Cohesion: 0.09
+Nodes (18): App(), AppStrip(), SIDEBAR_DEFAULT, stack(), useTypeTokens(), BuildTag(), Mark(), SideView (+10 more)
 
 ### Community 130 - "Conns"
 Cohesion: 0.11
@@ -657,6 +658,10 @@ Nodes (13): Envs, ExportModal(), Format, FORMATS, plural(), pickSavePath(), writ
 Cohesion: 0.10
 Nodes (23): duration(), EndRow(), MessageRow(), pretty(), seconds(), StatusLine(), Sub, BodyViewer() (+15 more)
 
+### Community 138 - "esbuild"
+Cohesion: 0.40
+Nodes (3): esbuild@0.21.5, esbuild, root
+
 ### Community 147 - "scripts"
 Cohesion: 0.33
 Nodes (6): scripts, build, dev, fake, tauri, typecheck
@@ -666,25 +671,25 @@ Nodes (6): scripts, build, dev, fake, tauri, typecheck
   .hallmark/preview/mqtt.html · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **188 isolated node(s):** `voidHTTP App Icon`, `#root Mount Element`, `T`, `ConnGuard<'_, C>`, `voidhttp` (+183 more)
+- **188 isolated node(s):** `voidHTTP App Icon`, `#root Mount Element`, `RFC-6455`, `PingReq`, `PingResp` (+183 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 870 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **24 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **23 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `prepare()` connect `mqtt.ts` to `store.ts`, `GqlPane.tsx`, `ExportModal.tsx`, `GrpcPane.tsx`, `ImportModal.tsx`, `har.ts`, `Agent & Contribution Docs`, `postman.ts`, `types.ts`, `RequestPane.tsx`?**
-  _High betweenness centrality (0.037) - this node is a cross-community bridge._
-- **What connects `voidHTTP App Icon`, `#root Mount Element`, `T` to the rest of the system?**
+  _High betweenness centrality (0.069) - this node is a cross-community bridge._
+- **What connects `voidHTTP App Icon`, `#root Mount Element`, `RFC-6455` to the rest of the system?**
   _188 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `certs.rs` be split into smaller, more focused modules?**
   _Cohesion score 0.05218365061590145 - nodes in this community are weakly interconnected._
-- **Why does `Sending an HTTP request` connect `Agent & Contribution Docs` to `mqtt.ts`?**
-  _High betweenness centrality (0.037) - this node is a cross-community bridge._
+- **Why does `Architecture` connect `Agent & Contribution Docs` to `Feature Docs (README)`, `Repo Doc Files`, `Changelog Releases`, `Quick Open Features Docs`?**
+  _High betweenness centrality (0.069) - this node is a cross-community bridge._
 - **Should `store.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.03927927927927928 - nodes in this community are weakly interconnected._
-- **Why does `Architecture` connect `Agent & Contribution Docs` to `Feature Docs (README)`, `Repo Doc Files`, `Changelog Releases`, `Quick Open Features Docs`?**
-  _High betweenness centrality (0.037) - this node is a cross-community bridge._
+- **Why does `Sending an HTTP request` connect `Agent & Contribution Docs` to `mqtt.ts`?**
+  _High betweenness centrality (0.069) - this node is a cross-community bridge._
 
 ### Low-confidence Hints
 _AMBIGUOUS edges — the extractor was unsure. Verify before acting on these._

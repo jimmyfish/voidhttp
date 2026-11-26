@@ -1,3 +1,4 @@
+import "./ProjectIcon.css";
 import type { CSSProperties } from "react";
 import {
   Bell,

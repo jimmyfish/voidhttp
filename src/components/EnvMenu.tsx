@@ -1,3 +1,4 @@
+import "./EnvMenu.css";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import type { Environment } from "../types";
 import { envStyle } from "../lib/tags";

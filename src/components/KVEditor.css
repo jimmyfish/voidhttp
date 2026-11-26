@@ -1,0 +1,3 @@
+/* KVEditor.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+.kv-key { display: block; padding: 0 var(--space-xs); font: var(--text-code) var(--font-mono); color: var(--m-patch); line-height: var(--control); }
+.kv--path tr.is-missing .kv-key { color: var(--color-unresolved); }

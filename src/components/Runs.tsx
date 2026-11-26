@@ -1,3 +1,4 @@
+import "./Runs.css";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { HistoryEntry, Tab } from "../types";
 import { runsOf } from "../lib/model";

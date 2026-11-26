@@ -1,3 +1,4 @@
+import "./GqlPane.css";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useStore } from "../store";

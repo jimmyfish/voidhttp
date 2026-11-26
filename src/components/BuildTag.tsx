@@ -1,3 +1,4 @@
+import "./BuildTag.css";
 import { DEV_BUILD } from "../build";
 import { useStore } from "../store";
 import { Bug, ico } from "./Icon";

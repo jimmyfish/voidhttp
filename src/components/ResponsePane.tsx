@@ -1,3 +1,4 @@
+import "./ResponsePane.css";
 import { useMemo, useState } from "react";
 import type { ScriptRun, Tab } from "../types";
 import { formatBytes } from "../lib/model";

@@ -1,3 +1,4 @@
+import "./PubsubPane.css";
 import { useEffect, useState, type ReactNode } from "react";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { useDismiss } from "./useDismiss";

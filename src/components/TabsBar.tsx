@@ -1,3 +1,4 @@
+import "./TabsBar.css";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useStore } from "../store";
 import { methodLabel } from "../lib/model";

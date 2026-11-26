@@ -1,3 +1,4 @@
+import "./ResponseBody.css";
 import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Example, Tab } from "../types";
 import { findNode, formatBytes } from "../lib/model";

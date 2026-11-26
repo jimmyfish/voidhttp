@@ -1,0 +1,25 @@
+/* UrlInput.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+.url-hl-in { display: inline-block; }
+.tok-var, .tok-path { padding-block: 2px; border-radius: 3px; background: var(--tok-bg); }
+.tok-var { color: var(--color-link); --tok-bg: color-mix(in srgb, var(--color-link) 12%, transparent); }
+.tok-var i { font-style: normal; opacity: 0.55; }
+.tok-var.is-missing {
+  color: var(--color-unresolved); --tok-bg: color-mix(in srgb, var(--color-unresolved) 14%, transparent);
+  text-decoration: underline wavy var(--color-unresolved); text-underline-offset: 3px; text-decoration-thickness: 1px;
+}
+.tok-path { color: var(--m-patch); --tok-bg: color-mix(in srgb, var(--m-patch) 12%, transparent); }
+.tok-q { color: var(--color-muted); }
+/* bridges the gap under the field, so the pointer can reach the card's link */
+.url-tip::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; height: 8px; }
+.url-tip .tip-k { font: 600 var(--text-sm) var(--font-mono); color: var(--color-link); }
+.url-tip .tip-k.is-missing { color: var(--color-unresolved); }
+.url-tip .tip-k.is-path { color: var(--m-patch); }
+.url-tip .tip-link {
+  justify-self: start; margin-top: 2px; padding: 0; border: none; background: none; color: var(--color-link); font: inherit; cursor: pointer;
+  text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--color-link) 40%, transparent); text-underline-offset: 3px;
+}
+/* a :name with no value reads like an unresolved {{variable}} */
+.tok-path.is-missing {
+  color: var(--color-unresolved); --tok-bg: color-mix(in srgb, var(--color-unresolved) 14%, transparent);
+  text-decoration: underline wavy var(--color-unresolved); text-underline-offset: 3px; text-decoration-thickness: 1px;
+}

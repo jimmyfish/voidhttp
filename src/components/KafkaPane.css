@@ -1,0 +1,30 @@
+/* KafkaPane.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+/* ---------- Kafka (approved preview: .hallmark/preview/kafka.html) ---------- */
+/* request line: brokers, then the topic (the Socket.IO namespace segment) */
+.kafka-field .ns-seg { flex-basis: 240px; }
+/* message tab: the key with its type at the end, the partition, then the value */
+.kkey {
+  display: inline-flex; align-items: center; width: 280px; min-height: 28px; padding: 0 2px 0 var(--space-xs);
+  border: 1px solid var(--color-field-edge); border-radius: 6px; background: var(--color-paper);
+}
+.kkey:focus-within { outline: 2px solid var(--color-focus); outline-offset: -1px; }
+.kkey-input { flex: 1; min-width: 0; padding: 0; border: none; background: none; outline: none; color: var(--color-ink); font: var(--text-code) var(--font-mono); }
+.kkey-input::placeholder { color: var(--color-placeholder); }
+.kkey-type-wrap, .kpart-wrap { position: relative; display: inline-flex; }
+.kkey-type {
+  display: inline-flex; align-items: center; gap: var(--space-3xs); min-height: 22px; padding: 0 var(--space-2xs) 0 var(--space-xs);
+  border: none; border-radius: 4px; background: var(--color-paper-2); color: var(--color-ink-2); font-size: var(--text-sm);
+}
+.kkey-type:hover, .kkey-type[aria-expanded="true"] { color: var(--color-ink); }
+.kkey-type:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -1px; }
+.kpart-btn {
+  display: inline-flex; align-items: center; gap: var(--space-3xs); min-height: 28px; padding: 0 var(--space-2xs) 0 var(--space-xs);
+  border: 1px solid var(--color-field-edge); border-radius: 6px; background: var(--color-paper); color: var(--color-ink);
+  font: var(--text-code) var(--font-mono);
+}
+.kpart-btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -1px; }
+.emit-head .lbl.gap { margin-left: var(--space-sm); }
+.kkey-menu, .kpart-menu { left: 0; right: auto; min-width: 160px; }
+.kkey-menu .tick-gap, .kpart-menu .tick-gap { width: 14px; flex-shrink: 0; }
+.kpart-menu .sub { margin-left: auto; padding-left: var(--space-sm); color: var(--color-muted); }
+.kpart-menu .menu-note { margin: 0; padding: var(--space-2xs) var(--space-2xs) 0; color: var(--color-muted); font-size: var(--text-sm); white-space: normal; }

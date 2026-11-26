@@ -1,3 +1,4 @@
+import "./ExampleModal.css";
 import { useMemo, useState } from "react";
 import { Select } from "./Select";
 import { useStore } from "../store";

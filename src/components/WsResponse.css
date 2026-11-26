@@ -1,0 +1,10 @@
+/* WsResponse.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+.code .l { display: block; padding-right: var(--space-md); white-space: pre-wrap; word-break: break-word; padding-left: 52px; text-indent: -52px; }
+.code .l::before {
+  counter-increment: ln; content: counter(ln); display: inline-block; width: 40px; margin-right: var(--space-sm);
+  text-align: right; text-indent: 0; color: var(--color-gutter); font-variant-numeric: tabular-nums;
+}
+.code .l:empty::after { content: ""; }
+/* a binary frame: a small tag in front of the hex preview */
+.smsg .bin { display: inline-block; margin-right: var(--space-xs); padding: 0 var(--space-2xs); border-radius: var(--radius-pill); background: var(--color-paper-2); color: var(--color-ink-2); font: var(--text-xs)/1.6 var(--font-ui); }
+.ws-fail .ws-fail-body { color: var(--color-ink-2); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; }

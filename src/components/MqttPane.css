@@ -1,0 +1,40 @@
+/* MqttPane.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+.mq-scheme.bad { color: var(--color-error); }
+/* message tab: topic, QoS, retain in one line; Payload | Properties at its end */
+.mq-head { display: flex; align-items: center; gap: var(--space-xs); flex-wrap: wrap; min-height: var(--control); }
+.mq-head .lbl { color: var(--color-muted); font-size: var(--text-sm); }
+.mq-head .gap { margin-left: var(--space-sm); }
+.mq-head .ev-input { width: 300px; }
+.mq-check { display: inline-flex; align-items: center; gap: var(--space-xs); color: var(--color-ink-2); font-size: var(--text-sm); }
+/* a part with content: the same 6px green dot the Scripts switch uses */
+.mq-has { display: inline-block; width: 6px; height: 6px; margin-left: var(--space-2xs); border-radius: 50%; background: var(--color-ok); vertical-align: middle; }
+.mq-props .set-ctl .field.mono, .mq-settings .set-ctl .field.mono { font: var(--text-code) var(--font-mono); }
+.mq-props .set-ctl .field.narrow, .mq-settings .set-ctl .field.narrow { width: 96px; text-align: right; }
+.mq-props .set-ctl .unit, .mq-settings .set-ctl .unit { color: var(--color-muted); font-size: var(--text-sm); }
+.mq-sub-h { margin: var(--space-xs) 0 0; color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; }
+/* topics tab: one row per subscription, the broker's answer on the right */
+.subs .qos-cell { width: 120px; }
+.subs .state-cell { width: 240px; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-sm); }
+.subs .state-cell .ok { color: var(--color-ok); font-weight: 600; }
+.subs .state-cell .fail { color: var(--color-error); font-weight: 600; }
+.subs .state-cell .dim { color: var(--color-muted); }
+.subs .opt-cell { width: 40px; }
+.subs .seg button { min-width: 26px; }
+.subs tr.denied .field { color: var(--color-error); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--color-error) 50%, transparent); }
+.subs-foot { display: flex; align-items: center; gap: var(--space-xs); }
+.subs-foot .hint-text { color: var(--color-muted); font-size: var(--text-sm); }
+.subs-foot .hint-text code { font: var(--text-code) var(--font-mono); color: var(--color-ink-2); }
+/* MQTT 5 options of a subscription: a small menu off the row's "…" */
+.opt-wrap { position: relative; display: inline-flex; }
+.opt-wrap > .icon-btn.on { color: var(--color-link); }
+.sub-menu { right: 0; left: auto; top: calc(100% + 4px); min-width: 300px; padding: var(--space-2xs) 0; }
+.sub-menu .opt { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-sm); padding: var(--space-2xs) var(--space-sm); }
+.sub-menu label.opt { cursor: pointer; }
+.sub-menu .opt .t { color: var(--color-ink); font-size: var(--text-sm); }
+.sub-menu .opt .d { display: block; color: var(--color-muted); font-size: var(--text-xs); }
+.sub-menu hr { margin: var(--space-2xs) 0; border: none; border-top: 1px solid var(--color-rule); }
+.sub-menu .menu-note { margin: 0; padding: var(--space-2xs) var(--space-sm) var(--space-xs); color: var(--color-muted); font-size: var(--text-sm); }
+/* last will / settings: rows that don't apply fade */
+.mq-settings .set-item.off, .mq-head.off, .mq-off { opacity: .5; }
+.mq-off { pointer-events: none; }
+.mq-settings .v5 { margin-left: var(--space-2xs); padding: 0 var(--space-2xs); border-radius: 4px; background: var(--color-paper-2); color: var(--color-muted); font: 600 var(--text-xs)/1.6 var(--font-ui); }

@@ -1,3 +1,4 @@
+import "./MethodMenu.css";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { METHODS } from "../lib/model";
 

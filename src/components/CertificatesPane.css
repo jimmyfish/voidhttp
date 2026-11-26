@@ -1,0 +1,24 @@
+/* CertificatesPane.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+/* ---------- Settings > Certificates: CA files and client certificates (mutual TLS) ---------- */
+/* a file or host row inside a bordered list: icon, name, what we read from it, remove / menu */
+.cert-row { min-height: 44px; padding-block: var(--space-xs); }
+.cert-row .file-row .dim.warn { color: var(--color-warn); }
+.cert-row .file-row .dim.bad { color: var(--color-error); }
+.cert-row .row-more { display: inline-grid; margin: 0; min-width: 26px; min-height: 26px; border-radius: 6px; }
+.cert-row .set-problem { flex-basis: 100%; }
+/* a file row with its problem under it */
+.cert-file { display: grid; gap: var(--space-3xs); min-width: 0; flex: 1; }
+/* last row of a list: the add button, with a one-line hint beside it */
+.cert-add { justify-content: flex-start; gap: var(--space-sm); min-height: 44px; }
+.cert-add .hint { color: var(--color-muted); font-size: var(--text-sm); }
+.cert-form-head { font-weight: 600; color: var(--color-ink); }
+.cert-host { display: flex; align-items: center; gap: var(--space-2xs); }
+.cert-host .sep { color: var(--color-muted); }
+.cert-pick { width: 272px; justify-content: flex-start; font: var(--text-code) var(--font-mono); overflow: hidden; }
+.cert-pick span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cert-pick .placeholder { color: var(--color-muted); font-family: var(--font-ui); font-size: var(--text-md); }
+.cert-pass { width: 272px; }
+.cert-actions { justify-content: flex-end; gap: var(--space-xs); }
+.set-notice .ico { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; color: var(--color-warn); }
+.set-notice .link { font-size: inherit; }
+.cert-port[aria-invalid="true"] { border-color: var(--color-error); }

@@ -1,3 +1,4 @@
+import "./KafkaResponse.css";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KafkaCluster, KafkaSeek, KafkaSession, Tab, WsMessage, WsResult } from "../types";
 import { formatBytes } from "../lib/model";

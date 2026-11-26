@@ -1,0 +1,22 @@
+/* MethodMenu.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+/* ---------- method menu: the method in the request line opens our own menu, not the native macOS one ----------
+   Each method in its scheme colour, the current one on a soft fill; gRPC after a rule. Methods are a fixed list. */
+.method-wrap { position: relative; display: flex; align-self: stretch; }
+.method-menu { left: 0; right: auto; min-width: 140px; padding: var(--space-2xs); }
+.method-menu button[aria-checked="true"] { background: var(--color-paper-2); }
+/* .menu button paints items in ink; the method colours must win over it */
+.method-menu .m-GET { color: var(--m-get); }
+.method-menu .m-POST { color: var(--m-post); }
+.method-menu .m-PUT { color: var(--m-put); }
+.method-menu .m-PATCH { color: var(--m-patch); }
+.method-menu .m-DELETE { color: var(--m-delete); }
+.method-menu .m-HEAD { color: var(--m-head); }
+.method-menu .m-OPTIONS { color: var(--m-options); }
+.method-menu .m-GRPC { color: var(--m-grpc); }
+.method-menu .m-WS { color: var(--m-ws); }
+.method-menu .m-SIO { color: var(--m-sio); }
+.method-menu .m-KAFKA { color: var(--m-kafka); }
+.method-menu .m-MQTT { color: var(--m-mqtt); }
+.method-menu .m-PUBSUB { color: var(--m-pubsub); }
+.method-menu .m-GQL { color: var(--m-gql); }
+.method-menu hr { margin: var(--space-3xs) var(--space-xs); }

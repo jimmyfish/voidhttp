@@ -1,3 +1,4 @@
+import "./Icon.css";
 /** Icons: Lucide (lucide-react), one stroke weight everywhere. The app mark is voidHTTP's own. */
 export {
   ArrowDown,

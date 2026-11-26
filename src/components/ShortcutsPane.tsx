@@ -1,3 +1,4 @@
+import "./ShortcutsPane.css";
 import { Fragment, useState } from "react";
 import { SHORTCUT_GROUPS } from "../shortcuts";
 import { Search, ico } from "./Icon";

@@ -17,3 +17,13 @@ This repo has a graphify knowledge graph in `graphify-out/`. Read it before you 
    - `graphify update` only re-reads code and document structure. After a large change to README.md or other docs, run `/graphify . --update` so the LLM-extracted concepts are refreshed too.
    - After changing `package.json` or `tsconfig.json`, graphify rebuilds the whole code graph and can drop LLM-extracted concepts. Run `/graphify . --update` afterwards to restore them.
 5. If `graphify-out/graph.json` is missing, run `/graphify .` to build it before relying on the graph.
+
+
+## Styles: one CSS file per component
+
+- A component's own rules live next to it: `src/components/Foo.css` for `Foo.tsx`, `src/App.css` for `App.tsx`. `src/styles.css` holds only tokens, base and the shared kit (`.btn`, `.field`, `.menu`, `.dialog`, `.ico`, tabs, code editor: classes used by more than one component).
+- A component imports its CSS as its **first** import: `import "./Foo.css";`. `main.tsx` imports `styles.css` before `App`. This makes the bundle load the shared kit first, then each parent before its children. Keep that order.
+- All CSS is still global. A per-component file is a place to put rules, not a scope. Prefix new classes with the component's area (`gql-`, `mq-`, `kf-`, `upd-`) so they don't collide.
+- When two rules have equal specificity, the later one in the bundle wins. Never depend on one file's rule overriding another file's rule at equal specificity. Raise the specificity (`.foo .btn`, not `.btn`) or keep both rules in the same file.
+- A few component rules stay in `styles.css` on purpose: they have to load before a later shared rule they interact with. Don't move one out without checking which shared rule it overrides or yields to.
+- New rules ported from a Hallmark preview (`.hallmark/preview/*.css`) go into the matching component's CSS file, not at the end of `styles.css`.

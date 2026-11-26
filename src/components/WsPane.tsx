@@ -1,3 +1,4 @@
+import "./WsPane.css";
 import { useState, type ReactNode } from "react";
 import { useStore } from "../store";
 import type { Tab, WsDef } from "../types";

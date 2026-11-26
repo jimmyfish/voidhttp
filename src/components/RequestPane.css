@@ -1,0 +1,21 @@
+/* RequestPane.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+.save-state { display: inline-grid; place-items: center; cursor: default; color: var(--color-muted); }
+.save-state:hover { background: var(--color-paper); }
+.save-state:active { transform: none; }
+.save-state.dirty-state { color: var(--color-warn); }
+/* forms inside a section */
+.form-row { display: grid; grid-template-columns: 120px minmax(0, 420px); align-items: center; gap: var(--space-sm); margin-bottom: var(--space-xs); }
+.form-row > span { color: var(--color-muted); }
+/* Path variables (approved 2026-11-19, preview .hallmark/preview/pathvars.html): "Query params" / "Path variables" heads,
+ * shown only when the URL has a :name segment; the name comes from the URL, so it is text, not an input */
+.kv-h { margin: 0; color: var(--color-ink); font-size: var(--text-sm); font-weight: 600; }
+/* ---------- scripts (pre-request + post-response), approved preview .hallmark/preview/scripts.html ---------- */
+/* request: Pre-request | Post-response switch with a dot when that slot holds a script, Snippets on the right */
+.script-head { display: flex; align-items: center; gap: var(--space-xs); min-height: var(--control); }
+.script-head .seg button { display: inline-flex; align-items: center; gap: 6px; }
+.script-head .has { width: 6px; height: 6px; border-radius: 50%; background: var(--color-ok); }
+.snip-menu { min-width: 280px; }
+.snip-menu .grp { padding: var(--space-2xs) var(--space-sm) 2px; font-size: var(--text-xs); font-weight: 600; color: var(--color-muted); }
+.snip-menu button { width: 100%; font-size: var(--text-sm); }
+.script-hint { color: var(--color-muted); font-size: var(--text-sm); }
+.script-hint .link { font-size: var(--text-sm); }

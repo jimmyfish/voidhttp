@@ -1,3 +1,4 @@
+import "./LayoutSwitch.css";
 import { useStore } from "../store";
 import { PanelBottom, PanelRight, ico } from "./Icon";
 

@@ -1,3 +1,4 @@
+import "./QuickOpen.css";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useStore } from "../store";
 import type { Collection, Tab, TreeNode } from "../types";

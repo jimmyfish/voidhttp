@@ -1,3 +1,4 @@
+import "./CertificatesPane.css";
 /**
  * Settings > Certificates: CA certificates trusted on top of the public CAs, and client certificates
  * (mutual TLS) per host. Each row shows what the file holds, read by Rust, or why it can't be used.

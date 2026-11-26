@@ -1,3 +1,4 @@
+import "./Sidebar.css";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { RenameField } from "./InlineRename";
 import { RowMenu, openAtPointer, type MenuItem, type MenuState } from "./RowMenu";

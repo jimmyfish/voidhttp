@@ -1,3 +1,4 @@
+import "./JsonTable.css";
 import { Fragment, useCallback, useMemo, useState } from "react";
 import {
   type Path,

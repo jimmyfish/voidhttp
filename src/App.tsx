@@ -1,3 +1,4 @@
+import "./App.css";
 import { useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { useStore } from "./store";
@@ -74,7 +75,7 @@ function useTypeTokens() {
     set("--font-size-ui", s.fontSizeUi ? `${s.fontSizeUi}px` : undefined);
     set("--font-size-code", s.fontSizeCode ? `${s.fontSizeCode}px` : undefined);
   }, [s.fontUi, s.fontMono, s.fontSizeUi, s.fontSizeCode]);
-  // Compact mode: one attribute on <html>; the rules live under [data-density="compact"] in styles.css
+  // Compact mode: one attribute on <html>; the rules live under [data-density="compact"] in styles.css and App.css
   useEffect(() => {
     const root = document.documentElement;
     if (s.compact) root.dataset.density = "compact";

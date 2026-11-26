@@ -1,3 +1,4 @@
+import "./InlineRename.css";
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store";
 import { findNode } from "../lib/model";

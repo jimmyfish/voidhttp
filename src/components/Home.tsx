@@ -1,3 +1,4 @@
+import "./Home.css";
 import { Fragment, useRef, useState } from "react";
 import { useStore } from "../store";
 import type { HistoryEntry, ProjectMeta } from "../types";

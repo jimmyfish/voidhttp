@@ -1,0 +1,24 @@
+/* EnvMenu.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+.env-group { margin-left: auto; align-self: center; }
+/* centred in the bar, so its bottom edge keeps 10px off the bar's rule: (52 - 32) / 2 */
+.env-group .env-picker { margin-left: 0; }
+.env-group .env-picker { min-height: 28px; }
+.env-picker {
+  margin-left: auto; display: flex; align-items: center; gap: var(--space-xs); flex-shrink: 0;
+  min-height: 36px; padding: 0 var(--space-sm); white-space: nowrap;
+  border: 1px solid var(--color-field-edge); border-radius: var(--radius-control); background: var(--color-paper); color: var(--color-ink);
+}
+.env-picker:hover { background: var(--color-paper-3); }
+.env-picker:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+/* the environment picker's face: [dot] name [chevron]; EnvMenu opens the list */
+.env-picker { cursor: pointer; }
+.env-picker[aria-expanded="true"] { background: var(--color-paper-3); }
+.env-picker .env-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+/* environment menu: our own list in place of the native select; each row is [dot][name][check] */
+.env-menu { min-width: 200px; max-width: 280px; padding: var(--space-2xs); }
+.env-menu .env-dot-slot { width: 9px; flex-shrink: 0; }
+.env-menu .env-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.env-menu .env-none { color: var(--color-muted); }
+.env-menu .ico.env-check { visibility: hidden; color: var(--color-link); width: 14px; height: 14px; }
+.env-menu button[aria-checked="true"] .env-check { visibility: visible; }
+.env-menu hr { margin: var(--space-3xs) var(--space-xs); }

@@ -1,3 +1,4 @@
+import "./CodeArea.css";
 import { useMemo, type KeyboardEvent, type ReactNode } from "react";
 import { highlightLines } from "../lib/highlight";
 import { toggleLineComments } from "../lib/jsonc";

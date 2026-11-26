@@ -1,0 +1,61 @@
+/* App.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
+/* compact icon-only rail: labels live in tooltips and aria-labels */
+.rail { display: flex; flex-direction: column; align-items: center; gap: var(--space-2xs); padding: var(--space-xs) 0; }
+.rail-mark {
+  display: grid; place-items: center; width: 32px; height: 32px; margin-bottom: var(--space-xs);
+  border-radius: var(--radius-control); background: var(--color-paper);
+}
+.rail-item {
+  display: grid; place-items: center; width: 34px; height: 34px; padding: 0;
+  border: none; border-radius: var(--radius-control); background: transparent; color: var(--color-muted);
+}
+.rail-item:hover { color: var(--color-ink); background: var(--color-paper-3); }
+.rail-item[aria-current="page"] { color: var(--color-link); background: var(--color-accent-soft); }
+.rail-item:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+/* ---------- work area ---------- */
+.work { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+/* resize grip between request and response */
+.divider { height: 12px; flex-shrink: 0; cursor: row-resize; display: grid; place-items: center; border-top: 3px solid var(--color-rule); }
+.divider::after { content: ""; width: 16px; height: 4px; background: radial-gradient(circle, var(--color-muted) 1.25px, transparent 1.75px) 0 0 / 6px 4px repeat-x; }
+.divider:hover { border-top-color: var(--color-accent); }
+/* side by side: the divider stands up between request and response */
+.divider[aria-orientation="vertical"] { width: 12px; height: auto; cursor: col-resize; border-top: none; border-left: 3px solid var(--color-rule); }
+.divider[aria-orientation="vertical"]::after { width: 4px; height: 16px; background-size: 4px 6px; background-repeat: repeat-y; }
+.divider[aria-orientation="vertical"]:hover { border-left-color: var(--color-accent); }
+/* frameless on macOS: see the app strip below, under the native traffic lights */
+.boot { height: 100%; background: var(--color-canvas); }
+.rail-mark svg { display: block; }
+/* request and response share the work area; the divider sets their ratio */
+.work-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.work-body.split > .divider { grid-column: 2; grid-row: 3 / 5; }
+.work-body.split > .response { grid-column: 3; grid-row: 3 / 5; min-width: 0; min-height: 0; }
+body.col-resizing, body.col-resizing * { cursor: col-resize !important; user-select: none; -webkit-user-select: none; }
+.toast {
+  position: fixed; bottom: var(--space-lg); left: 50%; transform: translateX(-50%); z-index: var(--z-toast);
+  padding: var(--space-xs) var(--space-md); border-radius: var(--radius-control);
+  background: var(--color-ink); color: var(--color-paper); box-shadow: 0 8px 24px var(--color-shadow);
+}
+.app > .panel { margin-top: 0; }
+.app-strip { grid-column: 1 / -1; display: flex; align-items: center; min-width: 0; padding-left: 84px; -webkit-user-select: none; user-select: none; }
+.ptabs { display: flex; align-items: center; align-self: stretch; gap: var(--space-2xs); min-width: 0; overflow-x: auto; overflow-y: hidden; }
+.ptab {
+  display: inline-flex; align-items: center; gap: var(--space-xs); flex-shrink: 0; height: 30px; padding: 0 var(--space-sm);
+  border: none; border-radius: var(--radius-control); background: none; color: var(--color-muted); white-space: nowrap;
+}
+.ptab:hover { color: var(--color-ink); background: var(--color-paper-3); }
+.ptab[aria-current="page"] { background: var(--color-paper); color: var(--color-ink); font-weight: 600; }
+.ptab:focus-visible, .ptab-main:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.ptab--project { padding: 0 var(--space-2xs) 0 0; }
+.ptab-main { display: inline-flex; align-items: center; gap: var(--space-xs); height: 100%; padding: 0 var(--space-2xs) 0 var(--space-xs); border: none; background: none; color: inherit; font: inherit; }
+.ptab-close { min-width: 22px; min-height: 22px; border-radius: 6px; }
+.ptab-sep { width: 1px; height: 16px; margin: 0 var(--space-2xs); background: var(--color-edge-soft); }
+@media (max-width: 40rem) {
+  .app-strip { padding-left: var(--space-md); }
+}
+.app > .rail { padding-top: 0; }
+/* ---------- title strip: app settings on the far right ---------- */
+/* right end of the strip: dev build pill, update chip, Settings gear. The group takes the auto margin,
+ * so the gear stays at the far right whichever of the others is shown */
+.strip-end { margin-left: auto; display: flex; align-items: center; gap: var(--space-2xs); flex-shrink: 0; }
+.strip-settings { margin-right: var(--space-xs); flex-shrink: 0; }
+[data-density="compact"] .ptab-main { padding-left: var(--space-sm); }
