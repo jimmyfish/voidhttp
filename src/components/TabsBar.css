@@ -14,13 +14,37 @@
 .tab-pins .tab { flex-shrink: 0; min-width: 0; max-width: 160px; }
 /* the active pinned tab covers the baseline like any active tab */
 .tab-pins .tab[aria-current="page"] { z-index: 1; }
-/* stuck over scrolled tabs: a hairline and a soft shadow on its right edge */
-.tab-pins.is-stuck { box-shadow: inset 0 -1px 0 var(--color-rule), 10px 0 12px -10px var(--color-shadow); }
+/* stuck over scrolled tabs: a hairline on its right edge (the strip's start fade, below, does the rest) */
+.tab-pins.is-stuck { box-shadow: inset 0 -1px 0 var(--color-rule); }
 .tab-pins.is-stuck::after { content: ""; position: absolute; right: 0; top: 8px; bottom: 9px; width: 1px; background: var(--color-rule); }
-.tab .unpin:hover { color: var(--color-ink); background: var(--color-paper-2); }
+.tab .unpin:hover { color: var(--color-ink); background: color-mix(in srgb, var(--color-ink) 10%, transparent); }
 .tab .unpin .ico { width: 14px; height: 14px; }
 .tab-add { align-self: flex-end; margin: 0 0 5px var(--space-2xs); flex-shrink: 0; }
 /* tabs bar toggle: sidebar on the far left */
 .side-toggle { align-self: flex-end; margin-bottom: 5px; flex-shrink: 0; }
 /* on the tab text line, like .tab-add */
 .side-toggle { margin-right: calc(var(--space-sm) * -1 + var(--space-2xs)); }
+/* the edge with tabs past it fades (data-fade-* from TabsBar), so the row never stops hard against the sidebar toggle
+ * or the environment pill. With pinned tabs the start fade begins after the pinned group (--pins-w): the group stays
+ * solid and the tabs scrolling under it fade out against its edge. */
+.tabs { --fade: 28px; --fade-from: var(--pins-w, 0px); }
+.tabs[data-fade-start="true"] {
+  -webkit-mask-image: linear-gradient(to right, #000 var(--fade-from), transparent var(--fade-from), #000 calc(var(--fade-from) + var(--fade)));
+  mask-image: linear-gradient(to right, #000 var(--fade-from), transparent var(--fade-from), #000 calc(var(--fade-from) + var(--fade)));
+}
+.tabs[data-fade-end="true"] {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
+}
+.tabs[data-fade-start="true"][data-fade-end="true"] {
+  -webkit-mask-image: linear-gradient(to right, #000 var(--fade-from), transparent var(--fade-from), #000 calc(var(--fade-from) + var(--fade)), #000 calc(100% - var(--fade)), transparent);
+  mask-image: linear-gradient(to right, #000 var(--fade-from), transparent var(--fade-from), #000 calc(var(--fade-from) + var(--fade)), #000 calc(100% - var(--fade)), transparent);
+}
+/* ---------- drag to reorder (TabsBar startDrag) ----------
+ * The lifted tab follows the pointer with no transition; the tabs it passes slide aside. The hairlines between
+ * inactive tabs would slide with them and stack up, so they hide for the drag. While dragging, the pinned group
+ * rises above a lifted unpinned tab, which then passes under it like any scrolled tab. */
+.tabs.is-dragging .tab { transition: transform 150ms ease; }
+.tabs.is-dragging .tab.dragging { z-index: 1; transition: none; }
+.tabs.is-dragging .tab-pins { z-index: 2; }
+.tabs.is-dragging .tab:not([aria-current="page"]) + .tab:not([aria-current="page"])::before { display: none; }

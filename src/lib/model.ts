@@ -31,6 +31,35 @@ export function toRequestDef(node: RequestDef): RequestDef {
   return cloneRequest({ id, name, method, url, params, ...(pathVars && { pathVars }), headers, body, auth, ...(grpc && { grpc }), ...(ws && { ws }), ...(sio && { sio }), ...(kafka && { kafka }), ...(mqtt && { mqtt }), ...(pubsub && { pubsub }), ...(gql && { gql }), ...(scripts && { scripts }) });
 }
 
+/**
+ * Whether two requests say the same thing, for the unsaved dot: edit then undo back to what is saved and the tab
+ * is clean again. Ids are left out (a row deleted and typed again gets a new one), a missing field equals undefined
+ * or an empty list, and a key/value row with no key and no value counts as no row.
+ */
+export function sameRequest(a: RequestDef, b: RequestDef): boolean {
+  return same(toRequestDef(a), toRequestDef(b));
+}
+
+const blankRow = (v: unknown) => !!v && typeof v === "object" && (v as { key?: unknown }).key === "" && !(v as { value?: unknown }).value;
+
+function same(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  const emptyA = a === undefined || (Array.isArray(a) && a.every(blankRow));
+  const emptyB = b === undefined || (Array.isArray(b) && b.every(blankRow));
+  if (emptyA && emptyB) return true;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    const x = a.filter((v) => !blankRow(v));
+    const y = b.filter((v) => !blankRow(v));
+    return x.length === y.length && x.every((v, i) => same(v, y[i]));
+  }
+  if (!a || !b || typeof a !== "object" || typeof b !== "object" || Array.isArray(a) || Array.isArray(b)) return false;
+  const ra = a as Record<string, unknown>;
+  const rb = b as Record<string, unknown>;
+  const keys = new Set([...Object.keys(ra), ...Object.keys(rb)]);
+  for (const k of keys) if (k !== "id" && !same(ra[k], rb[k])) return false;
+  return true;
+}
+
 // ---------- tree helpers (immutable) ----------
 
 export function findNode(nodes: TreeNode[], id: string): TreeNode | undefined {

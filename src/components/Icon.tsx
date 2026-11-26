@@ -88,7 +88,7 @@ export {
   SendHorizontal,
   ShieldOff,
   Server,
-  Settings,
+  Settings2,
   SlidersHorizontal,
   SunMoon,
   Table2,

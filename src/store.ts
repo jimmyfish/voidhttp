@@ -33,6 +33,7 @@ import {
   pathTo,
   placeNode,
   removeFromTree,
+  sameRequest,
   toRequestDef,
   uid,
   type DropWhere,
@@ -143,6 +144,8 @@ interface State extends ProjectData {
   closeTabs(ids: string[], focus?: string): void;
   /** Pinned tabs come first in `tabs` (the strip draws them at the left); pinning or unpinning moves the tab to that seam. */
   pinTab(id: string, pinned: boolean): void;
+  /** Drag in the strip: puts the tab at index `to` of `tabs`. A tab never crosses the pinned seam (pinned stay first). */
+  moveTab(id: string, to: number): void;
   /** ⇧⌘T: brings back the most recently closed tab of the open project */
   reopenTab(): void;
   /** name of the tab ⇧⌘T would bring back, if any */
@@ -622,6 +625,16 @@ export const useStore = create<State>((set, get) => {
       });
     },
 
+    moveTab(id, to) {
+      set((s) => {
+        const tab = s.tabs.find((t) => t.id === id);
+        if (!tab) return {};
+        const tabs = s.tabs.filter((t) => t.id !== id);
+        tabs.splice(to, 0, tab);
+        return { tabs: pinnedFirst(tabs) };
+      });
+    },
+
     reopenTab() {
       const key = get().currentProjectId ?? "";
       const list = closedTabs.get(key) ?? [];
@@ -667,7 +680,16 @@ export const useStore = create<State>((set, get) => {
     },
 
     updateRequest(tabId, patch) {
-      set((s) => ({ tabs: patchTab(s.tabs, tabId, (t) => ({ ...t, request: { ...t.request, ...patch }, dirty: true })) }));
+      set((s) => ({
+        tabs: patchTab(s.tabs, tabId, (t) => {
+          const request = { ...t.request, ...patch };
+          // a saved request is dirty only while it differs from what is saved: undo back to it and the dot goes
+          const col = t.savedRef && s.collections.find((c) => c.id === t.savedRef!.collectionId);
+          const node = col ? findNode(col.children, t.savedRef!.nodeId) : undefined;
+          const dirty = node?.type === "request" ? !sameRequest(request, node) : true;
+          return { ...t, request, dirty };
+        }),
+      }));
     },
 
     scopeFor(tabId) {

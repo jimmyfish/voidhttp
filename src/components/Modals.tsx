@@ -8,7 +8,7 @@ import { ExampleModal } from "./ExampleModal";
 import { ImportModal } from "./ImportModal";
 import { ExportModal } from "./ExportModal";
 import { KVEditor } from "./KVEditor";
-import { Ban, BookmarkPlus, Braces, Check, ChevronDown, ChevronRight, CircleAlert, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, FileBadge, Folder, FolderPlus, HistoryIcon, Keyboard, LibraryBig, Network, Plus, Send, Settings as Gear, Trash2, TriangleAlert, Type, X, ico } from "./Icon";
+import { Ban, BookmarkPlus, Braces, Check, ChevronDown, ChevronRight, CircleAlert, CircleArrowDown, CircleCheck, CopyPlus, Ellipsis, ExternalLink, FileBadge, Folder, FolderPlus, HistoryIcon, Keyboard, LibraryBig, Network, Plus, Send, Settings2 as Gear, Trash2, TriangleAlert, Type, X, ico } from "./Icon";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useUpdates } from "../updates";
 import { DEV_BUILD } from "../build";

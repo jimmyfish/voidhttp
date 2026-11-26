@@ -15,7 +15,8 @@ import { looksLikeCurl, parseCurl, toCurl } from "../lib/curl";
 import { KVEditor, PathVarsEditor } from "./KVEditor";
 import { CodeArea } from "./CodeArea";
 import { formatJsonc, stripJsonComments } from "../lib/jsonc";
-import { ChevronDown, CircleCheck, CircleDashed, CircleDot, CodeXml, FileCode, SendHorizontal, SlidersHorizontal, WandSparkles, WrapText, ico, icoLg } from "./Icon";
+import { KEYS } from "../shortcuts";
+import { ChevronDown, CircleCheck, CodeXml, FileCode, LoaderCircle, SendHorizontal, SlidersHorizontal, WandSparkles, WrapText, ico, icoLg } from "./Icon";
 import { OPEN_SCRIPT, SNIPPETS, hasScript, type OpenScript } from "../lib/script";
 import { defaultGrpc, isGrpc, looksLikeGrpcurl, parseGrpcurl } from "../lib/grpc";
 import { GrpcRequestPane } from "./GrpcPane";
@@ -159,29 +160,24 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
       message: "This cannot be undone.",
       onConfirm: () => st.deleteExample(ex),
     });
-  // Save and its state: the same for HTTP and gRPC requests. No Delete here (too easy to hit next to
-  // Save); a saved request is deleted from its "…" menu in the sidebar.
+  // Save and its state: the same for every request kind. One button, one width (so nothing beside it moves):
+  // saved and unchanged it reads "Saved" with a green check and does nothing; changed or never saved it reads
+  // "Save" with the tab's blue unsaved dot beside it. No Delete here (too easy to hit next to Save); a saved
+  // request is deleted from its "…" menu in the sidebar.
+  const clean = saved && !tab.dirty;
   const saveControls = !ex && (
-    <>
-      <div className="joined">
-        <button type="button" className="btn" onClick={() => st.saveTab(tab.id)}>
-          Save
-        </button>
-        {!saved ? (
-          <span className="btn joined-tail save-state" role="img" aria-label="Not saved yet" title="Not saved yet">
-            <CircleDashed {...ico} />
-          </span>
-        ) : tab.dirty ? (
-          <span className="btn joined-tail save-state dirty-state" role="img" aria-label="Unsaved changes" title="Unsaved changes">
-            <CircleDot {...ico} />
-          </span>
-        ) : (
-          <span className="btn joined-tail save-state ok" role="img" aria-label="Saved" title="Saved">
-            <CircleCheck {...ico} />
-          </span>
-        )}
-      </div>
-    </>
+    <button
+      type="button"
+      className="btn btn--save"
+      data-saved={clean}
+      disabled={clean}
+      title={clean ? "No changes since the last save" : saved ? `Save  ${KEYS.save}` : `Save to a collection  ${KEYS.save}`}
+      onClick={() => st.saveTab(tab.id)}
+    >
+      {clean && <CircleCheck {...ico} className="ico save-ico" />}
+      {clean ? "Saved" : "Save"}
+      {!clean && <span className="save-dot" role="img" aria-label={saved ? "Unsaved changes" : "Not saved yet"} />}
+    </button>
   );
   const titlePath = ex ? `${exPath} · example` : saved ? [col!.name, ...folders].join(" / ") : "Not saved";
   // the method menu, whichever pane shows it: gRPC, WebSocket, Socket.IO, Kafka and MQTT bring their own settings and a message body;
@@ -313,56 +309,69 @@ export function RequestPane({ tab, grow }: { tab: Tab; grow: number }) {
             Delete
           </button>
         ) : loading ? (
-          <button type="submit" className="btn btn--danger" aria-busy="true">
-            Cancel
-          </button>
+          // the slot keeps Send's width, so Save never moves while a request is out
+          <div className="send-slot">
+            <button type="submit" className="btn btn--danger btn--send btn--cancel" aria-busy="true" title={`Cancel  ${KEYS.cancel}`}>
+              <LoaderCircle {...ico} className="ico send-spin" />
+              <span>Cancel</span>
+              <span className="send-kbd" aria-hidden="true">
+                {KEYS.cancel}
+              </span>
+            </button>
+          </div>
         ) : (
-          <div className="joined send-group" ref={menuRef}>
-            <button type="submit" className="btn btn--primary">
-              Send
-            </button>
-            <button
-              type="button"
-              className="btn btn--primary joined-tail"
-              aria-label="More send options"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              <ChevronDown {...ico} />
-            </button>
-            {menuOpen && (
-              <div className="menu" role="menu" aria-label="Send options">
-                {(hasScript(req.scripts?.pre) || hasScript(req.scripts?.post)) && (
+          <div className="send-slot">
+            <div className="joined send-group" ref={menuRef}>
+              {/* the label and its shortcut inside the button, as ypacapy's Run */}
+              <button type="submit" className="btn btn--primary btn--send" title={`Send  ${KEYS.send}`}>
+                <span>Send</span>
+                <span className="send-kbd" aria-hidden="true">
+                  {KEYS.send}
+                </span>
+              </button>
+              <button
+                type="button"
+                className="btn btn--primary joined-tail"
+                aria-label="More send options"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen(!menuOpen)}
+              >
+                <ChevronDown {...ico} />
+              </button>
+              {menuOpen && (
+                <div className="menu" role="menu" aria-label="Send options">
+                  {(hasScript(req.scripts?.pre) || hasScript(req.scripts?.post)) && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        st.sendTab(tab.id, { skipScripts: true });
+                      }}
+                    >
+                      <SendHorizontal {...ico} />
+                      Send without scripts
+                    </button>
+                  )}
+                  <button type="button" role="menuitem" onClick={copyCurl}>
+                    <CodeXml {...ico} />
+                    Copy as cURL
+                  </button>
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => {
                       setMenuOpen(false);
-                      st.sendTab(tab.id, { skipScripts: true });
+                      st.openModal({ kind: "settings", section: "requests" });
                     }}
                   >
-                    <SendHorizontal {...ico} />
-                    Send without scripts
+                    <SlidersHorizontal {...ico} />
+                    Request settings
                   </button>
-                )}
-                <button type="button" role="menuitem" onClick={copyCurl}>
-                  <CodeXml {...ico} />
-                  Copy as cURL
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    st.openModal({ kind: "settings", section: "requests" });
-                  }}
-                >
-                  <SlidersHorizontal {...ico} />
-                  Request settings
-                </button>
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

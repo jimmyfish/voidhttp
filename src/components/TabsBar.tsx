@@ -11,7 +11,6 @@ import {
   ArrowRightToLine,
   Bookmark,
   CopyX,
-  Menu,
   PanelLeftClose,
   PanelLeftOpen,
   Pin,
@@ -44,11 +43,22 @@ export function TabsBar() {
     document.querySelector('.tabsbar .tab[aria-current="page"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, [activeTabId]);
 
+  // the edge with tabs past it fades (data-fade-*, TabsBar.css); written straight to the DOM so scrolling never re-renders
+  const fadeEdges = () => {
+    const el = strip.current;
+    if (!el) return;
+    el.dataset.fadeStart = String(el.scrollLeft > 1);
+    el.dataset.fadeEnd = String(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  };
+  // a tab opened, closed, renamed or pinned changes the strip's width without resizing the strip itself
+  useLayoutEffect(fadeEdges, [tabs]);
+
   useLayoutEffect(() => {
     const el = strip.current!;
     const measure = () => {
       setPinsW(pinGroup.current?.offsetWidth ?? 0);
       setStuck(el.scrollLeft > 0);
+      fadeEdges();
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -90,11 +100,80 @@ export function TabsBar() {
     ];
   };
 
+  /** Drag to reorder, pointer-driven like the sidebar tree (HTML5 drag and drop is unreliable inside the Tauri webview).
+   * The tab follows the pointer along its own group (pinned or not), the tabs it passes slide aside, and the drop commits
+   * the order. Everything during the drag is written straight to the DOM, so moving the pointer never re-renders. */
+  const startDrag = (e: React.MouseEvent<HTMLDivElement>, t: Tab) => {
+    if (e.button !== 0 || (e.target as HTMLElement).closest(".icon-btn")) return;
+    const el = e.currentTarget;
+    const stripEl = strip.current!;
+    const nodes = [...el.parentElement!.children].filter((n): n is HTMLElement => n.classList.contains("tab"));
+    const from = nodes.indexOf(el);
+    if (from < 0 || nodes.length < 2) return;
+    // offsets in the strip's content, so scrolling mid-drag keeps them valid; the pinned group is sticky and never scrolls
+    const scroll = () => (t.pinned ? 0 : stripEl.scrollLeft);
+    const s0 = scroll();
+    const rects = nodes.map((n) => n.getBoundingClientRect());
+    const step = rects[from].width + (parseFloat(getComputedStyle(el.parentElement!).columnGap) || 0);
+    const min = rects[0].left - rects[from].left;
+    const max = rects[rects.length - 1].right - rects[from].right;
+    const mid0 = (rects[from].left + rects[from].right) / 2;
+    const x0 = e.clientX;
+    const edge = t.pinned ? 0 : pinsW;
+    let active = false;
+    let to = from;
+    const move = (ev: MouseEvent) => {
+      if (!active) {
+        if (Math.abs(ev.clientX - x0) < 5) return;
+        active = true;
+        stripEl.classList.add("is-dragging");
+        el.classList.add("dragging");
+        document.body.classList.add("tree-dragging");
+        s.setActiveTab(t.id);
+      }
+      if (!t.pinned) {
+        const r = stripEl.getBoundingClientRect();
+        if (ev.clientX < r.left + edge + 28) stripEl.scrollLeft -= 10;
+        else if (ev.clientX > r.right - 28) stripEl.scrollLeft += 10;
+      }
+      const dx = Math.min(max, Math.max(min, ev.clientX - x0 + scroll() - s0));
+      el.style.transform = `translateX(${dx}px)`;
+      // a neighbour slides aside once the dragged tab's centre passes its centre
+      to = from;
+      nodes.forEach((n, j) => {
+        if (j === from) return;
+        const c = (rects[j].left + rects[j].right) / 2;
+        let shift = 0;
+        if (j > from && mid0 + dx > c) (shift = -step), (to = Math.max(to, j));
+        else if (j < from && mid0 + dx < c) (shift = step), (to = Math.min(to, j));
+        n.style.transform = shift ? `translateX(${shift}px)` : "";
+      });
+    };
+    const up = () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+      if (!active) return;
+      // the click that ends a drag must not also land on the tab
+      const swallow = (ev: MouseEvent) => (ev.stopPropagation(), ev.preventDefault());
+      window.addEventListener("click", swallow, true);
+      setTimeout(() => window.removeEventListener("click", swallow, true), 0);
+      // no slide back: the transforms and the transition go in the same frame the new order renders
+      stripEl.classList.remove("is-dragging");
+      el.classList.remove("dragging");
+      document.body.classList.remove("tree-dragging");
+      for (const n of nodes) n.style.transform = "";
+      if (to !== from) s.moveTab(t.id, (t.pinned ? 0 : pins.length) + to);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  };
+
   const renderTab = (t: Tab) => (
     <div
       key={t.id}
       className={menu?.id === t.id ? "tab menu-open" : "tab"}
       aria-current={t.id === activeTabId ? "page" : undefined}
+      onMouseDown={(e) => startDrag(e, t)}
       // middle-click closes a normal tab; a pinned one ignores it, so it can't go by accident
       onAuxClick={(e) => e.button === 1 && !t.pinned && s.closeTab(t.id)}
       onContextMenu={(e) => {
@@ -142,7 +221,10 @@ export function TabsBar() {
         ref={strip}
         className="tabs"
         style={pins.length ? ({ "--pins-w": `${pinsW}px` } as React.CSSProperties) : undefined}
-        onScroll={(e) => setStuck(e.currentTarget.scrollLeft > 0)}
+        onScroll={(e) => {
+          setStuck(e.currentTarget.scrollLeft > 0);
+          fadeEdges();
+        }}
       >
         {pins.length > 0 && (
           <div ref={pinGroup} className={stuck ? "tab-pins is-stuck" : "tab-pins"} role="group" aria-label="Pinned tabs">
@@ -158,17 +240,12 @@ export function TabsBar() {
         <RowMenu anchor={menuAnchor} at={{ x: menu.x, y: menu.y }} label={`Tab ${menuTab.request.name}`} items={menuItems(menuTab)} onClose={() => setMenu(null)} />
       )}
 
-      <EnvMenu environments={environments} activeId={activeEnvironmentId} onPick={(id) => s.setActiveEnvironment(id)}>
-        <button
-          type="button"
-          className="btn joined-tail"
-          title="Manage environments (⌘E)"
-          aria-label="Manage environments"
-          onClick={() => s.openModal({ kind: "environments" })}
-        >
-          <Menu {...ico} />
-        </button>
-      </EnvMenu>
+      <EnvMenu
+        environments={environments}
+        activeId={activeEnvironmentId}
+        onPick={(id) => s.setActiveEnvironment(id)}
+        onManage={() => s.openModal({ kind: "environments" })}
+      />
     </div>
   );
 }

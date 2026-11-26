@@ -1,8 +1,20 @@
 /* RequestPane.tsx: its own rules, moved out of src/styles.css in their original order. Shared rules (used by more than one component) stay in src/styles.css. */
-.save-state { display: inline-grid; place-items: center; cursor: default; color: var(--color-muted); }
-.save-state:hover { background: var(--color-paper); }
-.save-state:active { transform: none; }
-.save-state.dirty-state { color: var(--color-warn); }
+/* Send (approved 2026-11-26, preview .hallmark/preview/sendsave.html): label and shortcut inside the button, no icon.
+ * While a request is out the group gives way to an outlined red Cancel with a turning loader and ⌘.; the slot keeps
+ * one width either way, so Save never moves. */
+.request-line .send-slot { display: flex; min-width: 148px; flex-shrink: 0; }
+.request-line .send-slot > .send-group { flex: 1; }
+.request-line .btn--send { flex: 1; gap: var(--space-xs); padding: 0 var(--space-md); font-weight: 700; justify-content: center; }
+.btn--send .send-kbd { margin-left: var(--space-2xs); font: 500 var(--text-sm) / 1 var(--font-ui); letter-spacing: 0.04em; opacity: 0.85; }
+.btn--cancel .send-spin { width: 15px; height: 15px; animation: spin 0.8s linear infinite; }
+.btn--cancel[aria-busy="true"] { cursor: progress; }
+@media (prefers-reduced-motion: reduce) { .btn--cancel .send-spin { animation-duration: 2.4s; } }
+/* Save: one button, 96px in every state (Saved with a green check / Save with the blue unsaved dot), so nothing beside it moves */
+.request-line .btn--save { min-width: 96px; gap: 6px; justify-content: center; }
+.btn--save .save-ico { width: 15px; height: 15px; color: var(--color-ok); }
+/* the tab's unsaved dot (.tab .dirty): 6px, accent */
+.btn--save .save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent); flex-shrink: 0; }
+.btn--save[data-saved="true"]:disabled { opacity: 1; cursor: default; color: var(--color-muted); background: var(--color-paper); }
 /* forms inside a section */
 .form-row { display: grid; grid-template-columns: 120px minmax(0, 420px); align-items: center; gap: var(--space-sm); margin-bottom: var(--space-xs); }
 .form-row > span { color: var(--color-muted); }

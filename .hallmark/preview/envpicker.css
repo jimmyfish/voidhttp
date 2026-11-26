@@ -1,0 +1,56 @@
+/* Hallmark · preview: tab strip edge fade + environment pill · ported to TabsBar.css / EnvMenu.css once approved */
+
+/* ---------- tab strip: the edge with tabs past it fades ----------
+ * TabsBar sets data-fade-start / data-fade-end on .tabs from its scroll position, so the row never stops hard
+ * against the sidebar toggle or the environment pill. 28px of fade, the width of about two letters plus a gap.
+ * With pinned tabs the start fade begins AFTER the pinned group (--pins-w): the group stays solid, the tabs
+ * scrolling under it fade out against its edge. That fade takes over from the stuck group's soft shadow;
+ * the hairline stays. */
+.tabs { --fade: 28px; --fade-from: var(--pins-w, 0px); }
+.tabs[data-fade-start="true"] {
+  -webkit-mask-image: linear-gradient(to right, #000 var(--fade-from), transparent var(--fade-from), #000 calc(var(--fade-from) + var(--fade)));
+  mask-image: linear-gradient(to right, #000 var(--fade-from), transparent var(--fade-from), #000 calc(var(--fade-from) + var(--fade)));
+}
+.tabs[data-fade-end="true"] {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--fade)), transparent);
+}
+.tabs[data-fade-start="true"][data-fade-end="true"] {
+  -webkit-mask-image: linear-gradient(to right, #000 var(--fade-from), transparent var(--fade-from), #000 calc(var(--fade-from) + var(--fade)), #000 calc(100% - var(--fade)), transparent);
+  mask-image: linear-gradient(to right, #000 var(--fade-from), transparent var(--fade-from), #000 calc(var(--fade-from) + var(--fade)), #000 calc(100% - var(--fade)), transparent);
+}
+.tab-pins.is-stuck { box-shadow: inset 0 -1px 0 var(--color-rule); }
+
+/* ---------- environment picker: a tinted pill ----------
+ * No edge, pill radius, bold name. A coloured environment tints the pill from its own tag colour:
+ * fill = the tag at 14% over paper, text and icon = the tag pulled 40% toward ink so Sunflower and Clouds still
+ * read on light and every tag reads on dark. An environment with no colour is a neutral grey pill;
+ * "No environment" is the same pill in muted text. Braces = variables, the rail's Variables icon. */
+.env-group { position: relative; }
+.env-group .env-picker {
+  --pill-fg: var(--color-ink); --pill-bg: var(--color-paper-2);
+  min-height: 28px; gap: 6px; padding: 0 var(--space-xs) 0 10px;
+  border: none; border-radius: var(--radius-pill); background: var(--pill-bg); color: var(--pill-fg); font-weight: 700;
+}
+.env-group .env-picker[data-tint="true"] {
+  --pill-fg: color-mix(in oklab, var(--env-c) 60%, var(--color-ink));
+  --pill-bg: color-mix(in oklab, var(--env-c) 14%, var(--color-paper));
+}
+.env-group .env-picker[data-none="true"] { --pill-fg: var(--color-muted); font-weight: 600; }
+.env-group .env-picker:hover,
+.env-group .env-picker[aria-expanded="true"] { background: color-mix(in oklab, var(--pill-fg) 12%, var(--pill-bg)); }
+.env-picker .ico { width: 14px; height: 14px; color: currentColor; flex-shrink: 0; }
+.env-picker .env-chev { opacity: 0.7; margin-left: 2px; }
+.env-picker .env-name { max-width: 180px; }
+
+/* ---------- environment menu: name over its variable count, Manage at the foot ----------
+ * Each row: [dot][name / "14 variables"][check]. Manage environments (⌘E) moves in here
+ * from the joined tail button the pill no longer has. */
+.env-menu { min-width: 264px; max-width: 320px; }
+.env-menu button[role="menuitemradio"] { min-height: 40px; padding: var(--space-2xs) var(--space-sm); align-items: center; }
+.env-menu .env-text { display: grid; gap: 1px; flex: 1; min-width: 0; }
+.env-menu .env-text small { color: var(--color-muted); font-size: var(--text-xs); font-weight: 400; overflow: hidden; text-overflow: ellipsis; }
+.env-menu .env-manage { min-height: 32px; font-size: var(--text-sm); }
+.env-menu .env-manage .ico { width: 14px; height: 14px; }
+.env-menu .env-manage kbd { margin-left: auto; padding: 0 5px; }
+.env-menu .env-dot, .env-menu .env-dot-slot { margin: 0 2.5px; }

@@ -1,25 +1,31 @@
 import "./EnvMenu.css";
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { Environment } from "../types";
 import { envStyle } from "../lib/tags";
-import { Check, ChevronDown, ico } from "./Icon";
+import { KEYS } from "../shortcuts";
+import { Braces, Check, ChevronDown, SlidersHorizontal, ico } from "./Icon";
+
+const countLabel = (e: Environment) => {
+  const n = e.variables.filter((v) => v.key.trim()).length;
+  return `${n} ${n === 1 ? "variable" : "variables"}`;
+};
 
 /**
- * The environment picker in the tabs bar: our own menu instead of the native macOS one. The face and
- * every row show the environment's colour dot and name (no lettermark badge, in either density);
- * "No environment" comes first, after it a rule, then the environments. `children` is the joined tail
- * (the Manage environments button).
+ * The environment picker in the tabs bar: a pill tinted by the environment's colour (no edge, bold name,
+ * Braces icon; grey when it has no colour, muted for "No environment"), opening our own menu instead of the
+ * native macOS one. Menu rows are [dot][name over its variable count][check]: "No environment" first, a rule,
+ * the environments, a rule, then Manage environments (⌘E).
  */
 export function EnvMenu({
   environments,
   activeId,
   onPick,
-  children,
+  onManage,
 }: {
   environments: Environment[];
   activeId: string | null | undefined;
   onPick: (id: string | null) => void;
-  children?: ReactNode;
+  onManage: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -60,37 +66,55 @@ export function EnvMenu({
       all[next]?.focus();
     }
   };
-  const item = (id: string, name: string, color: Environment["color"]) => (
+  const item = (id: string, name: string, color: Environment["color"], note: string) => (
     <button key={id || "none"} type="button" role="menuitemradio" aria-checked={current === id} onClick={() => pick(id)}>
       {color && envStyle(color) ? <span className="env-dot" style={envStyle(color)} aria-hidden="true" /> : <span className="env-dot-slot" aria-hidden="true" />}
-      <span className={id ? "env-name" : "env-name env-none"}>{name}</span>
+      <span className="env-text">
+        <span className={id ? "env-name" : "env-name env-none"}>{name}</span>
+        <small>{note}</small>
+      </span>
       <Check {...ico} className="ico env-check" />
     </button>
   );
   const label = env ? env.name : "No environment";
 
   return (
-    <div className="joined env-group" ref={wrap}>
+    <div className="env-group" ref={wrap}>
       <button
         ref={btn}
         type="button"
         className="env-picker"
         style={envStyle(env?.color)}
+        data-tint={!!envStyle(env?.color) || undefined}
+        data-none={!env || undefined}
         aria-label={`Environment: ${label}`}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
-        {env?.color && <span className="env-dot" aria-hidden="true" />}
+        <Braces {...ico} className="ico env-ico" />
         <span className="env-name">{label}</span>
-        <ChevronDown {...ico} />
+        <ChevronDown {...ico} className="ico env-chev" />
       </button>
-      {children}
       {open && (
         <div className="menu env-menu" role="menu" aria-label="Environment" ref={menu} onKeyDown={onKey}>
-          {item("", "No environment", undefined)}
+          {item("", "No environment", undefined, "Collection variables only")}
           <hr />
-          {environments.map((e) => item(e.id, e.name, e.color))}
+          {environments.map((e) => item(e.id, e.name, e.color, countLabel(e)))}
+          {environments.length > 0 && <hr />}
+          <button
+            type="button"
+            role="menuitem"
+            className="env-manage"
+            onClick={() => {
+              setOpen(false);
+              onManage();
+            }}
+          >
+            <SlidersHorizontal {...ico} />
+            <span className="env-name">Manage environments</span>
+            <kbd>{KEYS.variables}</kbd>
+          </button>
         </div>
       )}
     </div>

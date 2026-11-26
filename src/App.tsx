@@ -10,7 +10,7 @@ import { Modals } from "./components/Modals";
 import { Home } from "./components/Home";
 import { ProjectTile } from "./components/ProjectIcon";
 import { DEFAULT_SCHEME, findScheme, isDark, schemeTokens } from "./lib/themes";
-import { Braces, CircleCheck, HistoryIcon, House, Layers, Mark, Settings, Undo2, X, ico, icoLg } from "./components/Icon";
+import { Braces, CircleCheck, HistoryIcon, House, Layers, Mark, Settings2, Undo2, X, ico, icoLg } from "./components/Icon";
 import { DropImport } from "./components/DropImport";
 import { UpdateChip } from "./components/UpdateChip";
 import { BuildTag } from "./components/BuildTag";
@@ -128,7 +128,7 @@ function AppStrip() {
           aria-expanded={settingsOpen}
           onClick={() => st.openModal({ kind: "settings" })}
         >
-          <Settings {...ico} />
+          <Settings2 {...ico} />
         </button>
       </div>
     </div>

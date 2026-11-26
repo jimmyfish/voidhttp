@@ -156,9 +156,12 @@ select.field { appearance: none; -webkit-appearance: none; padding-right: 32px; 
 .tab .dirty { width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent); flex-shrink: 0; }
 .tab .dirty { margin-left: var(--space-2xs); }
 /* close is always visible on every tab; the unsaved dot sits beside it, never replaced by it */
-.tab .close { display: inline-grid; min-width: 20px; min-height: 20px; border-radius: 6px; color: var(--color-muted); }
-.tab .close:hover { color: var(--color-ink); background: var(--color-paper-2); }
-.tab .close, .tab .unpin { flex-shrink: 0; }
+/* a round 22px button with a 14px ×, its hover a soft round wash (as ypacapy); no padding, or the browser's default
+ * button padding would push the × off the circle's centre */
+.tab .close { display: inline-grid; place-items: center; width: 22px; height: 22px; min-width: 22px; min-height: 22px; padding: 0; border-radius: 50%; color: var(--color-muted); }
+.tab .close .ico { width: 14px; height: 14px; }
+.tab .close:hover { color: var(--color-ink); background: color-mix(in srgb, var(--color-ink) 10%, transparent); }
+.tab .close, .tab .unpin { flex-shrink: 0; margin-right: 2px; }
 .tab-pins {
   position: sticky; left: 0; z-index: 1; display: flex; align-items: flex-end; gap: var(--space-2xs);
   align-self: stretch; flex-shrink: 0; padding: 0 var(--space-md) 0 var(--space-sm);
@@ -166,7 +169,7 @@ select.field { appearance: none; -webkit-appearance: none; padding-right: 32px; 
   background: var(--color-paper); box-shadow: inset 0 -1px 0 var(--color-rule);
 }
 /* a pinned tab keeps its method + name; the pin replaces the close button (click to unpin) */
-.tab .unpin { display: inline-grid; min-width: 20px; min-height: 20px; border-radius: 6px; color: var(--color-muted); }
+.tab .unpin { display: inline-grid; place-items: center; width: 22px; height: 22px; min-width: 22px; min-height: 22px; padding: 0; border-radius: 50%; color: var(--color-muted); }
 /* a tab whose right-click menu is open reads as pressed, like .row.menu-open in the tree */
 .tab.menu-open:not([aria-current="page"]) { color: var(--color-ink); isolation: isolate; }
 .tab.menu-open:not([aria-current="page"])::after { content: ""; position: absolute; inset: 3px 0 4px; z-index: -1; border-radius: 8px; background: var(--color-paper-3); } /* centred on the tab text line: (42 - 32) / 2 */
@@ -175,8 +178,6 @@ select.field { appearance: none; -webkit-appearance: none; padding-right: 32px; 
 .joined > :first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
 .joined > .joined-tail { margin-left: -1px; border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 0; min-width: 34px; }
 .btn--primary.joined-tail { margin-left: 0; border-left: 1px solid var(--color-on-accent-rule); }
-.save-state.ok { color: var(--color-ok); }
-.env-group .btn { min-height: 28px; }
 .menu {
   position: absolute; top: calc(100% + var(--space-2xs)); right: 0; z-index: var(--z-dropdown); min-width: 220px;
   display: flex; flex-direction: column; padding: var(--space-2xs); border-radius: 10px;
@@ -403,7 +404,7 @@ kbd { font: var(--text-xs) var(--font-mono); padding: var(--space-3xs) var(--spa
 .work-body.split .req-pane > .subtabs { grid-column: 1; grid-row: 3; }
 /* bottom padding matches the response body's bottom margin so both panes end on one line */
 .work-body.split .req-pane > .section { grid-column: 1; grid-row: 4; padding-bottom: var(--space-md); }
-/* while a tree row or the sidebar edge is dragged, keep the cursor and stop text selection */
+/* while a tree row, a tab or the sidebar edge is dragged, keep the cursor and stop text selection */
 body.tree-dragging, body.tree-dragging * { cursor: grabbing !important; user-select: none; -webkit-user-select: none; }
 
 /* the method label sizes to its text; a real <select> lies over it */
@@ -707,7 +708,7 @@ fieldset.ro { display: contents; }
    The faint grey ring keeps Clouds visible on light and Asphalt on dark. */
 .env-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--env-c); box-shadow: inset 0 0 0 1px var(--tag-ring); flex-shrink: 0; }
 .env-dot[hidden] { display: none; }
-.env-menu button { min-height: 28px; padding: 0 var(--space-sm); font-size: var(--text-sm); }
+.env-menu button { min-height: 28px; padding: 0 var(--space-sm); }
 .env-menu button[aria-checked="true"] { background: var(--color-paper-2); font-weight: 600; }
 .vars li .env-dot { margin-right: var(--space-xs); vertical-align: middle; position: relative; top: -1px; }
 /* no colour: Lucide Ban in the dot's place */
