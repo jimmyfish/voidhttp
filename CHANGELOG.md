@@ -2,7 +2,7 @@
 
 All notable changes to voidHTTP are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## [0.1.9] - Unreleased
+## [0.1.9] - 2026-11-26
 
 ### Added
 
@@ -133,7 +133,7 @@ First tagged release.
 - Import from voidHTTP, Postman v2.x, OpenAPI 3 / Swagger 2, HAR, and cURL / grpcurl commands. Export to voidHTTP, Postman v2.1 and HAR.
 - Light and dark themes with colour schemes, system fonts, and compact mode.
 
-[0.1.9]: https://github.com/jimmyfish/voidhttp/compare/v0.1.8...HEAD
+[0.1.9]: https://github.com/jimmyfish/voidhttp/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/jimmyfish/voidhttp/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/jimmyfish/voidhttp/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/jimmyfish/voidhttp/compare/v0.1.5...v0.1.6
